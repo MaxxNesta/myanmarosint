@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     .create({
       data: {
         scenarioParams: params,
-        results:        result,
+        results: result as unknown as Prisma.InputJsonValue,
         iterations:     params.iterations,
       },
     })
