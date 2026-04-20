@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { runMonteCarlo } from '@/lib/simulation'
 import prisma from '@/lib/db'
-
+import { Prisma } from '@prisma/client'
 const bodySchema = z.object({
   initialConflict:        z.number().min(0).max(1).default(0.75),
   initialEconomy:         z.number().min(0).max(1).default(0.30),
