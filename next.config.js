@@ -1,10 +1,9 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   transpilePackages: ['mapbox-gl'],
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
-}
+};
 
-export default nextConfig
+module.exports = nextConfig;
