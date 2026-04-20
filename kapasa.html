@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaPaSa — Myanmar Defense Industries</title>
+  <meta name="description" content="Myanmar Tatmadaw KaPaSa defense production factories — locations, products, and interactive map.">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css?v=4">
+  <style>
+    .kapasa-hero { background:linear-gradient(135deg,#0d1117 0%,#0f1a12 50%,#1a0f0f 100%); padding:5rem 0 3rem; text-align:center; border-bottom:1px solid var(--border); }
+    .kapasa-hero-title { font-family:'Rajdhani',sans-serif; font-size:clamp(2rem,5vw,3.5rem); font-weight:700; color:var(--gold2); letter-spacing:0.1em; margin-bottom:0.25rem; }
+    .kapasa-hero-sub { font-size:0.9rem; color:var(--txt3); letter-spacing:0.15em; margin-bottom:1.5rem; }
+    .kapasa-hero-stats { display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap; margin-top:1.5rem; }
+    .kapasa-stat { text-align:center; }
+    .kapasa-stat-num { display:block; font-family:'Rajdhani',sans-serif; font-size:2rem; font-weight:700; color:var(--gold2); }
+    .kapasa-stat-label { font-size:0.7rem; color:var(--txt3); letter-spacing:0.08em; text-transform:uppercase; }
+
+    #kapasa-map { height:520px; border-radius:var(--radius2); border:1px solid var(--border); margin-bottom:2rem; }
+
+    .kps-filter-row { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .kps-filter-btn { background:var(--card); border:1px solid var(--border); color:var(--txt2); padding:0.35rem 0.85rem; border-radius:20px; font-size:0.78rem; cursor:pointer; transition:all .2s; font-family:'Exo 2',sans-serif; }
+    .kps-filter-btn:hover, .kps-filter-btn.active { background:var(--gold2); color:#0d1117; border-color:var(--gold2); font-weight:600; }
+
+    .kapasa-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.25rem; }
+    .kps-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius2); padding:1.25rem; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+    .kps-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--kps-color,var(--gold2)); }
+    .kps-card:hover { border-color:var(--gold2); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+    .kps-num { font-family:'Rajdhani',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:0.1em; color:var(--kps-color,var(--gold2)); margin-bottom:0.3rem; }
+    .kps-name { font-family:'Rajdhani',sans-serif; font-size:1.05rem; font-weight:700; color:var(--txt); margin-bottom:0.2rem; }
+    .kps-loc { font-size:0.78rem; color:var(--txt3); margin-bottom:0.75rem; }
+    .kps-products { display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.75rem; }
+    .kps-tag { background:rgba(200,151,59,0.08); border:1px solid rgba(200,151,59,0.2); color:var(--gold-dim); font-size:0.68rem; padding:0.15rem 0.5rem; border-radius:3px; }
+    .kps-footer { display:flex; justify-content:space-between; align-items:center; font-size:0.72rem; color:var(--txt3); border-top:1px solid var(--border); padding-top:0.6rem; margin-top:0.4rem; }
+    .kps-status-active { color:#6ab882; font-weight:600; }
+    .kps-status-captured { color:#e83333; font-weight:600; }
+    .kps-status-inactive { color:#8a9ab2; font-weight:600; }
+
+    .kapasa-map-controls { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .kps-layer-btn { background:var(--card); border:1px solid var(--border); color:var(--txt2); padding:0.3rem 0.75rem; border-radius:4px; font-size:0.75rem; cursor:pointer; transition:all .15s; }
+    .kps-layer-btn.active { background:rgba(200,151,59,0.15); border-color:var(--gold2); color:var(--gold2); }
+
+    .kps-legend { display:flex; gap:1.25rem; flex-wrap:wrap; margin-bottom:1.5rem; font-size:0.73rem; color:var(--txt3); }
+    .kps-legend-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:0.35rem; }
+  </style>
+</head>
+<body>
+
+<div id="preloader">
+  <div class="preloader-inner">
+    <span class="preloader-star">✦</span>
+    <div class="preloader-title">TATMADAW</div>
+    <div style="font-size:0.7rem;color:#4a5a72;letter-spacing:0.2em;margin-top:0.3rem">မြန်မာ့တပ်မတော်</div>
+    <div class="preloader-bar"><div class="preloader-fill"></div></div>
+  </div>
+</div>
+
+<nav id="navbar">
+  <a class="nav-brand" href="index.html">
+    <span class="nav-brand-star">✦</span>
+    TATMADAW
+  </a>
+  <div id="nav-links" class="nav-links">
+    <a href="index.html#overview">Overview</a>
+    <a href="index.html#army">Army</a>
+    <a href="index.html#navy">Navy</a>
+    <a href="index.html#airforce">Air Force</a>
+    <a href="equipment.html">Equipment</a>
+    <a href="kapasa.html" class="nav-active">🏭 KaPaSa</a>
+    <a href="index.html#map-section">🗺 Map</a>
+    <a href="index.html#charts">📊 Analytics</a>
+    <a href="index.html#admin">🏛 Command</a>
+    <a href="intel.html" class="nav-intel-link"><span class="live-dot-nav"></span>🔴 Intel</a>
+  </div>
+  <button id="nav-toggle" class="nav-toggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<!-- HERO -->
+<div class="kapasa-hero">
+  <div class="container">
+    <div class="kapasa-hero-title">ကာကွယ်ရေးပစ္စည်းစက်ရုံများ</div>
+    <div class="kapasa-hero-sub">KaPaSa — MYANMAR DEFENSE INDUSTRIES</div>
+    <p style="font-size:0.85rem;color:var(--txt2);max-width:700px;margin:0 auto 1rem;line-height:1.7">
+      Myanmar's Directorate of Defence Industries (DDI) operates 25 KaPaSa production factories and 3 Heavy Industry facilities concentrated along the Irrawaddy River's west bank in Magway and Bago regions. Data sourced from <a href="https://myanmar-now.org/mm/news/12161/" target="_blank" rel="noopener" style="color:var(--gold2)">Myanmar Now</a> and the <a href="https://specialadvisorycouncil.org/fatal-business/made-in-myanmar/" target="_blank" rel="noopener" style="color:var(--gold2)">Special Advisory Council for Myanmar</a> (OSINT).
+    </p>
+    <div class="kapasa-hero-stats">
+      <div class="kapasa-stat"><span class="kapasa-stat-num">25</span><span class="kapasa-stat-label">KaPaSa Factories</span></div>
+      <div class="kapasa-stat"><span class="kapasa-stat-num">3</span><span class="kapasa-stat-label">Heavy Industry Sites</span></div>
+      <div class="kapasa-stat"><span class="kapasa-stat-num">~5,000+</span><span class="kapasa-stat-label">Documented Staff</span></div>
+      <div class="kapasa-stat"><span class="kapasa-stat-num">5</span><span class="kapasa-stat-label">Regions</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<section style="padding:2.5rem 0">
+  <div class="container">
+
+    <!-- Map -->
+    <div class="section-header reveal">
+      <span class="section-badge info">MAP</span>
+      <h2 class="section-title">Interactive Factory Map</h2>
+      <p class="section-subtitle">All 25 documented KaPaSa defense production facilities. Click any marker for details.</p>
+    </div>
+
+    <div class="kapasa-map-controls">
+      <button class="kps-layer-btn active" data-layer="rifles">🔫 Small Arms</button>
+      <button class="kps-layer-btn active" data-layer="ammo">💥 Ammunition</button>
+      <button class="kps-layer-btn active" data-layer="bombs">💣 Bombs & Mines</button>
+      <button class="kps-layer-btn active" data-layer="aa">🎯 Anti-Aircraft</button>
+      <button class="kps-layer-btn active" data-layer="materials">⚙ Materials/Support</button>
+      <button class="kps-layer-btn active" data-layer="heavy">🚗 Heavy Industries</button>
+    </div>
+
+    <div id="kapasa-map"></div>
+
+    <div class="kps-legend">
+      <span><span class="kps-legend-dot" style="background:#e8a06a"></span>Small Arms / Rifles</span>
+      <span><span class="kps-legend-dot" style="background:#c8973b"></span>Ammunition / Shells</span>
+      <span><span class="kps-legend-dot" style="background:#e83333"></span>Bombs / Mines</span>
+      <span><span class="kps-legend-dot" style="background:#6a9be8"></span>Anti-Aircraft</span>
+      <span><span class="kps-legend-dot" style="background:#6ab882"></span>Materials / Support</span>
+      <span><span class="kps-legend-dot" style="background:#9b6ae8"></span>Heavy Industries</span>
+      <span><span class="kps-legend-dot" style="background:#444"></span>Inactive / Construction</span>
+    </div>
+
+    <!-- Info panel -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:2rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+      <strong style="color:var(--gold2)">ကာကွယ်ရေးပစ္စည်းစက်ရုံ (KaPaSa — Defense Production Factory):</strong>
+      Myanmar's KaPaSa network consists of 25 factories under the Directorate of Defence Industries (DDI), deliberately positioned in central Myanmar along the Irrawaddy River's western bank for strategic isolation and river transportation logistics. KaPaSa-6 serves as the primary raw-materials supplier for the entire network. Security is strict — workers may not carry phones, facilities are surrounded by armed perimeters, and family housing is provided on-site to limit external contact. KaPaSa-21 benefits from seven years of Chinese technical collaboration in aerial-bomb and cluster-munitions production. KaPaSa-23 and KaPaSa-25 remain under construction and not yet operational per SAC reporting.
+      The three Heavy Industry facilities near Meiktila (Mandalay Region) produce vehicles, armoured platforms, and UAV/drone components.
+      <span style="color:var(--gold-dim)">⚠ Data sourced from Myanmar Now (2022) and Special Advisory Council for Myanmar. Coordinates approximate. For research purposes only.</span>
+    </div>
+
+    <!-- Factory cards -->
+    <div class="section-header reveal">
+      <span class="section-badge info">FACTORIES</span>
+      <h2 class="section-title">All Documented Facilities</h2>
+      <p class="section-subtitle">25 KaPaSa defense production factories — click any card for full details</p>
+    </div>
+
+    <div class="kps-filter-row">
+      <button class="kps-filter-btn active" data-filter="all">All Facilities</button>
+      <button class="kps-filter-btn" data-filter="rifles">🔫 Small Arms</button>
+      <button class="kps-filter-btn" data-filter="ammo">💥 Ammunition</button>
+      <button class="kps-filter-btn" data-filter="bombs">💣 Bombs &amp; Mines</button>
+      <button class="kps-filter-btn" data-filter="aa">🎯 Anti-Aircraft</button>
+      <button class="kps-filter-btn" data-filter="materials">⚙ Materials</button>
+      <button class="kps-filter-btn" data-filter="heavy">🚗 Heavy Industries</button>
+    </div>
+
+    <div id="kapasa-grid" class="kapasa-grid"></div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">✦ TATMADAW ✦</div>
+  <div class="footer-tagline">Myanmar Armed Forces — Information Portal</div>
+  <div class="footer-source">
+    <strong style="color:var(--txt2)">KaPaSa Data Sources:</strong> Myanmar Now investigative report (2022) · Special Advisory Council for Myanmar — "Made in Myanmar" · Open-source intelligence (OSINT)<br><br>
+    <span style="color:var(--txt3)">All information sourced from publicly available open-source records. Factory coordinates are approximate.
+    This portal is for educational and research purposes only.</span>
+  </div>
+</footer>
+
+<div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <div id="modal-title" class="modal-title"></div>
+        <div id="modal-subtitle" class="modal-subtitle"></div>
+      </div>
+      <button id="modal-close" class="modal-close" aria-label="Close" onclick="closeKpsModal()">✕</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// KaPaSa DATA
+// ═══════════════════════════════════════════════════════════════
+const KPS = [
+  // ── KaPaSa FACTORIES ──────────────────────────────────────────
+  { num:1,  cat:'rifles',    status:'active',   region:'Naypyidaw Union Territory', loc:'Tat Kone Township, 10 mi from Taungoo', coords:[20.1892,96.3542], products:['MA1 Assault Rifle','MA2 Assault Rifle','MA3 Assault Rifle','MA4 Assault Rifle'], staff:null,  area:null,   notes:'Primary infantry rifle production facility supplying the entire Tatmadaw. Produces all four variants of the Myanmar MA-series assault rifle (based on the Heckler & Koch G3 design).' },
+  { num:2,  cat:'ammo',      status:'active',   region:'Magway Region',             loc:'Minbu Township, west of Minbu Town', coords:[19.9290,95.0087], products:['60mm mortar ammunition','Grenade shells','5.5mm cartridges','5.56mm cartridges'], staff:null,  area:null,   notes:'Main mortar ammunition and small-arms cartridge production facility.' },
+  { num:3,  cat:'bombs',     status:'active',   region:'Bago Region',               loc:'Pyay vicinity, Sinthake Village',    coords:[18.7771,95.1901], products:['60mm mortar shells','81mm mortar shells','120mm mortar shells','50kg aerial bombs','100kg aerial bombs','250kg aerial bombs','500kg aerial bombs'], staff:2000, area:null, notes:'Air Force bomb production hub. Commander: Lt. Col. Maung Soe (~2,000 staff). Manufactures the full range of mortar shells and aerial bombs used by the Myanmar Air Force.' },
+  { num:4,  cat:'materials', status:'active',   region:'Naypyidaw Union Territory', loc:'Tat Kone Township, SE of Taungoo',   coords:[20.1272,96.3694], products:['Research & design support','CNC machining','Master production templates','Maintenance hub for all KaPaSa'], staff:null, area:null, notes:'Research and engineering center for the entire DDI network. Per SAC reporting, houses CNC machine expertise and provides design/pattern support for all 25 KaPaSa factories. Functions as the "chief factory" for standards and maintenance.' },
+  { num:5,  cat:'ammo',      status:'active',   region:'Bago Region',               loc:'Uksein Pin, Kamyine Village',        coords:[18.5287,95.0122], products:['Ammunition processing','Cartridge finishing'], staff:null, area:null, notes:'Ammunition preparation and finishing facility, closely linked to KaPaSa-16 adjacent.' },
+  { num:6,  cat:'materials', status:'active',   region:'Bago Region',               loc:'Uksein Pin, Nyaung Kyae Village',    coords:[18.7078,94.9808], products:['Steel processing','Raw metal components','Base material supply to all KaPaSa factories'], staff:null, area:null, notes:'Critical network hub — primary raw-materials supplier for the entire KaPaSa network. Russian and Chinese component imports pass through this facility. All other factories depend on KaPaSa-6 for base metals.' },
+  { num:7,  cat:'bombs',     status:'active',   region:'Magway Region',             loc:'Pyay vicinity',                      coords:[19.6558,95.2615], products:['Hand grenades','Anti-personnel mines','Underwater mines'], staff:null, area:null, notes:'Specialises in grenade and mine production, including anti-personnel and naval/underwater mines.' },
+  { num:8,  cat:'ammo',      status:'active',   region:'Magway Region',             loc:'Sinpaung Wai Town',                  coords:[19.6664,95.2512], products:['Grenade components','Large-calibre weapon components','Heavy weapons assembly'], staff:null, area:null, notes:'Heavy weapons assembly facility producing components for large-calibre weapon systems.' },
+  { num:9,  cat:'ammo',      status:'active',   region:'Bago Region',               loc:'Uksein Pin, Kyauk Phi Village',      coords:[18.6136,94.9928], products:['.50 cal (12.7mm) ammunition','5.56mm ammunition','7.62mm ammunition'], staff:null, area:null, notes:'Small arms ammunition production covering the full calibre range from .50 BMG to 7.62mm NATO.' },
+  { num:10, cat:'ammo',      status:'active',   region:'Magway Region',             loc:'Minbu (upper), Kun Gyi Village',     coords:[19.7998,95.0896], products:['40mm recoilless rifle systems','122mm MLRS rockets','Multiple launch rocket system components'], staff:null, area:null, notes:'Per SAC reporting, produces Multiple Launch Rocket System (MLRS) components including 122mm rockets, in addition to 40mm recoilless systems.' },
+  { num:11, cat:'rifles',    status:'active',   region:'Yangon Region',             loc:'Thaketa Township, Yangon (4 mi)',    coords:[17.3223,96.0248], products:['MA1 Assault Rifle','MA2 Assault Rifle','MA3 Assault Rifle','MA4 Assault Rifle'], staff:null, area:null, notes:'Southern sister facility to KaPaSa-1. Positioned near Yangon for logistical access to Southern and South-East Command units.' },
+  { num:12, cat:'ammo',      status:'active',   region:'Magway Region',             loc:'Salin Township, Sanpyagkan Village', coords:[19.3356,95.0778], products:['60mm mortar shells','81mm mortar shells','120mm mortar shells'], staff:null, area:null, notes:'Mortar ammunition production facility. Commander: Lt. Col. Win Kyuu.' },
+  { num:13, cat:'bombs',     status:'active',   region:'Magway Region',             loc:'Sinpaung Wai, Letpan Village',       coords:[19.9519,94.9798], products:['Underwater mines','Naval mines','Large weapon components'], staff:null, area:null, notes:'Specialised in underwater and naval mine production alongside large weapon components.' },
+  { num:14, cat:'materials', status:'active',   region:'Magway Region',             loc:'Pwintbyu Town',                      coords:[19.9701,94.4491], products:['Gas-filled munition components','Pressurised weapon components'], staff:null, area:null, notes:'Limited public information available. Produces gas-filled components for munitions systems. In 2014, journalists imprisoned after reporting on chemical-adjacent production at this site.' },
+  { num:15, cat:'ammo',      status:'active',   region:'Magway Region',             loc:'Aunglan Township, Waya Thi Village', coords:[19.3750,95.4186], products:['60mm mortar bombs','81mm mortar bombs'], staff:null, area:null, notes:'Supplementary mortar bomb production facility, additional capacity alongside KaPaSa-3 and KaPaSa-12.' },
+  { num:16, cat:'ammo',      status:'active',   region:'Bago Region',               loc:'Uksein Pin, Mouthun Village',        coords:[18.5367,94.9125], products:['Ammunition processing'], staff:null, area:null, notes:'Adjacent to KaPaSa-5; functions as overflow/support ammunition processing capacity.' },
+  { num:17, cat:'ammo',      status:'active',   region:'Magway Region',             loc:'Aunglan Township, Shwe Pann Village',coords:[19.8061,95.7380], products:['60mm bomb fuses (AZDM type)','Mortar detonators','Aerial bomb fuzes'], staff:null, area:null, notes:'Specialises in fuse and detonator production for the aerial bomb and mortar programmes across the network.' },
+  { num:18, cat:'materials', status:'active',   region:'Magway Region',             loc:'Taung Twin Gyi Township (12 mi NE)', coords:[19.8929,95.6420], products:['Military ball bearings','Industrial dies','Precision machined components'], staff:null, area:null, notes:'Precision manufacturing facility producing ball bearings and industrial dies critical to weapon system assembly across the network.' },
+  { num:19, cat:'materials', status:'active',   region:'Bago Region',               loc:'Pyay, Poe Chaung vicinity',          coords:[19.0682,95.6312], products:['Industrial tools','CNC drilling equipment','Precision measurement gauges'], staff:null, area:null, notes:'Testing and tooling support facility with a helicopter landing pad for VIP/logistics access. Produces precision measurement and drilling equipment for the network.' },
+  { num:20, cat:'aa',        status:'active',   region:'Magway Region',             loc:'Saw Township, Settat Tara area',     coords:[20.4647,94.2200], products:['25mm Anti-Aircraft Cannon systems','30mm Anti-Aircraft Cannon systems','SA-16 air defence components'], staff:null, area:50000, notes:'Highly strategic facility spanning ~50,000 acres with two helicopter pads. Personally visited by multiple Commanders-in-Chief including Min Aung Hlaing. CDM defectors described it as "very important." Per SAC, produces self-propelled AA systems and SA-16 MANPADS components.' },
+  { num:21, cat:'bombs',     status:'active',   region:'Magway Region',             loc:'Pawkhu & Nget Pya Villages',         coords:[20.9506,94.3340], products:['Conventional aerial bombs','Cluster munitions','Incendiary bomb components'], staff:3000, area:null, notes:'Seven years of Chinese technical collaboration in bomb manufacturing (confirmed by CDM defectors). Commander: Lt. Col. Nai Aung (~3,000 staff). Produces cluster munitions — a category condemned under the Convention on Cluster Munitions, which Myanmar has not ratified.' },
+  { num:22, cat:'rifles',    status:'active',   region:'Magway Region',             loc:'Shwe Po Kyaing Village',             coords:[21.1931,94.5550], products:['MA-1 (Mark III) Special Forces Rifle','MA-2 (Mark III) Special Forces Rifle','MA-3 (Mark III) Special Forces Rifle','MA-4 (Mark III) Special Forces Rifle'], staff:null, area:null, notes:'Per SAC reporting, produces the Mark III variants of the MA-series specifically configured for special forces units.' },
+  { num:23, cat:'ammo',      status:'inactive', region:'Sagaing/Magway Border',     loc:'Gangaw Township, Kyaw Village',      coords:[22.2025,94.3078], products:['Under construction — not yet operational'], staff:null, area:null, notes:'Per Special Advisory Council (SAC) reporting, KaPaSa-23 remains under construction and has not commenced production. Gangaw Township has been an active conflict zone since 2021.' },
+  { num:24, cat:'materials', status:'active',   region:'Magway Region',             loc:'Poe Town vicinity (10 mi SW)',       coords:[21.5003,94.3639], products:['Aluminium sheet processing','Raw material distribution','Chemical component storage'], staff:null, area:null, notes:'Confirmed helipads visible in satellite imagery (SAC). Chemical weapons-adjacent components reported here in 2014; journalists who reported on this were imprisoned. Primary aluminium supply point for other factories.' },
+  { num:25, cat:'materials', status:'inactive', region:'Magway Region',             loc:'Sao Town, Laung Gyi Village',        coords:[20.9100,94.1539], products:['Under construction — not yet operational'], staff:null, area:null, notes:'Per SAC reporting, construction begun 2014 but facility not yet operational. Land dispute with local farmers during construction phase.' },
+
+  // ── HEAVY INDUSTRIES (DDI) ────────────────────────────────────
+  { num:'HI-1',  cat:'heavy', status:'active', region:'Mandalay Region', loc:'Near Meiktila, Mandalay Region', coords:[20.8600,95.8800], products:['Military utility vehicles','Troop transport vehicles','Vehicle assembly & maintenance'], staff:null, area:null, notes:'Heavy Industry-1 produces and assembles military utility and transport vehicles for the Tatmadaw. Located near Meiktila alongside the other Heavy Industry sites. (Source: SAC for Myanmar)' },
+  { num:'HI-10', cat:'heavy', status:'active', region:'Mandalay Region', loc:'Near Meiktila, Mandalay Region', coords:[20.8700,95.8700], products:['UAV/drone components','Aircraft parts','Unmanned aerial vehicle assembly'], staff:null, area:null, notes:'Heavy Industry-10 produces UAV and drone components, and aircraft parts. Myanmar\'s domestic drone production programme is supported by this facility. (Source: SAC for Myanmar)' },
+  { num:'HI-11', cat:'heavy', status:'active', region:'Mandalay Region', loc:'Near Meiktila, Mandalay Region', coords:[20.8650,95.8650], products:['Armoured personnel carriers','Light tanks','Armoured vehicle assembly'], staff:null, area:null, notes:'Heavy Industry-11 produces armoured vehicles including APCs and light tanks. Myanmar has domestically assembled several APC variants at this site. (Source: SAC for Myanmar)' },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+const catColor = { rifles:'#e8a06a', ammo:'#c8973b', bombs:'#e83333', aa:'#6a9be8', materials:'#6ab882', heavy:'#9b6ae8' };
+const catLabel = { rifles:'Small Arms', ammo:'Ammunition', bombs:'Bombs & Mines', aa:'Anti-Aircraft', materials:'Materials/Support', heavy:'Heavy Industries' };
+const catIcon  = { rifles:'🔫', ammo:'💥', bombs:'💣', aa:'🎯', materials:'⚙', heavy:'🚗' };
+const statusLabel = { active:'Active', captured:'Captured', inactive:'Inactive' };
+
+function esc(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
+
+// ═══════════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════════
+function showKpsModal(num) {
+  const f = KPS.find(x=>x.num===num); if(!f) return;
+  const color = catColor[f.cat] || '#c8973b';
+  document.getElementById('modal-title').textContent = `KaPaSa-${f.num}`;
+  document.getElementById('modal-subtitle').textContent = `${catIcon[f.cat]||''} ${catLabel[f.cat]||f.cat} · ${f.region}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">Location Details</div>
+      <div class="modal-details">
+        <div class="modal-detail"><span class="modal-detail-label">Location</span><span class="modal-detail-value">📍 ${esc(f.loc)}</span></div>
+        <div class="modal-detail"><span class="modal-detail-label">Region</span><span class="modal-detail-value">${esc(f.region)}</span></div>
+        <div class="modal-detail"><span class="modal-detail-label">Coordinates</span><span class="modal-detail-value">${f.coords[0].toFixed(4)}°N, ${f.coords[1].toFixed(4)}°E</span></div>
+        <div class="modal-detail"><span class="modal-detail-label">Status</span><span class="modal-detail-value kps-status-${f.status}">${statusLabel[f.status]}</span></div>
+        ${f.staff ? `<div class="modal-detail"><span class="modal-detail-label">Staff</span><span class="modal-detail-value">~${f.staff.toLocaleString()}</span></div>` : ''}
+        ${f.area  ? `<div class="modal-detail"><span class="modal-detail-label">Area</span><span class="modal-detail-value">~${f.area.toLocaleString()} acres</span></div>` : ''}
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Products Manufactured</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem">${f.products.map(p=>`<span style="background:${color}18;border:1px solid ${color}44;color:${color};font-size:0.76rem;padding:0.2rem 0.55rem;border-radius:3px">${esc(p)}</span>`).join('')}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Notes & Intelligence</div>
+      <p style="font-size:0.85rem;color:var(--txt2);line-height:1.7">${esc(f.notes)}</p>
+    </div>
+    <div style="margin-top:1rem;padding:0.75rem;background:rgba(200,151,59,0.05);border:1px solid var(--border);border-radius:6px;font-size:0.72rem;color:var(--txt3)">
+      ⚠ Coordinates are approximate (±500m). Data sourced from Myanmar Now (2022) and Special Advisory Council for Myanmar.
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function closeKpsModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER CARDS
+// ═══════════════════════════════════════════════════════════════
+function renderCards(filter='all') {
+  const grid = document.getElementById('kapasa-grid');
+  const items = filter==='all' ? KPS : KPS.filter(f=>f.cat===filter);
+  grid.innerHTML = items.map(f => {
+    const color = catColor[f.cat] || '#888';
+    return `
+    <div class="kps-card" style="--kps-color:${color}" onclick="showKpsModal(${f.num})">
+      <div class="kps-num">KaPaSa-${f.num} · ${catIcon[f.cat]||''} ${catLabel[f.cat]||''}</div>
+      <div class="kps-name">${esc(f.loc.split(',')[0])}</div>
+      <div class="kps-loc">📍 ${esc(f.loc)} · ${esc(f.region)}</div>
+      <div class="kps-products">${f.products.slice(0,3).map(p=>`<span class="kps-tag">${esc(p)}</span>`).join('')}${f.products.length>3?`<span class="kps-tag">+${f.products.length-3} more</span>`:''}</div>
+      <div class="kps-footer">
+        <span class="kps-status-${f.status}">${f.status==='active'?'● Active':f.status==='captured'?'✕ Captured':'○ Inactive'}</span>
+        ${f.staff ? `<span>👥 ~${f.staff.toLocaleString()} staff</span>` : ''}
+        ${f.area  ? `<span>📐 ${(f.area/1000).toFixed(0)}k acres</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════════════
+let kpsMap, kpsLayers = {};
+
+function initKpsMap() {
+  kpsMap = L.map('kapasa-map', { center:[19.8,95.2], zoom:7 });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution:'© OpenStreetMap contributors © CARTO', subdomains:'abcd', maxZoom:18
+  }).addTo(kpsMap);
+
+  const mkDot = (color, num, status) => L.divIcon({
+    className:'',
+    html:`<div style="width:32px;height:32px;border-radius:50%;background:${status==='captured'?'#e83333':color};border:2px solid rgba(255,255,255,${status==='inactive'?0.3:0.7});display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;font-family:Rajdhani,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.6);opacity:${status==='inactive'?0.5:1}">
+      ${num}
+    </div>`,
+    iconSize:[32,32], iconAnchor:[16,16], popupAnchor:[0,-16]
+  });
+
+  Object.keys(catColor).forEach(cat => { kpsLayers[cat] = L.layerGroup(); });
+
+  KPS.forEach(f => {
+    const color = catColor[f.cat] || '#888';
+    const marker = L.marker(f.coords, { icon: mkDot(color, f.num, f.status) })
+      .bindPopup(`
+        <div style="min-width:220px">
+          <div style="font-weight:700;font-size:0.9rem;color:${f.status==='captured'?'#e83333':color};margin-bottom:0.3rem">KaPaSa-${f.num}</div>
+          <div style="font-size:0.75rem;color:#8a9ab2;margin-bottom:0.5rem">${catIcon[f.cat]} ${catLabel[f.cat]}</div>
+          <div style="font-size:0.77rem;margin-bottom:0.3rem">📍 ${esc(f.loc)}</div>
+          <div style="font-size:0.72rem;color:#8a9ab2;margin-bottom:0.5rem">${esc(f.region)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.5rem">${f.products.slice(0,2).map(p=>`<span style="background:${color}22;border:1px solid ${color}44;color:${color};font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:2px">${esc(p)}</span>`).join('')}</div>
+          ${f.staff?`<div style="font-size:0.72rem;color:#c8973b">👥 ~${f.staff.toLocaleString()} staff</div>`:''}
+          <div style="margin-top:0.5rem"><button onclick="showKpsModal(${f.num})" style="background:#c8973b;border:none;color:#0d1117;padding:0.25rem 0.75rem;border-radius:3px;font-size:0.72rem;cursor:pointer;font-weight:700">Details →</button></div>
+        </div>`);
+    marker.addTo(kpsLayers[f.cat]);
+  });
+
+  Object.values(kpsLayers).forEach(l => l.addTo(kpsMap));
+
+  document.querySelectorAll('.kps-layer-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      const lyr = kpsLayers[btn.dataset.layer];
+      if(!lyr) return;
+      if(kpsMap.hasLayer(lyr)) kpsMap.removeLayer(lyr); else lyr.addTo(kpsMap);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILTER BUTTONS
+// ═══════════════════════════════════════════════════════════════
+function initFilters() {
+  document.querySelectorAll('.kps-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.kps-filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCards(btn.dataset.filter);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 1200);
+
+  // Navbar toggle
+  const toggle = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('nav-links');
+  if(toggle) toggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+
+  renderCards();
+  initFilters();
+  setTimeout(initKpsMap, 100);
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if(e.target === document.getElementById('modal-overlay')) closeKpsModal();
+  });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeKpsModal(); });
+});
+</script>
+</body>
+</html>

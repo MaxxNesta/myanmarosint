@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  ARMED_CONFLICT
+  POLITICAL_UNREST
+  INFRASTRUCTURE_DISRUPTION
+  HUMANITARIAN_ALERT
+}
+
+enum SourceReliability {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model RawEvent {
+  id         String   @id @default(cuid())
+  sourceId   String   @unique
+  source     String
+  rawData    Json
+  ingestedAt DateTime @default(now())
+  processed  Boolean  @default(false)
+
+  @@index([processed])
+  @@index([ingestedAt])
+}
+
+model ProcessedEvent {
+  id          String            @id @default(cuid())
+  date        DateTime
+  country     String            @default("Myanmar")
+  region      String
+  adminArea   String?
+  type        EventType
+  severity    Int               // 1–5
+  summary     String
+  source      String
+  sourceUrl   String?
+  reliability SourceReliability @default(MEDIUM)
+  confidence  Float             // 0–1
+  latitude    Float?
+  longitude   Float?
+  fatalities  Int               @default(0)
+  actors      String[]
+  tags        String[]
+  rawEventId  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([date])
+  @@index([region])
+  @@index([type])
+  @@index([confidence])
+}
+
+model RiskScore {
+  id             String   @id @default(cuid())
+  region         String
+  date           DateTime @db.Date
+  score          Float    // 0–100 composite
+  conflictScore  Float    // 0–100
+  protestScore   Float    // 0–100
+  disruptionScore Float   // 0–100
+  humanScore     Float    // 0–100
+  eventCount     Int
+  trend          String   @default("stable") // rising | stable | declining
+  calculatedAt   DateTime @default(now())
+
+  @@unique([region, date])
+  @@index([date])
+  @@index([region])
+}
+
+model SimulationResult {
+  id             String   @id @default(cuid())
+  scenarioParams Json
+  results        Json
+  iterations     Int
+  runAt          DateTime @default(now())
+
+  @@index([runAt])
+}
+
+model UpdateLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  change    String
+  reason    String
+  source    String?
+  metadata  Json?
+
+  @@index([timestamp])
+}
