@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
 import prisma from '@/lib/db'
 import { classifySourceReliability, calculateConfidence, deriveSeverity } from '@/lib/confidence'
 import { differenceInDays } from 'date-fns'
