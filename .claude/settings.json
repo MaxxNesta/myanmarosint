@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:specialadvisorycouncil.org)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\MSI\\MiroFish\\myanmar-risk-platform"
+    ]
+  }
+}

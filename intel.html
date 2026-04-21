@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intel — Myanmar Civil War Intelligence</title>
+  <meta name="description" content="Real-time open-source intelligence on Myanmar's civil war — territorial control, threat levels, conflict map, and analyst assessments.">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css?v=4">
+  <style>
+    /* ── THREATCON HERO ───────────────────────────── */
+    .intel-hero { padding:5rem 0 2.5rem; background:linear-gradient(180deg,#0b0f14 0%,#0d1117 100%); border-bottom:1px solid var(--border); }
+    .threatcon-badge { display:inline-flex; align-items:center; gap:0.6rem; padding:0.5rem 1.25rem; border-radius:4px; font-family:'Rajdhani',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:0.15em; margin-bottom:1rem; }
+    .threatcon-5 { background:#e8333322; border:1px solid #e83333; color:#e83333; }
+    .threatcon-4 { background:#f57c0022; border:1px solid #f57c00; color:#f57c00; }
+    .threatcon-3 { background:#f5d62322; border:1px solid #f5d623; color:#f5d623; }
+    .threatcon-2 { background:#3a9ab222; border:1px solid #3a9ab2; color:#3a9ab2; }
+    .threatcon-1 { background:#6ab88222; border:1px solid #6ab882; color:#6ab882; }
+    .pulse-red { animation:pulseRed 1.4s ease-in-out infinite; }
+    @keyframes pulseRed { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .intel-hero-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:1rem; margin-top:1.5rem; }
+    .intel-quick-stat { background:var(--card); border:1px solid var(--border); border-radius:var(--radius2); padding:1rem; text-align:center; }
+    .intel-quick-num { font-family:'Rajdhani',sans-serif; font-size:1.8rem; font-weight:700; }
+    .intel-quick-label { font-size:0.68rem; color:var(--txt3); letter-spacing:0.08em; text-transform:uppercase; margin-top:0.2rem; }
+
+    /* ── THREAT MATRIX ────────────────────────────── */
+    .threat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:0.85rem; }
+    .threat-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius2); padding:1rem; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+    .threat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--tc); }
+    .threat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.4); border-color:var(--tc); }
+    .tc-name { font-weight:700; font-size:0.88rem; color:var(--txt); margin-bottom:0.2rem; }
+    .tc-actors { font-size:0.68rem; color:var(--txt3); margin-bottom:0.5rem; line-height:1.4; }
+    .tc-level { font-family:'Rajdhani',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.1em; padding:0.15rem 0.5rem; border-radius:2px; background:color-mix(in srgb,var(--tc) 15%,transparent); color:var(--tc); border:1px solid color-mix(in srgb,var(--tc) 30%,transparent); display:inline-block; }
+    .tc-trend { font-size:0.72rem; color:var(--txt3); margin-top:0.5rem; }
+
+    /* ── CONFLICT MAP ─────────────────────────────── */
+    #conflict-map { height:580px; border-radius:var(--radius2); border:1px solid var(--border); position:relative; }
+    .map-faction-controls { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem; }
+    .fac-btn { display:flex; align-items:center; gap:0.4rem; background:var(--card); border:1px solid var(--border); color:var(--txt2); padding:0.3rem 0.7rem; border-radius:20px; font-size:0.72rem; cursor:pointer; transition:all .15s; }
+    .fac-btn .fac-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .fac-btn.active { background:rgba(200,151,59,0.1); border-color:var(--gold-dim); color:var(--txt); }
+    .fac-btn:hover { border-color:var(--gold-dim); }
+
+    /* ── TIMELINE SLIDER ──────────────────────────── */
+    .timeline-wrap { background:var(--card); border:1px solid var(--border); border-radius:0 0 var(--radius2) var(--radius2); padding:1rem 1.25rem; margin-top:-1px; }
+    .timeline-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; }
+    .timeline-label { font-family:'Rajdhani',sans-serif; font-size:0.78rem; color:var(--gold2); font-weight:600; letter-spacing:0.06em; }
+    .timeline-year { font-family:'Rajdhani',sans-serif; font-size:1.1rem; font-weight:700; color:var(--txt); }
+    #timeline-slider { width:100%; accent-color:var(--gold2); height:4px; cursor:pointer; }
+    .timeline-ticks { display:flex; justify-content:space-between; margin-top:0.3rem; }
+    .timeline-tick { font-size:0.65rem; color:var(--txt3); }
+    .timeline-tick.active { color:var(--gold2); font-weight:700; }
+    .timeline-play-btn { background:var(--gold2); border:none; color:#0d1117; padding:0.3rem 0.75rem; border-radius:3px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'Rajdhani',sans-serif; letter-spacing:0.08em; margin-left:0.75rem; }
+
+    /* ── INTEL LAYOUT ─────────────────────────────── */
+    .intel-dual { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    .intel-panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius2); overflow:hidden; }
+    .intel-panel-hdr { padding:0.85rem 1.1rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .intel-panel-title { font-family:'Rajdhani',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.1em; color:var(--txt2); }
+    .intel-panel-body { padding:0.75rem; max-height:420px; overflow-y:auto; }
+
+    /* ── ARTICLE CARD ─────────────────────────────── */
+    .intel-article { padding:0.75rem; border-bottom:1px solid var(--border); transition:background .15s; cursor:pointer; }
+    .intel-article:last-child { border-bottom:none; }
+    .intel-article:hover { background:rgba(200,151,59,0.04); }
+    .art-source { font-size:0.64rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.25rem; }
+    .art-title { font-size:0.8rem; color:var(--txt); line-height:1.45; margin-bottom:0.25rem; font-weight:500; }
+    .art-title a { color:inherit; text-decoration:none; }
+    .art-title a:hover { color:var(--gold2); }
+    .art-meta { font-size:0.65rem; color:var(--txt3); display:flex; gap:0.5rem; }
+    .art-tag { display:inline-block; font-size:0.6rem; padding:0.05rem 0.35rem; border-radius:2px; margin-right:0.3rem; }
+
+    /* ── ANALYST ENTRIES ──────────────────────────── */
+    .analyst-entry { padding:0.85rem 1rem; border-bottom:1px solid var(--border); }
+    .analyst-entry:last-child { border-bottom:none; }
+    .ae-hdr { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.4rem; }
+    .ae-region { font-weight:700; font-size:0.82rem; color:var(--txt); }
+    .ae-conf { font-size:0.62rem; color:var(--txt3); border:1px solid var(--border); border-radius:2px; padding:0.1rem 0.35rem; }
+    .ae-text { font-size:0.77rem; color:var(--txt2); line-height:1.6; }
+    .ae-tags { margin-top:0.5rem; display:flex; gap:0.35rem; flex-wrap:wrap; }
+    .ae-tag { font-size:0.62rem; padding:0.1rem 0.4rem; border-radius:2px; }
+    .ae-tag-risk { background:#e8333318; color:#e87070; border:1px solid #e8333330; }
+    .ae-tag-actor { background:#6a9be818; color:#6a9be8; border:1px solid #6a9be830; }
+    .ae-tag-dev { background:#6ab88218; color:#6ab882; border:1px solid #6ab88230; }
+
+    /* ── RISK TABLE ───────────────────────────────── */
+    .risk-row { display:grid; grid-template-columns:1.4fr 0.8fr 2fr 1.2fr; gap:0.5rem; padding:0.65rem 0.9rem; border-bottom:1px solid var(--border); font-size:0.78rem; align-items:center; }
+    .risk-row:last-child { border-bottom:none; }
+    .risk-row-hdr { background:rgba(200,151,59,0.06); font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--txt3); }
+    .risk-bar-wrap { height:5px; background:#1a2535; border-radius:3px; overflow:hidden; }
+    .risk-bar { height:100%; border-radius:3px; transition:width .5s; }
+
+    /* ── LIVE DOT ─────────────────────────────────── */
+    .ldot { width:7px; height:7px; border-radius:50%; background:#e83333; display:inline-block; animation:pulseRed 1.2s infinite; margin-right:0.4rem; }
+
+    /* ── COUNTDOWN ────────────────────────────────── */
+    .intel-countdown { font-family:'Rajdhani',sans-serif; font-size:0.72rem; color:var(--txt3); padding:0.15rem 0.4rem; border:1px solid var(--border); border-radius:2px; }
+    .intel-refresh-btn { background:none; border:1px solid var(--border); color:var(--txt3); padding:0.15rem 0.4rem; border-radius:2px; cursor:pointer; font-size:0.8rem; margin-left:0.3rem; }
+    .intel-refresh-btn:hover { border-color:var(--gold-dim); color:var(--gold2); }
+
+    @media(max-width:768px) {
+      .intel-hero-grid { grid-template-columns:1fr 1fr; }
+      .intel-dual { grid-template-columns:1fr; }
+      .risk-row { grid-template-columns:1fr 0.7fr; }
+      .risk-row > :nth-child(3), .risk-row > :nth-child(4) { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     PLATFORM DETECTION
+     Probes localhost:3000 via Image load (works from file://).
+     If the Next.js platform is running → auto-redirect.
+     If not → remove overlay, reveal static fallback + banner.
+══════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  // Inject a full-screen overlay
+  var ov = document.createElement('div');
+  ov.id = 'plat-ov';
+  ov.innerHTML = [
+    '<div style="position:fixed;inset:0;background:#070b12;z-index:99999;display:flex;',
+    'flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-family:monospace">',
+    '<div style="font-size:0.65rem;color:#4a5a72;letter-spacing:0.25em;text-transform:uppercase">Myanmar Risk Platform</div>',
+    '<div id="plat-msg" style="font-size:0.82rem;color:#64748b;letter-spacing:0.08em">Checking for advanced platform\u2026</div>',
+    '<div style="width:220px;height:2px;background:#1a2332;border-radius:1px;overflow:hidden">',
+    '<div id="plat-bar" style="height:100%;width:0%;background:#1d6fa8;border-radius:1px;transition:width 1.4s linear"></div>',
+    '</div>',
+    '<div style="margin-top:0.4rem;font-size:0.68rem;color:#374151">localhost:3000</div>',
+    '</div>'
+  ].join('');
+  document.documentElement.appendChild(ov);
+  // Kick off the progress bar animation
+  setTimeout(function () {
+    var bar = document.getElementById('plat-bar');
+    if (bar) bar.style.width = '88%';
+  }, 40);
+
+  var resolved = false;
+
+  function onSuccess() {
+    if (resolved) return;
+    resolved = true;
+    var bar = document.getElementById('plat-bar');
+    var msg = document.getElementById('plat-msg');
+    if (bar) bar.style.width = '100%';
+    if (msg) { msg.style.color = '#3b9fd8'; msg.textContent = 'Launching advanced platform\u2026'; }
+    setTimeout(function () {
+      window.location.replace('http://localhost:3000/intel');
+    }, 380);
+  }
+
+  function onFail() {
+    if (resolved) return;
+    resolved = true;
+    // Remove probe overlay, restore normal preloader flow, show offline banner
+    var o = document.getElementById('plat-ov');
+    if (o) o.remove();
+    var banner = document.getElementById('platform-offline-banner');
+    if (banner) banner.style.display = 'flex';
+    // Let the normal preloader animate from here
+    setTimeout(function () {
+      var pre = document.getElementById('preloader');
+      if (pre) pre.classList.add('hidden');
+    }, 1200);
+  }
+
+  var img = new Image();
+  img.onload  = onSuccess;
+  img.onerror = onFail;
+  // Fallback timeout — 2.2 s max probe wait
+  setTimeout(onFail, 2200);
+  img.src = 'http://localhost:3000/favicon.ico?_t=' + Date.now();
+})();
+</script>
+
+<div id="preloader">
+  <div class="preloader-inner">
+    <span class="preloader-star">✦</span>
+    <div class="preloader-title">TATMADAW</div>
+    <div style="font-size:0.7rem;color:#4a5a72;letter-spacing:0.2em;margin-top:0.3rem">မြန်မာ့တပ်မတော်</div>
+    <div class="preloader-bar"><div class="preloader-fill"></div></div>
+  </div>
+</div>
+
+<nav id="navbar">
+  <a class="nav-brand" href="index.html"><span class="nav-brand-star">✦</span>TATMADAW</a>
+  <div id="nav-links" class="nav-links">
+    <a href="index.html#overview">Overview</a>
+    <a href="index.html#army">Army</a>
+    <a href="index.html#navy">Navy</a>
+    <a href="index.html#airforce">Air Force</a>
+    <a href="equipment.html">Equipment</a>
+    <a href="kapasa.html">🏭 KaPaSa</a>
+    <a href="index.html#map-section">🗺 Map</a>
+    <a href="index.html#charts">📊 Analytics</a>
+    <a href="index.html#admin">🏛 Command</a>
+    <a href="intel.html" class="nav-active nav-intel-link"><span class="live-dot-nav"></span>🔴 Intel</a>
+  </div>
+  <button id="nav-toggle" class="nav-toggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     PLATFORM OFFLINE BANNER
+     Hidden by default. Shown when localhost:3000 is not reachable.
+══════════════════════════════════════════════════════ -->
+<div id="platform-offline-banner" style="display:none;align-items:center;gap:1rem;flex-wrap:wrap;
+  background:#0d1520;border-bottom:1px solid rgba(59,159,216,0.25);
+  padding:0.65rem 1.25rem;font-size:0.78rem;color:#64748b">
+  <span style="color:#3b9fd8;font-weight:700;letter-spacing:0.06em;white-space:nowrap">▲ ADVANCED PLATFORM OFFLINE</span>
+  <span>Start the Next.js risk platform for live ACLED data, Monte Carlo simulation, and heatmaps:</span>
+  <code style="background:#111827;border:1px solid rgba(255,255,255,0.1);border-radius:4px;
+    padding:0.2rem 0.6rem;color:#e2e8f0;font-family:monospace;white-space:nowrap">
+    npm install &amp;&amp; npm run dev
+  </code>
+  <a href="http://localhost:3000/intel" target="_blank" rel="noopener"
+    style="margin-left:auto;background:#1d6fa8;color:#fff;padding:0.3rem 0.9rem;
+    border-radius:4px;text-decoration:none;font-weight:600;white-space:nowrap;font-size:0.75rem">
+    Try again →
+  </a>
+</div>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="intel-hero">
+  <div class="container">
+    <div id="threatcon-badge" class="threatcon-badge threatcon-5">
+      <span class="pulse-red ldot"></span>
+      <span>THREATCON LEVEL 5 — CRITICAL</span>
+    </div>
+    <h1 style="font-family:'Rajdhani',sans-serif;font-size:clamp(1.8rem,4vw,3rem);font-weight:700;color:var(--txt);margin-bottom:0.3rem">Myanmar Civil War — Intelligence Dashboard</h1>
+    <p style="color:var(--txt2);font-size:0.85rem;max-width:680px;line-height:1.7">
+      Open-source intelligence analysis of the ongoing Myanmar civil war. Territorial control, threat levels, active fronts, and analyst assessments sourced from DVB, Irrawaddy, Myanmar Now, local networks, and satellite imagery analysis. <span style="color:var(--gold-dim)" id="last-assessed">Last assessed: —</span>
+    </p>
+    <div class="intel-hero-grid">
+      <div class="intel-quick-stat">
+        <div class="intel-quick-num" style="color:#e83333">2</div>
+        <div class="intel-quick-label">CRITICAL Regions</div>
+      </div>
+      <div class="intel-quick-stat">
+        <div class="intel-quick-num" style="color:#f57c00">6</div>
+        <div class="intel-quick-label">HIGH Threat Regions</div>
+      </div>
+      <div class="intel-quick-stat">
+        <div class="intel-quick-num" style="color:#c8973b">~20+</div>
+        <div class="intel-quick-label">Active EAOs</div>
+      </div>
+      <div class="intel-quick-stat">
+        <div class="intel-quick-num" style="color:#6a9be8">~50%</div>
+        <div class="intel-quick-label">Territory Contested</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ THREAT MATRIX ══════════ -->
+<section style="padding:2.5rem 0 0">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge intel-badge"><span class="live-dot-sm"></span> LIVE</span>
+      <h2 class="section-title">Threat Level Matrix</h2>
+      <p class="section-subtitle">State/Region threat assessment — click any tile for detailed analysis</p>
+    </div>
+
+    <div class="threat-grid" id="threat-grid"></div>
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;font-size:0.72rem;color:var(--txt3)">
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:4px;background:#e83333;border-radius:2px"></span>CRITICAL — Active combat</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:4px;background:#f57c00;border-radius:2px"></span>HIGH — Frequent attacks</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:4px;background:#f5d623;border-radius:2px"></span>ELEVATED — Regular incidents</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:4px;background:#3a9ab2;border-radius:2px"></span>GUARDED — Intermittent</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:4px;background:#6ab882;border-radius:2px"></span>LOW — Minimal</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CONFLICT MAP ══════════ -->
+<section style="padding:2.5rem 0 0">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge info">MAP</span>
+      <h2 class="section-title">Territorial Control Map</h2>
+      <p class="section-subtitle">Approximate faction control zones and frontlines — drag the timeline slider to compare across years</p>
+    </div>
+
+    <div class="map-faction-controls" id="faction-controls"></div>
+
+    <div id="conflict-map"></div>
+
+    <!-- Timeline slider -->
+    <div class="timeline-wrap">
+      <div class="timeline-header">
+        <div>
+          <div class="timeline-label">CONFLICT TIMELINE</div>
+          <div id="tl-year-label" class="timeline-year">April 2025 — Current</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span style="font-size:0.72rem;color:var(--txt3)">Auto-play:</span>
+          <button class="timeline-play-btn" id="tl-play-btn" onclick="togglePlay()">▶ PLAY</button>
+          <span style="font-size:0.72rem;color:var(--txt3);margin-left:0.5rem">Drag slider ←→</span>
+        </div>
+      </div>
+      <input type="range" id="timeline-slider" min="0" max="4" value="4" step="1">
+      <div class="timeline-ticks">
+        <span class="timeline-tick" data-idx="0">Jan 2021<br><span style="font-size:0.58rem">Pre-Coup</span></span>
+        <span class="timeline-tick" data-idx="1">Dec 2021<br><span style="font-size:0.58rem">Year 1</span></span>
+        <span class="timeline-tick" data-idx="2">Dec 2022<br><span style="font-size:0.58rem">Year 2</span></span>
+        <span class="timeline-tick" data-idx="3">Nov 2023<br><span style="font-size:0.58rem">Op.1027</span></span>
+        <span class="timeline-tick active" data-idx="4">Apr 2025<br><span style="font-size:0.58rem">Current</span></span>
+      </div>
+    </div>
+
+    <div style="font-size:0.72rem;color:var(--txt3);margin-top:0.75rem;padding:0.6rem 0.8rem;background:var(--card);border:1px solid var(--border);border-radius:4px">
+      ⚠ Territory boundaries are <strong style="color:var(--txt2)">approximate</strong> based on OSINT reporting as of the selected date. Actual frontlines fluctuate daily. Sources: Irrawaddy, DVB, Myanmar Now, local networks, satellite imagery analysis.
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ INTEL FEEDS ══════════ -->
+<section style="padding:2.5rem 0 0">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge intel-badge"><span class="live-dot-sm"></span> LIVE FEEDS</span>
+      <h2 class="section-title">Intelligence Feed &amp; Analysis</h2>
+      <p class="section-subtitle">Live news aggregation + analyst assessments updated continuously</p>
+    </div>
+
+    <div class="intel-dual">
+      <!-- News Panel -->
+      <div class="intel-panel">
+        <div class="intel-panel-hdr">
+          <div class="intel-panel-title"><span class="ldot"></span> LIVE NEWS FEED</div>
+          <div style="display:flex;align-items:center;gap:0.3rem">
+            <span class="intel-countdown" id="intel-countdown">5:00</span>
+            <button class="intel-refresh-btn" onclick="refreshFeed()" title="Refresh">↺</button>
+          </div>
+        </div>
+        <div class="intel-panel-body" id="intel-articles">
+          <div class="intel-loading"><div class="intel-spinner"></div><span>Fetching intelligence reports…</span></div>
+        </div>
+        <div style="padding:0.6rem 0.75rem;border-top:1px solid var(--border);display:flex;gap:0.75rem;font-size:0.68rem;flex-wrap:wrap">
+          <span style="color:var(--txt3)">Sources:</span>
+          <a href="https://english.dvb.no" target="_blank" rel="noopener" class="intel-src-link">DVB English</a>
+          <a href="https://www.irrawaddy.com" target="_blank" rel="noopener" class="intel-src-link">The Irrawaddy</a>
+          <a href="https://myanmar-now.org/en" target="_blank" rel="noopener" class="intel-src-link">Myanmar Now</a>
+          <a href="https://khitthitnews.com" target="_blank" rel="noopener" class="intel-src-link">Khit Thit News</a>
+        </div>
+      </div>
+
+      <!-- Analyst Panel -->
+      <div class="intel-panel">
+        <div class="intel-panel-hdr">
+          <div class="intel-panel-title">📋 ANALYST ASSESSMENTS</div>
+          <span style="font-size:0.65rem;color:var(--txt3)">Updated Apr 2025</span>
+        </div>
+        <div class="intel-panel-body" id="analyst-panel"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ RISK ANALYSIS ══════════ -->
+<section style="padding:2.5rem 0 2.5rem">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge info">RISK</span>
+      <h2 class="section-title">Regional Risk Analysis</h2>
+      <p class="section-subtitle">Attack probability, affected populations, and likely courses of action per region</p>
+    </div>
+
+    <div class="intel-panel">
+      <div class="risk-row risk-row-hdr">
+        <span>State / Region</span>
+        <span>Attack Risk</span>
+        <span>Controlling Actors / Key Developments</span>
+        <span>Primary Risk</span>
+      </div>
+      <div id="risk-table"></div>
+    </div>
+
+    <!-- Key Developments -->
+    <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.1em;color:var(--gold2);margin-bottom:1rem">🔴 MOST LIKELY COURSES OF ACTION (MLCOA)</div>
+        <ul style="font-size:0.8rem;color:var(--txt2);line-height:1.9;padding-left:1.2rem">
+          <li>Arakan Army will continue push to fully encircle and capture Sittwe (Rakhine capital)</li>
+          <li>TNLA/MNDAA will consolidate northern Shan gains; possible push toward Mandalay corridor</li>
+          <li>KIA will expand operations in southern Kachin to link with TNLA lines</li>
+          <li>PDF/NUG forces will continue attrition warfare in Sagaing via IEDs, ambushes, drone strikes</li>
+          <li>Tatmadaw will intensify aerial bombardment as ground capability degrades further</li>
+          <li>KNPP/KNDF will deepen Kayah State control and threaten Loikaw airbase access</li>
+        </ul>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.1em;color:#f57c00;margin-bottom:1rem">⚠ WATCH INDICATORS (Escalation Signals)</div>
+        <ul style="font-size:0.8rem;color:var(--txt2);line-height:1.9;padding-left:1.2rem">
+          <li>Increased Tatmadaw air sorties from Meiktila or Mandalay air bases</li>
+          <li>SAC emergency declaration in Mandalay or Bago regions</li>
+          <li>Any movement of LID-99 or LID-88 out of Central Command area</li>
+          <li>China border crossing closures — signal of major offensive preparation</li>
+          <li>Coordinated PDF attacks on highways 1, 2, or Yangon-Mandalay railway</li>
+          <li>KPA (Korean-style proxy forces) activity near Myawaddy border</li>
+          <li>Any SAC naval vessel movements toward Rakhine coast</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">✦ TATMADAW ✦</div>
+  <div class="footer-tagline">Myanmar Armed Forces — Information Portal</div>
+  <div class="footer-source">
+    <strong style="color:var(--txt2)">Intel Sources:</strong> DVB English · The Irrawaddy · Myanmar Now · Khit Thit News ·
+    Special Advisory Council for Myanmar · ACLED · local networks (OSINT)<br><br>
+    <span style="color:var(--txt3)">All intelligence is derived from open-source reporting. Territorial assessments are approximate.
+    This portal is for educational and research purposes only.</span>
+  </div>
+</footer>
+
+<div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <div id="modal-title" class="modal-title"></div>
+        <div id="modal-subtitle" class="modal-subtitle"></div>
+      </div>
+      <button class="modal-close" aria-label="Close" onclick="closeIntelModal()">✕</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════
+// THREAT DATA
+// ═══════════════════════════════════════════════════════════════
+const REGIONS = [
+  { id:'rakhine',   name:'Rakhine State',    burmese:'ရခိုင်ပြည်နယ်',     level:5, color:'#e83333', actors:'Arakan Army (AA) vs SAC/Tatmadaw',      trend:'↑ Escalating', risk:98,
+    detail:'AA controls ~85% of Rakhine State as of early 2025 and is encircling Sittwe (state capital). Naval base at Kyaukphyu under pressure. SAC forces confined to a few urban garrisons. Expect Sittwe to fall within weeks to months if current trajectory continues. Civilian casualties from SAC airstrikes remain very high.',
+    lcoa:'AA will complete encirclement of Sittwe. SAC airstrikes will intensify against civilian areas. Possible naval engagement if SAC attempts resupply.',
+    affected:'Entire Rakhine State population (~3.8M). High displacement ongoing.' },
+
+  { id:'sagaing',   name:'Sagaing Region',   burmese:'စစ်ကိုင်းတိုင်း',    level:5, color:'#e83333', actors:'PDF/NUG, local CDFs vs SAC',             trend:'↑ Persistent', risk:96,
+    detail:'Largest resistance stronghold. PDF and local militias control most rural areas of Sagaing. Tatmadaw relies on air power (including Chinese-supplied Y-12 aircraft) to hit resistance-held villages. Consistent reports of village burnings by SAC ground forces. Highway 1 (Yangon-Mandalay) subject to IED and ambush attacks.',
+    lcoa:'Continued PDF attrition warfare. SAC airstrikes on civilian infrastructure. No decisive military outcome expected near-term.',
+    affected:'Sagaing Region population (~5.3M). Mass displacement, 1M+ IDPs estimated.' },
+
+  { id:'chin',      name:'Chin State',       burmese:'ချင်းပြည်နယ်',       level:4, color:'#f57c00', actors:'CDF (Chinland Defence Force), CNF vs SAC', trend:'→ Stable High', risk:78,
+    detail:'Chinland Defence Force (CDF) controls Falam, Hakha, and most of Chin State. SAC forces limited to barracks-level resistance. KaPaSa-10 in adjacent Magway Region threatened. India border provides some supply access for resistance forces.',
+    lcoa:'CDF will maintain territorial control. SAC air and artillery strikes will continue. Unlikely to see major SAC ground offensive given manpower constraints.',
+    affected:'Chin State (~0.48M). Significant cross-border displacement to India (Mizoram State).' },
+
+  { id:'kayah',     name:'Kayah State',      burmese:'ကယားပြည်နယ်',       level:4, color:'#f57c00', actors:'KNPP/Karenni Army, KNDF vs SAC',          trend:'→ Stable High', risk:82,
+    detail:'KNPP/Karenni National Defence Forces control most of Kayah (Karenni) State. SAC confined to Loikaw city. Highly significant: Kayah has effectively declared itself under resistance administration. Multiple documented SAC massacres in Kayah (Hpruso Township). OOC-7 at Pekhon under threat.',
+    lcoa:'KNPP will maintain territorial control and increase pressure on Loikaw. SAC airstrikes on civilian targets expected to continue.',
+    affected:'Kayah State (~0.3M). Near-total displacement from contested areas.' },
+
+  { id:'kachin',    name:'Kachin State',     burmese:'ကချင်ပြည်နယ်',       level:4, color:'#f57c00', actors:'Kachin Independence Army (KIA) vs SAC',   trend:'↑ Intensifying', risk:80,
+    detail:'KIA controls most of Kachin State outside major towns. Active fighting near Hpakant (jade mines), Indaw, and Mansi. KIA-SAC conflict predates the 2021 coup — resumed full hostilities in 2011. Post-coup KIA is aligned with NUG and providing training to PDF units. Myitkyina city remains SAC-held.',
+    lcoa:'KIA will continue expanding territorial control. Possible coordinated KIA-TNLA thrust toward Mandalay corridor.',
+    affected:'Kachin State (~1.7M). Long-term IDPs in IDP camps. Jade mine workers under threat.' },
+
+  { id:'nshan',     name:'N. Shan State',    burmese:'ရှမ်းမြောက်ပိုင်း',   level:4, color:'#f57c00', actors:'TNLA, MNDAA, AA (3 Brotherhood) vs SAC', trend:'↑ Post-1027 gains', risk:85,
+    detail:'Operation 1027 (launched Oct 2023) by the Three Brotherhood Alliance (3BHA: TNLA, MNDAA, AA) resulted in capture of Lashio, Hsipaw, Namhsan, Hseni and dozens of SAC military bases. MNDAA controls Kokang/Laukkaing. TNLA dominates northern Shan highway corridors. SAC re-entered ceasefire negotiations but fighting continues.',
+    lcoa:'3BHA forces will consolidate gains and push further south/west. TNLA may threaten Mandalay-Lashio Road (a critical SAC supply line).',
+    affected:'Northern Shan (~1.5M). Mass displacement from conflict zones. China border trade disrupted.' },
+
+  { id:'magway',    name:'Magway Region',    burmese:'မကွေးတိုင်း',         level:4, color:'#f57c00', actors:'PDF/NUG, local CDFs vs SAC',             trend:'↑ Intensifying', risk:75,
+    detail:'Significant PDF activity across Magway. Multiple KaPaSa defense factories located in Magway are now within contested areas — this is a significant strategic development as PDF drone strikes have reportedly targeted KaPaSa-20 and KaPaSa-21 areas. Highway 2 (Yangon-Bagan) interdicted by PDF. LID-55 at Magway under operational pressure.',
+    lcoa:'PDF will continue attacking SAC supply lines and military infrastructure. KaPaSa factory complex increasingly threatened by drone/IED strikes.',
+    affected:'Magway Region (~3.9M). Rural areas largely under resistance influence.' },
+
+  { id:'karen',     name:'Karen State',      burmese:'ကရင်ပြည်နယ်',        level:3, color:'#f5d623', actors:'KNU/KNLA, PDF vs SAC',                   trend:'→ Stable Elevated', risk:62,
+    detail:'KNU/KNLA controls extensive border territory with Thailand. Myawaddy border crossing (key SAC trade/smuggling route with Thailand) has been contested. KNU and allied PDF units conduct operations in Papun, Hpapun, and Dooplaya districts. SAC retains coastal towns (Dawei).',
+    lcoa:'KNU will maintain border territory. Possible escalation around Myawaddy if Thai-Myanmar economic corridor threatened. SAC will prioritise Myawaddy garrison.',
+    affected:'Karen State (~1.7M). Significant cross-border displacement to Thailand.' },
+
+  { id:'mandalay',  name:'Mandalay Region',  burmese:'မန္တလေးတိုင်း',      level:3, color:'#f5d623', actors:'PDF emerging presence vs SAC',           trend:'↑ Growing concern', risk:52,
+    detail:'Mandalay itself remains SAC-controlled but PDF cells are increasingly active in periurban and rural areas. The Central Command (HQ Mandalay) and multiple LID garrisons (LID-88, LID-99 at Meiktila) are still functional but operational tempo is degrading. Mandalay-Lashio corridor threatened by TNLA advance. If Mandalay falls, it would be a decisive blow to SAC.',
+    lcoa:'PDF will increase IED and assassination campaign in Mandalay city. TNLA may push toward Mandalay corridor threatening SAC logistics. SAC will heavily reinforce.',
+    affected:'Mandalay Region (~6.2M). Urban conflict risk increasing.' },
+
+  { id:'bago',      name:'Bago Region',      burmese:'ပဲခူးတိုင်း',         level:3, color:'#f5d623', actors:'PDF, KNU vs SAC',                        trend:'→ Steady', risk:50,
+    detail:'PDF active in Bago Region with IED attacks on highways and railway. Bago is critical as it bridges Yangon to central Myanmar. KaPaSa facilities in Bago Region (KaPaSa-3, 5, 6, 9) are within an increasingly contested area. Southern Command (HQ Taungoo) under operational stress.',
+    lcoa:'PDF will continue highway interdiction. SAC will try to maintain Bago-Yangon road security as it is the main logistics artery.',
+    affected:'Bago Region (~4.9M). Highway disruption affects Yangon supply chains.' },
+
+  { id:'mon',       name:'Mon State',        burmese:'မွန်ပြည်နယ်',         level:2, color:'#3a9ab2', actors:'MNLA, KNU, sporadic PDF vs SAC',          trend:'→ Stable', risk:35,
+    detail:'Mon State remains relatively stable compared to other regions. MNLA operates in remote areas. KNU border operations spill in from Karen State. Mawlamyine (Moulmein) is a functioning SAC city but IED incidents occur periodically.',
+    lcoa:'Sporadic MNLA/KNU operations will continue. No major offensive expected unless broader south-eastern front activates.',
+    affected:'Mon State (~2.1M). Relatively low civilian displacement.' },
+
+  { id:'shan',      name:'S. Shan State',    burmese:'ရှမ်းတောင်ပိုင်း',    level:2, color:'#3a9ab2', actors:'RCSS/SSA-S, UWSA (autonomous), vs SAC',  trend:'→ Fragile ceasefire', risk:38,
+    detail:'Southern Shan is more stable than northern Shan. RCSS/SSA-South operates under a tenuous ceasefire. UWSA (Wa State) is fully autonomous and functions as a de facto independent state — unlikely to join either side. UWSA is the strongest single EAO in Myanmar (~30,000 troops, heavy weapons).',
+    lcoa:'Status quo likely to persist. UWSA will remain neutral. RCSS may re-evaluate ceasefire if SAC weakens further.',
+    affected:'Southern Shan (~2.4M). Wa Special Region effectively self-governing.' },
+
+  { id:'tanintharyi',name:'Tanintharyi',     burmese:'တနင်္သာရီတိုင်း',     level:2, color:'#3a9ab2', actors:'KNU, PDF vs SAC',                        trend:'→ Low level', risk:32,
+    detail:'Long southern coastal strip. KNU operates in northern Tanintharyi. Dawei (Tavoy) and Myeik remain SAC-held. Occasional PDF attacks on gas pipeline infrastructure in the south (significant economic target — Yadana and Yetagun pipelines).',
+    lcoa:'KNU/PDF will continue low-level operations. Gas pipeline sabotage remains a risk — this would have major economic implications for Thailand.',
+    affected:'Tanintharyi (~1.4M). Pipeline areas at risk.' },
+
+  { id:'yangon',    name:'Yangon Region',    burmese:'ရန်ကုန်တိုင်း',       level:2, color:'#3a9ab2', actors:'Urban PDF cells vs SAC',                 trend:'→ Stable Low', risk:28,
+    detail:'Yangon is the commercial capital and remains SAC-controlled. However, PDF urban cells conduct occasional bombings targeting SAC officials, infrastructure, and pro-junta businesses. The Yangon Command (HQ Mayangone) is at heightened alert. Economy severely weakened — kyat has lost ~70% of value since 2021.',
+    lcoa:'Urban IED/bombing campaign by PDF will continue at low level. SAC will maintain Yangon control as its economic lifeline. Mass protests unlikely to re-emerge without a trigger event.',
+    affected:'Yangon Region (~7.4M). Economic deterioration affects whole population.' },
+
+  { id:'ayeyarwady',name:'Ayeyarwady',       burmese:'အင်္ဂရဝတီတိုင်း',    level:1, color:'#6ab882', actors:'Minimal PDF vs SAC',                     trend:'→ Stable Low', risk:18,
+    detail:'The Ayeyarwady Delta is Myanmar\'s rice bowl and remains relatively stable. Southwest Command holds the delta. Some PDF activity but much lower intensity than other regions. However, economic deterioration (currency collapse, fuel costs) is causing significant civilian hardship without armed conflict.',
+    lcoa:'No major offensive expected. Minimal PDF presence. SAC will prioritise securing the delta as a food production zone.',
+    affected:'Ayeyarwady Region (~6.2M). Economic suffering without active combat.' },
+
+  { id:'naypyidaw', name:'Naypyidaw',        burmese:'နေပြည်တော်',          level:1, color:'#6ab882', actors:'SAC fortress capital',                   trend:'→ Fortified', risk:12,
+    detail:'Naypyidaw was purpose-built as an isolated military capital and remains the SAC\'s administrative stronghold. Heavy military presence including Naypyidaw Command, LID-66 garrison, and elite guard units. Multiple KaPaSa factories nearby (KaPaSa-1, KaPaSa-4). Any armed attack on Naypyidaw would require overwhelming coordinated force — extremely unlikely near-term.',
+    lcoa:'Status quo. SAC leadership will remain in Naypyidaw. Some PDF long-range rocket attacks possible but not strategically significant.',
+    affected:'Naypyidaw (~1.1M). Largely insulated from active combat.' },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// FACTION DATA (map)
+// ═══════════════════════════════════════════════════════════════
+const FACTIONS = [
+  { id:'sac',   label:'SAC/Tatmadaw',   color:'#b33333', show:true },
+  { id:'aa',    label:'Arakan Army',    color:'#2d8a4a', show:true },
+  { id:'kia',   label:'KIA (Kachin)',   color:'#e8823a', show:true },
+  { id:'3bha',  label:'3BHA (TNLA/MNDAA)', color:'#4a7ae8', show:true },
+  { id:'pdf',   label:'PDF/NUG',        color:'#3a9ab2', show:true },
+  { id:'knu',   label:'KNU/KNLA',       color:'#3d7a52', show:true },
+  { id:'knpp',  label:'KNPP/KNDF',      color:'#c8973b', show:true },
+  { id:'cdf',   label:'CDF/Chin',       color:'#7ab882', show:true },
+  { id:'uwsa',  label:'UWSA (Wa)',       color:'#888888', show:true },
+];
+
+// Territory snapshots per timeline step
+// Each entry: { faction, center:[lat,lng], r:radius_meters, opacity, label }
+const TIMELINE_DATA = [
+  // 0: Jan 2021 — Pre-coup (Tatmadaw controls ~90%)
+  { year:'January 2021', label:'Pre-Coup Baseline', zones:[
+    { faction:'sac',  center:[19.5,96.2],  r:700000, op:0.18, note:'SAC/Tatmadaw — Controls ~90% of Myanmar' },
+    { faction:'kia',  center:[26.0,97.0],  r:140000, op:0.30, note:'KIA — Northern Kachin (ongoing conflict since 2011)' },
+    { faction:'knu',  center:[17.5,98.2],  r:80000,  op:0.30, note:'KNU/KNLA — Karen border zone' },
+    { faction:'uwsa', center:[22.0,99.5],  r:75000,  op:0.35, note:'UWSA — Wa Special Region (fully autonomous)' },
+  ]},
+  // 1: Dec 2021 — Year 1 post-coup
+  { year:'December 2021', label:'Post-Coup Year 1 — Resistance Emerging', zones:[
+    { faction:'sac',  center:[19.5,96.2],  r:600000, op:0.15, note:'SAC — Losing grip in Sagaing, Chin' },
+    { faction:'kia',  center:[26.0,97.0],  r:155000, op:0.30, note:'KIA — Expanded operations post-coup alliance' },
+    { faction:'pdf',  center:[22.5,95.0],  r:130000, op:0.25, note:'PDF/NUG — Emerging rural Sagaing control' },
+    { faction:'cdf',  center:[22.5,93.7],  r:80000,  op:0.25, note:'CDF/CNF — Chin State resistance growing' },
+    { faction:'knu',  center:[17.5,98.2],  r:90000,  op:0.28, note:'KNU/KNLA — Expanded operations post-coup' },
+    { faction:'uwsa', center:[22.0,99.5],  r:75000,  op:0.35, note:'UWSA — Wa Special Region (neutral)' },
+    { faction:'knpp', center:[19.4,97.3],  r:55000,  op:0.30, note:'KNPP/Karenni — Resistance taking hold' },
+  ]},
+  // 2: Dec 2022 — Year 2
+  { year:'December 2022', label:'Year 2 — Consolidation', zones:[
+    { faction:'sac',  center:[19.5,96.2],  r:480000, op:0.13, note:'SAC — Territorial erosion in north and west' },
+    { faction:'kia',  center:[26.0,97.0],  r:175000, op:0.30, note:'KIA — Significant gains in Kachin' },
+    { faction:'pdf',  center:[22.5,94.8],  r:170000, op:0.25, note:'PDF/NUG — Sagaing increasingly controlled' },
+    { faction:'pdf',  center:[21.5,94.5],  r:100000, op:0.20, note:'PDF/NUG — Magway rural areas' },
+    { faction:'cdf',  center:[22.3,93.6],  r:120000, op:0.28, note:'CDF/CNF — Controls major Chin towns' },
+    { faction:'aa',   center:[20.0,93.1],  r:100000, op:0.28, note:'Arakan Army — Rakhine operations resumed Dec 2022' },
+    { faction:'knu',  center:[17.2,98.0],  r:100000, op:0.28, note:'KNU/KNLA — Expanded Karen State control' },
+    { faction:'knpp', center:[19.4,97.2],  r:65000,  op:0.30, note:'KNPP — Controls most of Kayah State' },
+    { faction:'uwsa', center:[22.0,99.5],  r:75000,  op:0.35, note:'UWSA — Wa Special Region (neutral)' },
+  ]},
+  // 3: Nov 2023 — Operation 1027
+  { year:'November 2023', label:'Operation 1027 — Major Offensive Launch', zones:[
+    { faction:'sac',  center:[19.5,96.2],  r:360000, op:0.12, note:'SAC — Reeling from Operation 1027' },
+    { faction:'kia',  center:[26.0,97.0],  r:195000, op:0.30, note:'KIA — Dominant in Kachin' },
+    { faction:'3bha', center:[23.0,97.9],  r:150000, op:0.30, note:'TNLA — Op.1027: rapid Shan State advance' },
+    { faction:'3bha', center:[23.5,98.8],  r:65000,  op:0.35, note:'MNDAA — Laukkaing/Kokang captured' },
+    { faction:'aa',   center:[20.3,93.2],  r:160000, op:0.30, note:'Arakan Army — Rapid Rakhine advance' },
+    { faction:'pdf',  center:[22.5,94.8],  r:190000, op:0.25, note:'PDF/NUG — Sagaing stronghold' },
+    { faction:'pdf',  center:[21.0,94.3],  r:120000, op:0.22, note:'PDF/NUG — Magway expansion' },
+    { faction:'cdf',  center:[22.3,93.5],  r:130000, op:0.28, note:'CDF — Chin State consolidation' },
+    { faction:'knu',  center:[17.0,98.0],  r:110000, op:0.28, note:'KNU/KNLA — Karen operations' },
+    { faction:'knpp', center:[19.4,97.1],  r:68000,  op:0.32, note:'KNPP/KNDF — Kayah State' },
+    { faction:'uwsa', center:[22.0,99.5],  r:75000,  op:0.35, note:'UWSA — Wa Special Region (neutral)' },
+  ]},
+  // 4: Apr 2025 — Current
+  { year:'April 2025', label:'Current Situation — SAC Losing Grip', zones:[
+    { faction:'sac',  center:[19.5,96.2],  r:250000, op:0.10, note:'SAC/Tatmadaw — Confined to major towns; losing territory rapidly' },
+    { faction:'aa',   center:[20.0,93.2],  r:215000, op:0.32, note:'Arakan Army — Controls ~85% of Rakhine; besieging Sittwe' },
+    { faction:'kia',  center:[26.0,97.0],  r:220000, op:0.30, note:'KIA — Dominant across Kachin; aligned with NUG' },
+    { faction:'3bha', center:[23.2,97.9],  r:175000, op:0.30, note:'TNLA — Controls vast N. Shan; threatens Mandalay corridor' },
+    { faction:'3bha', center:[23.6,98.8],  r:70000,  op:0.35, note:'MNDAA — Kokang/Laukkaing fully controlled' },
+    { faction:'pdf',  center:[22.5,94.8],  r:210000, op:0.25, note:'PDF/NUG — Rural Sagaing stronghold; drone capability' },
+    { faction:'pdf',  center:[21.0,94.2],  r:140000, op:0.22, note:'PDF/NUG — Magway rural control' },
+    { faction:'cdf',  center:[22.2,93.5],  r:140000, op:0.28, note:'CDF/CNF — Controls Chin State towns' },
+    { faction:'knu',  center:[16.8,98.0],  r:120000, op:0.28, note:'KNU/KNLA — Karen border territory' },
+    { faction:'knpp', center:[19.4,97.1],  r:72000,  op:0.32, note:'KNPP/KNDF — Most of Kayah State under control' },
+    { faction:'uwsa', center:[22.0,99.5],  r:75000,  op:0.35, note:'UWSA — Wa Special Region (autonomous, neutral)' },
+  ]},
+];
+
+// Recent incidents for the map
+const INCIDENTS = [
+  { coords:[20.1,92.9], type:'combat', label:'Sittwe siege', note:'AA besieging Sittwe — naval approaches cut off', date:'2025' },
+  { coords:[23.2,97.7], type:'combat', label:'N. Shan front', note:'TNLA advancing toward Mandalay-Lashio road', date:'2025' },
+  { coords:[22.5,94.9], type:'airstrike', label:'Sagaing airstrike', note:'SAC airstrikes on PDF positions, civilian casualties reported', date:'2025' },
+  { coords:[22.2,94.3], type:'combat', label:'KaPaSa-23 area', note:'Active conflict zone in Gangaw Township', date:'2025' },
+  { coords:[19.6,97.2], type:'combat', label:'Loikaw pressure', note:'KNPP/KNDF increasing pressure on Loikaw city', date:'2025' },
+  { coords:[25.3,97.4], type:'combat', label:'Kachin front', note:'KIA operations near Myitkyina', date:'2025' },
+  { coords:[16.5,98.3], type:'combat', label:'Karen front', note:'KNU/PDF operations near Kawkareik', date:'2025' },
+  { coords:[17.0,96.2], type:'bombing', label:'Yangon IED', note:'Urban PDF cell activity; occasional bombings', date:'2025' },
+  { coords:[19.3,96.5], type:'airstrike', label:'Magway airstrike', note:'SAC airstrike on Magway PDF positions', date:'2025' },
+];
+
+// Analyst assessments
+const ASSESSMENTS = [
+  { region:'Rakhine State', conf:'HIGH CONF', tags:['risk:critical','actor:aa','dev:siege'],
+    text:'Arakan Army has achieved effective military dominance over Rakhine State. Sittwe, the state capital, is encircled with overland supply cut. SAC forces are reduced to garrison defence. Naval resupply attempts are contested. Expect Sittwe to fall within the next 60–120 days under current conditions. This would constitute the first major state capital to fall to a resistance faction.' },
+  { region:'Northern Shan — Operation 1027 Aftermath', conf:'HIGH CONF', tags:['risk:high','actor:3bha','dev:frontline'],
+    text:'Three Brotherhood Alliance has consolidated Op.1027 gains but fighting continues along multiple axes. TNLA is pushing toward the Mandalay-Lashio Road (Highway 3). If the highway falls, SAC Mandalay Region loses its main northern supply line. SAC has deployed additional LID elements to the Mandalay corridor but is outgunned on northern approaches.' },
+  { region:'Sagaing PDF — Threat to KaPaSa Factories', conf:'MEDIUM CONF', tags:['risk:high','actor:pdf','dev:capability'],
+    text:'PDF drone capability has significantly improved. Commercial drone-adapted IEDs have struck military vehicles, a patrol boat, and at least one military airstrip in Sagaing. PDF units are within operational range of multiple KaPaSa factories in Magway (particularly KaPaSa-20, KaPaSa-21). A successful strike on KaPaSa-21 would significantly degrade SAC cluster munitions production.' },
+  { region:'Mandalay — Emerging Risk', conf:'LOW CONF', tags:['risk:elevated','actor:pdf','dev:watch'],
+    text:'PDF cells are increasingly active in Mandalay\'s peri-urban zones. Intelligence suggests IED and VIP assassination attempts targeting senior SAC officers stationed at Central Command. If TNLA secures the Lashio Road, Mandalay Region would face significant supply disruption. Mandalay\'s fall would be existentially significant for the SAC regime — expect maximum military response if threatened.' },
+  { region:'Kachin — KIA-NUG Coordination', conf:'MEDIUM CONF', tags:['risk:high','actor:kia','dev:alliance'],
+    text:'KIA has deepened operational coordination with NUG/PDF, providing training, logistics, and weapons access through Kachin supply lines. KIA is pushing to link its southern front with TNLA positions in northern Shan — if achieved, this creates a continuous anti-SAC front from eastern Myanmar to the Indian border, effectively cutting off Northern Command.' },
+  { region:'Chin–India Border Corridor', conf:'LOW CONF', tags:['risk:high','actor:cdf','dev:logistics'],
+    text:'CDF/NUG forces use India\'s Mizoram State as a logistics corridor despite official Indian government statements of neutrality. This corridor provides arms, medical supplies, and safe haven. CDF controls Hakha (state capital) and Falam. Any Indian border closure would significantly impact Chin resistance capacity.' },
+];
+
+// Risk table data
+const RISK_ROWS = [
+  { name:'Rakhine State',   level:'CRITICAL', pct:98, color:'#e83333', actors:'AA vs SAC (siege of Sittwe)',              primary:'Urban combat, civilian casualties, naval incidents' },
+  { name:'Sagaing Region',  level:'CRITICAL', pct:96, color:'#e83333', actors:'PDF/NUG vs SAC (airstrikes/IEDs)',          primary:'Airstrikes, village burnings, highway disruption' },
+  { name:'Kayah State',     level:'HIGH',     pct:82, color:'#f57c00', actors:'KNPP/KNDF controls state',                 primary:'Artillery, displacement, airstrikes on civilians' },
+  { name:'N. Shan State',   level:'HIGH',     pct:85, color:'#f57c00', actors:'3BHA advancing, TNLA holds major areas',   primary:'Frontline combat, Mandalay corridor interdiction' },
+  { name:'Kachin State',    level:'HIGH',     pct:80, color:'#f57c00', actors:'KIA dominates, SAC in towns only',         primary:'Combat, jade mine conflict, displacement' },
+  { name:'Chin State',      level:'HIGH',     pct:78, color:'#f57c00', actors:'CDF/CNF holds state, SAC airstrikes',      primary:'Airstrikes, India border corridor risk' },
+  { name:'Magway Region',   level:'HIGH',     pct:75, color:'#f57c00', actors:'PDF advancing, KaPaSa threatened',         primary:'IED, drone strikes, KaPaSa factory risk' },
+  { name:'Karen State',     level:'ELEVATED', pct:62, color:'#f5d623', actors:'KNU/KNLA controls border, PDF active',     primary:'Border clashes, Myawaddy trade risk' },
+  { name:'Mandalay Region', level:'ELEVATED', pct:52, color:'#f5d623', actors:'PDF cells growing, TNLA threat incoming',  primary:'Urban IED, Mandalay corridor risk' },
+  { name:'Bago Region',     level:'ELEVATED', pct:50, color:'#f5d623', actors:'PDF/KNU activity, highway interdiction',   primary:'Supply line attacks, KaPaSa factory proximity' },
+  { name:'Mon State',       level:'GUARDED',  pct:35, color:'#3a9ab2', actors:'MNLA/KNU sporadic ops',                   primary:'Sporadic clashes, border spillover' },
+  { name:'Tanintharyi',     level:'GUARDED',  pct:32, color:'#3a9ab2', actors:'KNU/PDF pipeline area',                   primary:'Gas pipeline sabotage risk' },
+  { name:'Yangon Region',   level:'GUARDED',  pct:28, color:'#3a9ab2', actors:'Urban PDF cells, SAC stronghold',          primary:'Urban bombing, economic collapse' },
+  { name:'Ayeyarwady',      level:'LOW',      pct:18, color:'#6ab882', actors:'Minimal PDF, SAC holds delta',            primary:'Economic hardship, minimal combat' },
+  { name:'Naypyidaw',       level:'LOW',      pct:12, color:'#6ab882', actors:'SAC fortress capital',                    primary:'Long-range rocket risk only' },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function esc(s){ const d=document.createElement('div'); d.textContent=String(s??''); return d.innerHTML; }
+function closeIntelModal(){ document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow=''; }
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER THREAT GRID
+// ═══════════════════════════════════════════════════════════════
+function renderThreatGrid() {
+  const levelLabel = { 5:'CRITICAL', 4:'HIGH', 3:'ELEVATED', 2:'GUARDED', 1:'LOW' };
+  document.getElementById('threat-grid').innerHTML = REGIONS.map(r => `
+    <div class="threat-card" style="--tc:${r.color}" onclick="openRegionModal('${r.id}')">
+      <div class="tc-name">${esc(r.name)}</div>
+      <div class="tc-actors">${esc(r.actors)}</div>
+      <span class="tc-level">${levelLabel[r.level]} (${r.risk}%)</span>
+      <div class="tc-trend">${esc(r.trend)}</div>
+    </div>`).join('');
+}
+
+function openRegionModal(id) {
+  const r = REGIONS.find(x=>x.id===id); if(!r) return;
+  const levelLabel = { 5:'CRITICAL', 4:'HIGH', 3:'ELEVATED', 2:'GUARDED', 1:'LOW' };
+  document.getElementById('modal-title').textContent = r.name;
+  document.getElementById('modal-subtitle').textContent = `${r.burmese} · ${levelLabel[r.level]} THREAT · ${r.risk}% Risk`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">Current Situation</div>
+      <p style="font-size:0.85rem;color:var(--txt2);line-height:1.7">${esc(r.detail)}</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Likely Course of Action (LCOA)</div>
+      <p style="font-size:0.83rem;color:var(--txt2);line-height:1.6">${esc(r.lcoa)}</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Affected Population</div>
+      <p style="font-size:0.82rem;color:var(--gold-dim)">${esc(r.affected)}</p>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONFLICT MAP
+// ═══════════════════════════════════════════════════════════════
+let cMap, tlLayers = [], activeFactions = new Set(FACTIONS.map(f=>f.id));
+let tlIdx = 4, tlPlaying = false, tlTimer = null;
+
+function buildFactionControls() {
+  const el = document.getElementById('faction-controls');
+  el.innerHTML = FACTIONS.map(f => `
+    <button class="fac-btn active" data-fac="${f.id}" onclick="toggleFaction('${f.id}',this)">
+      <span class="fac-dot" style="background:${f.color}"></span>${esc(f.label)}
+    </button>`).join('');
+}
+
+function toggleFaction(id, btn) {
+  if(activeFactions.has(id)) { activeFactions.delete(id); btn.classList.remove('active'); }
+  else { activeFactions.add(id); btn.classList.add('active'); }
+  renderTimeline(tlIdx);
+}
+
+function initConflictMap() {
+  cMap = L.map('conflict-map', { center:[20.5,96.0], zoom:6 });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:18
+  }).addTo(cMap);
+  renderTimeline(4);
+  renderIncidents();
+}
+
+function renderTimeline(idx) {
+  tlIdx = idx;
+  tlLayers.forEach(l => { if(cMap.hasLayer(l)) cMap.removeLayer(l); });
+  tlLayers = [];
+  const snap = TIMELINE_DATA[idx];
+  snap.zones.forEach(z => {
+    if(!activeFactions.has(z.faction)) return;
+    const fac = FACTIONS.find(f=>f.id===z.faction);
+    const color = fac ? fac.color : '#888';
+    const layer = L.circle(z.center, {
+      radius:z.r, color, fillColor:color, fillOpacity:z.op,
+      weight:1.5, dashArray: z.faction==='sac' ? '4,4' : null
+    }).bindPopup(`<div style="min-width:200px">
+      <div style="font-weight:700;font-size:0.85rem;color:${color};margin-bottom:0.25rem">${esc(z.note.split('—')[0])}</div>
+      <p style="font-size:0.75rem;color:#8a9ab2;line-height:1.5;margin:0">${esc(z.note)}</p>
+    </div>`);
+    layer.addTo(cMap);
+    tlLayers.push(layer);
+  });
+  // Update UI
+  const tl = document.getElementById('tl-year-label');
+  if(tl) tl.textContent = `${snap.year} — ${snap.label}`;
+  document.querySelectorAll('.timeline-tick').forEach(t => {
+    t.classList.toggle('active', parseInt(t.dataset.idx)===idx);
+  });
+}
+
+function renderIncidents() {
+  const incIcon = (type) => L.divIcon({
+    className:'',
+    html:`<div style="width:14px;height:14px;border-radius:50%;background:${type==='airstrike'?'#e83333':type==='bombing'?'#f57c00':'#f5d623'};border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 8px ${type==='airstrike'?'#e83333':'#f57c00'}88;animation:pulseRed 1.4s infinite"></div>`,
+    iconSize:[14,14], iconAnchor:[7,7], popupAnchor:[0,-8]
+  });
+  INCIDENTS.forEach(inc => {
+    L.marker(inc.coords, { icon:incIcon(inc.type) })
+      .bindPopup(`<div style="min-width:180px">
+        <div style="font-weight:700;font-size:0.82rem;color:${inc.type==='airstrike'?'#e83333':'#f5d623'};margin-bottom:0.2rem">${inc.type.toUpperCase()} — ${esc(inc.label)}</div>
+        <p style="font-size:0.73rem;color:#8a9ab2;margin:0;line-height:1.5">${esc(inc.note)}</p>
+        <div style="font-size:0.65rem;color:#555;margin-top:0.3rem">${esc(inc.date)}</div>
+      </div>`).addTo(cMap);
+  });
+}
+
+// Timeline controls
+document.addEventListener('DOMContentLoaded', () => {
+  const slider = document.getElementById('timeline-slider');
+  if(slider) slider.addEventListener('input', e => renderTimeline(parseInt(e.target.value)));
+});
+
+function togglePlay() {
+  const btn = document.getElementById('tl-play-btn');
+  if(tlPlaying) {
+    clearInterval(tlTimer); tlPlaying=false; btn.textContent='▶ PLAY'; return;
+  }
+  tlPlaying=true; btn.textContent='⏸ PAUSE';
+  let idx = tlIdx >= 4 ? 0 : tlIdx;
+  renderTimeline(idx);
+  document.getElementById('timeline-slider').value = idx;
+  tlTimer = setInterval(() => {
+    idx = (idx+1) % 5;
+    renderTimeline(idx);
+    document.getElementById('timeline-slider').value = idx;
+    if(idx===4){ clearInterval(tlTimer); tlPlaying=false; btn.textContent='▶ PLAY'; }
+  }, 1800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ANALYST PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderAnalyst() {
+  const tagColors = { 'risk:critical':'#e83333', 'risk:high':'#f57c00', 'risk:elevated':'#f5d623', 'actor:aa':'#2d8a4a', 'actor:pdf':'#3a9ab2', 'actor:kia':'#e8823a', 'actor:3bha':'#4a7ae8', 'actor:cdf':'#7ab882', 'dev:siege':'#e83333', 'dev:frontline':'#f57c00', 'dev:capability':'#6a9be8', 'dev:watch':'#f5d623', 'dev:alliance':'#9b6ae8', 'dev:logistics':'#6ab882' };
+  document.getElementById('analyst-panel').innerHTML = ASSESSMENTS.map(a => `
+    <div class="analyst-entry">
+      <div class="ae-hdr">
+        <div class="ae-region">${esc(a.region)}</div>
+        <span class="ae-conf">${esc(a.conf)}</span>
+      </div>
+      <div class="ae-text">${esc(a.text)}</div>
+      <div class="ae-tags">${a.tags.map(t=>`<span class="ae-tag" style="background:${(tagColors[t]||'#888')}18;color:${tagColors[t]||'#888'};border:1px solid ${(tagColors[t]||'#888')}30">${t.replace(':','·')}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RISK TABLE
+// ═══════════════════════════════════════════════════════════════
+function renderRiskTable() {
+  document.getElementById('risk-table').innerHTML = RISK_ROWS.map(r => `
+    <div class="risk-row">
+      <span style="font-weight:600;color:var(--txt);font-size:0.8rem">${esc(r.name)}</span>
+      <span>
+        <span style="font-size:0.68rem;font-weight:700;color:${r.color};font-family:Rajdhani,sans-serif;letter-spacing:0.06em">${r.level}</span>
+        <div class="risk-bar-wrap" style="margin-top:3px"><div class="risk-bar" style="width:${r.pct}%;background:${r.color}"></div></div>
+      </span>
+      <span style="font-size:0.75rem;color:var(--txt2)">${esc(r.actors)}</span>
+      <span style="font-size:0.72rem;color:var(--txt3)">${esc(r.primary)}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LIVE NEWS FEED
+// ═══════════════════════════════════════════════════════════════
+const SOURCES = [
+  { name:'DVB',         url:'https://english.dvb.no/feed/',   color:'#e8823a' },
+  { name:'Irrawaddy',   url:'https://www.irrawaddy.com/feed',  color:'#4a7ae8' },
+  { name:'Myanmar Now', url:'https://myanmar-now.org/en/feed', color:'#e83333' },
+];
+const PROXY = 'https://api.allorigins.win/raw?url=';
+let feedTimer, countdownVal=300;
+
+async function fetchFeed(src) {
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(src.url));
+    const text = await res.text();
+    const doc = new DOMParser().parseFromString(text,'text/xml');
+    return Array.from(doc.querySelectorAll('item')).slice(0,5).map(item => ({
+      title: item.querySelector('title')?.textContent?.trim() || '',
+      link:  item.querySelector('link')?.textContent?.trim() || '',
+      date:  item.querySelector('pubDate')?.textContent?.trim() || '',
+      source:src.name, color:src.color
+    }));
+  } catch(e){ return []; }
+}
+
+function tagArticle(title) {
+  const t = title.toLowerCase();
+  if(t.includes('airstrike')||t.includes('bombing')||t.includes('killed')) return { label:'COMBAT', bg:'#e8333320', c:'#e87070' };
+  if(t.includes('arakan')||t.includes('aa ')) return { label:'RAKHINE', bg:'#2d8a4a20', c:'#6ab882' };
+  if(t.includes('kachin')||t.includes('kia')) return { label:'KACHIN', bg:'#e8823a20', c:'#e8823a' };
+  if(t.includes('shan')||t.includes('tnla')||t.includes('1027')) return { label:'SHAN', bg:'#4a7ae820', c:'#4a7ae8' };
+  if(t.includes('sagaing')||t.includes('pdf')) return { label:'SAGAING', bg:'#3a9ab220', c:'#3a9ab2' };
+  if(t.includes('chin')) return { label:'CHIN', bg:'#7ab88220', c:'#7ab882' };
+  if(t.includes('karen')||t.includes('knu')) return { label:'KAREN', bg:'#3d7a5220', c:'#3d7a52' };
+  return null;
+}
+
+async function refreshFeed() {
+  const el = document.getElementById('intel-articles');
+  el.innerHTML = '<div class="intel-loading"><div class="intel-spinner"></div><span>Fetching…</span></div>';
+  const all = (await Promise.all(SOURCES.map(fetchFeed))).flat()
+    .sort((a,b) => new Date(b.date)-new Date(a.date));
+  if(!all.length) { el.innerHTML='<div style="padding:1rem;color:var(--txt3);font-size:0.8rem">Unable to load feed. Check connection or try again.</div>'; return; }
+  el.innerHTML = all.map(a => {
+    const tag = tagArticle(a.title);
+    const dStr = a.date ? new Date(a.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="intel-article">
+      <div class="art-source" style="color:${a.color}">${esc(a.source)}</div>
+      <div class="art-title"><a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.title)}</a></div>
+      <div class="art-meta">
+        <span>${esc(dStr)}</span>
+        ${tag?`<span class="art-tag" style="background:${tag.bg};color:${tag.c}">${tag.label}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('intel-last-updated') && (document.getElementById('intel-last-updated').textContent='Last assessed: '+new Date().toUTCString().replace(' GMT','Z'));
+  countdownVal = 300;
+}
+
+function startCountdown() {
+  clearInterval(feedTimer);
+  feedTimer = setInterval(() => {
+    countdownVal--;
+    const m = Math.floor(countdownVal/60), s = countdownVal%60;
+    const el = document.getElementById('intel-countdown');
+    if(el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    if(countdownVal <= 0){ refreshFeed(); countdownVal=300; }
+  }, 1000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Skip preloader hide if probe already handled it (platform offline path)
+  if (!document.getElementById('plat-ov')) {
+    setTimeout(() => {
+      const pre = document.getElementById('preloader');
+      if (pre) pre.classList.add('hidden');
+    }, 1200);
+  }
+
+  // Navbar
+  const toggle = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('nav-links');
+  if(toggle) toggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+
+  // Set last-assessed date
+  const la = document.getElementById('last-assessed');
+  if(la) la.textContent = 'Last assessed: ' + new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+  renderThreatGrid();
+  renderAnalyst();
+  renderRiskTable();
+  buildFactionControls();
+  setTimeout(initConflictMap, 100);
+  setTimeout(refreshFeed, 600);
+  setTimeout(startCountdown, 600);
+
+  // Modal
+  const ov = document.getElementById('modal-overlay');
+  ov.addEventListener('click', e => { if(e.target===ov) closeIntelModal(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeIntelModal(); });
+});
+</script>
+</body>
+</html>
