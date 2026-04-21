@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import prisma from '@/lib/db'
 import { classifySourceReliability, calculateConfidence, deriveSeverity } from '@/lib/confidence'
 import { differenceInDays } from 'date-fns'
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
 
   let acledData: Record<string, unknown>[]
   try {
-    const res = await fetch(url.toString(), { next: { revalidate: 0 } })
+    const res = await fetch(url.toString(), { cache: 'no-store' })
     const json = await res.json() as { data?: Record<string, unknown>[] }
     acledData = json.data ?? []
   } catch (err) {
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
 
     // Store raw
     await prisma.rawEvent.create({
-      data: { sourceId, source: 'ACLED', rawData: row as object },
+      data: { sourceId, source: 'ACLED', rawData: row as unknown as Prisma.InputJsonValue },
     })
 
     // Process immediately
