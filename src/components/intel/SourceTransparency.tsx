@@ -13,6 +13,7 @@ interface UpdateLog {
 }
 
 const SOURCE_DOCS = [
+<<<<<<< HEAD
   // Independent / Investigative
   {
     name:        'The Irrawaddy',
@@ -22,10 +23,28 @@ const SOURCE_DOCS = [
     url:         'https://www.irrawaddy.com',
     description: 'Independent Myanmar outlet with strong track record for accurate, timely conflict reporting.',
     refresh:     'Live via RSS',
+=======
+  {
+    name:        'ACLED',
+    full:        'Armed Conflict Location & Event Data Project',
+    reliability: 0.90,
+    url:         'https://acleddata.com',
+    description: 'Disaggregated conflict data — battles, explosions, protests, and civilian violence. Gold standard for conflict research.',
+    refresh:     'Every 6 hours via cron',
+  },
+  {
+    name:        'Irrawaddy',
+    full:        'The Irrawaddy',
+    reliability: 0.85,
+    url:         'https://www.irrawaddy.com',
+    description: 'Independent Myanmar news outlet. Strong track record for accurate, timely conflict reporting.',
+    refresh:     'Manual / seed data',
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
   },
   {
     name:        'Myanmar Now',
     full:        'Myanmar Now News',
+<<<<<<< HEAD
     reliability: 0.80,
     bias:        'Anti-military',
     url:         'https://myanmar-now.org/en',
@@ -59,11 +78,34 @@ const SOURCE_DOCS = [
     url:         'https://english.dvb.no',
     description: 'Exile broadcaster with strong ground networks. Useful for protest and civil disobedience reporting.',
     refresh:     'Live via RSS',
+=======
+    reliability: 0.85,
+    url:         'https://myanmar-now.org/en',
+    description: 'Independent journalism covering civil war, political developments, and humanitarian conditions.',
+    refresh:     'Manual / seed data',
+  },
+  {
+    name:        'OCHA',
+    full:        'UN Office for the Coordination of Humanitarian Affairs',
+    reliability: 0.88,
+    url:         'https://www.unocha.org/myanmar',
+    description: 'Authoritative humanitarian situation reports. Displacement figures and access constraints.',
+    refresh:     'Manual / seed data',
+  },
+  {
+    name:        'DVB',
+    full:        'Democratic Voice of Burma',
+    reliability: 0.80,
+    url:         'https://english.dvb.no',
+    description: 'Exile media with strong ground networks. Useful for protest and civil disobedience reporting.',
+    refresh:     'Manual / seed data',
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
   },
   {
     name:        'RFA Myanmar',
     full:        'Radio Free Asia Myanmar Service',
     reliability: 0.80,
+<<<<<<< HEAD
     bias:        'Neutral',
     url:         'https://www.rfa.org/english/news/myanmar',
     description: 'Ethnic and regional conflict coverage, particularly Kachin and Shan states.',
@@ -125,6 +167,11 @@ const SOURCE_DOCS = [
     url:         'https://aappb.org',
     description: 'Tracks political prisoner counts, executions, and detention events. Primary source for judicial violence data.',
     refresh:     'Live via RSS',
+=======
+    url:         'https://www.rfa.org/english/news/myanmar',
+    description: 'Ethnic and regional conflict coverage, particularly Kachin and Shan states.',
+    refresh:     'Manual / seed data',
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
   },
 ]
 
@@ -191,10 +238,14 @@ export default function SourceTransparency() {
                   </a>
                   <div className="text-[0.65rem] text-slate-500 mt-0.5">{s.full}</div>
                 </div>
+<<<<<<< HEAD
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <div className="text-[0.6rem] font-mono text-slate-600">{s.refresh}</div>
                   <div className="text-[0.6rem] font-mono text-slate-500 bg-white/[0.04] px-1.5 py-0.5 rounded">{s.bias}</div>
                 </div>
+=======
+                <div className="text-[0.6rem] font-mono text-slate-600 shrink-0">{s.refresh}</div>
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
               </div>
               <ReliabilityBar value={s.reliability} />
               <p className="text-xs text-slate-500 leading-relaxed">{s.description}</p>

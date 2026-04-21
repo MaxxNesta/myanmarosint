@@ -14,6 +14,7 @@ export interface RssSource {
 
 // Myanmar conflict news sources — all publicly available RSS feeds
 export const RSS_SOURCES: RssSource[] = [
+<<<<<<< HEAD
   // Independent / Investigative
   { name: 'The Irrawaddy',          feedUrl: 'https://www.irrawaddy.com/feed',                        reliability: 'HIGH'   },
   { name: 'Myanmar Now',            feedUrl: 'https://myanmar-now.org/en/feed/',                      reliability: 'HIGH'   },
@@ -36,6 +37,15 @@ export const RSS_SOURCES: RssSource[] = [
 
   // Human rights / Documentation
   { name: 'AAPP Burma',             feedUrl: 'https://aappb.org/feed/',                               reliability: 'HIGH'   },
+=======
+  { name: 'The Irrawaddy',  feedUrl: 'https://www.irrawaddy.com/feed',                      reliability: 'HIGH'   },
+  { name: 'DVB News',       feedUrl: 'https://english.dvb.no/feed/',                         reliability: 'HIGH'   },
+  { name: 'Myanmar Now',    feedUrl: 'https://myanmar-now.org/en/feed/',                     reliability: 'HIGH'   },
+  { name: 'RFA Myanmar',    feedUrl: 'https://www.rfa.org/english/news/myanmar/feed',        reliability: 'HIGH'   },
+  { name: 'Mizzima',        feedUrl: 'https://mizzima.com/feed',                             reliability: 'MEDIUM' },
+  { name: 'AAPP Burma',     feedUrl: 'https://aappb.org/feed/',                              reliability: 'HIGH'   },
+  { name: 'BNI Multimedia', feedUrl: 'https://www.bnionline.net/en/feed',                    reliability: 'MEDIUM' },
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
 ]
 
 function decodeHtml(str: string): string {

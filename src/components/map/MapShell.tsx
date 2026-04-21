@@ -82,8 +82,11 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     [events, activeLayers, dateRange],
   )
 
+<<<<<<< HEAD
   const isEmpty = events.length === 0
 
+=======
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* ── Left sidebar ──────────────────────────────── */}
@@ -135,6 +138,7 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
       {/* ── Map area ──────────────────────────────────── */}
       <div className="flex-1 flex flex-col">
         <div className="flex-1 relative">
+<<<<<<< HEAD
           {isEmpty && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface-0/80 gap-3 pointer-events-none">
               <span className="text-xs font-mono text-slate-400 tracking-widest">NO EVENT DATA</span>
@@ -149,6 +153,8 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
               </a>
             </div>
           )}
+=======
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
           <MapView
             events={filteredEvents}
             showHeatmap={showRisk}

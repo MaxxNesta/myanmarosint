@@ -15,6 +15,7 @@ const BASE = process.env.NEXT_PUBLIC_APP_URL
 async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
   try {
     const res = await fetch(`${BASE}/api/intel-summary`, { next: { revalidate: 1800 } })
+<<<<<<< HEAD
     if (!res.ok) {
       console.error('[intel] GET /api/intel-summary failed:', res.status, await res.text())
       return null
@@ -22,6 +23,11 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
     return res.json()
   } catch (err) {
     console.error('[intel] GET /api/intel-summary threw:', err)
+=======
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
     return null
   }
 }
@@ -29,6 +35,7 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
 async function getRiskScores(): Promise<RiskScoreDTO[]> {
   try {
     const res = await fetch(`${BASE}/api/risk?days=30`, { next: { revalidate: 3600 } })
+<<<<<<< HEAD
     if (!res.ok) {
       console.error('[intel] GET /api/risk failed:', res.status, await res.text())
       return []
@@ -37,6 +44,12 @@ async function getRiskScores(): Promise<RiskScoreDTO[]> {
     return d.scores ?? []
   } catch (err) {
     console.error('[intel] GET /api/risk threw:', err)
+=======
+    if (!res.ok) return []
+    const d = await res.json()
+    return d.scores ?? []
+  } catch {
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
     return []
   }
 }
@@ -44,6 +57,7 @@ async function getRiskScores(): Promise<RiskScoreDTO[]> {
 async function getRecentEvents(): Promise<ProcessedEventDTO[]> {
   try {
     const res = await fetch(`${BASE}/api/events?limit=200&days=30`, { next: { revalidate: 3600 } })
+<<<<<<< HEAD
     if (!res.ok) {
       console.error('[intel] GET /api/events failed:', res.status, await res.text())
       return []
@@ -52,6 +66,12 @@ async function getRecentEvents(): Promise<ProcessedEventDTO[]> {
     return d.events ?? []
   } catch (err) {
     console.error('[intel] GET /api/events threw:', err)
+=======
+    if (!res.ok) return []
+    const d = await res.json()
+    return d.events ?? []
+  } catch {
+>>>>>>> 09b2b01ac2f052933cfb7e42cd731c579678812a
     return []
   }
 }
