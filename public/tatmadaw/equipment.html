@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment — Tatmadaw Myanmar Armed Forces</title>
+  <meta name="description" content="Military equipment inventory of the Myanmar Armed Forces (Tatmadaw) — ground vehicles, artillery, aircraft, helicopters, and naval vessels.">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- PRELOADER -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div id="preloader">
+  <div class="preloader-inner">
+    <span class="preloader-star">✦</span>
+    <div class="preloader-title">TATMADAW</div>
+    <div style="font-size:0.7rem;color:#4a5a72;letter-spacing:0.2em;margin-top:0.3rem">မြန်မာ့တပ်မတော်</div>
+    <div class="preloader-bar"><div class="preloader-fill"></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- NAVBAR -->
+<!-- ══════════════════════════════════════════════════════ -->
+<nav id="navbar">
+  <a class="nav-brand" href="index.html">
+    <span class="nav-brand-star">✦</span>
+    TATMADAW
+  </a>
+  <div id="nav-links" class="nav-links">
+    <a href="index.html#overview"   data-sec="overview">Overview</a>
+    <a href="index.html#army"       data-sec="army">Army</a>
+    <a href="index.html#navy"       data-sec="navy">Navy</a>
+    <a href="index.html#airforce"   data-sec="airforce">Air Force</a>
+    <a href="equipment.html"        data-sec="equipment" class="nav-active">Equipment</a>
+    <a href="kapasa.html"           data-sec="kapasa">🏭 KaPaSa</a>
+    <a href="index.html#map-section" data-sec="map-section">🗺 Map</a>
+    <a href="index.html#charts"     data-sec="charts">📊 Analytics</a>
+    <a href="index.html#admin"      data-sec="admin">🏛 Command</a>
+    <a href="intel.html" data-sec="intel-feed" class="nav-intel-link"><span class="live-dot-nav"></span>🔴 Intel</a>
+  </div>
+  <button id="nav-toggle" class="nav-toggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- EQUIPMENT GALLERY -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="equipment" style="padding-top:5rem">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge info">EQUIPMENT</span>
+      <h2 class="section-title">Military Equipment &amp; Inventory</h2>
+      <p class="section-subtitle">Ground vehicles, artillery, aircraft, helicopters, and naval vessels — click any card for full specifications</p>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all">All Equipment</button>
+      <button class="filter-btn" data-filter="armor">🛡 Armor &amp; Vehicles</button>
+      <button class="filter-btn" data-filter="artillery">💥 Artillery &amp; Rockets</button>
+      <button class="filter-btn" data-filter="aircraft">✈ Aircraft</button>
+      <button class="filter-btn" data-filter="helicopter">🚁 Helicopters</button>
+      <button class="filter-btn" data-filter="naval">⚓ Naval</button>
+    </div>
+
+    <div id="equipment-grid" class="equipment-grid"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ══════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-logo">✦ TATMADAW ✦</div>
+  <div class="footer-tagline">Myanmar Armed Forces — Information Portal</div>
+  <div class="footer-source">
+    <strong style="color:var(--txt2)">Data Sources:</strong> SIPRI Arms Transfers Database · IISS Military Balance ·
+    Global Security Organisation · Jane's Defence Weekly · Amnesty International reports ·
+    Reuters · Irrawaddy News · Open-source intelligence (OSINT)<br><br>
+    <span style="color:var(--txt3)">All information sourced from publicly available open-source records.
+    Quantities and unit positions are approximate and may not reflect current operational status.
+    This portal is for educational and research purposes only.</span>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- MODAL -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <div id="modal-title" class="modal-title"></div>
+        <div id="modal-subtitle" class="modal-subtitle"></div>
+      </div>
+      <button id="modal-close" class="modal-close" aria-label="Close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SCRIPTS -->
+<!-- ══════════════════════════════════════════════════════ -->
+<script src="app.js?v=4"></script>
+
+</body>
+</html>
