@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import type { ProcessedEventDTO, RiskScoreDTO, EventType } from '@/lib/types'
 import { EVENT_TYPE_META } from '@/lib/types'
@@ -17,26 +17,30 @@ const MapView = dynamic(() => import('./MapView'), {
   ),
 })
 
+const POLL_INTERVAL_MS = 5 * 60 * 1000  // 5 minutes
+
 interface Props {
-  initialEvents:    ProcessedEventDTO[]
+  initialEvents:     ProcessedEventDTO[]
   initialRiskScores: RiskScoreDTO[]
 }
 
 export default function MapShell({ initialEvents, initialRiskScores }: Props) {
+  const [events, setEvents]       = useState<ProcessedEventDTO[]>(initialEvents)
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [polling, setPolling]     = useState(false)
+
   const allDates = useMemo(() => {
-    const dates = initialEvents
-      .map(e => new Date(e.date).getTime())
-      .filter(Boolean)
+    const dates = events.map(e => new Date(e.date).getTime()).filter(Boolean)
     return dates.length
       ? { min: new Date(Math.min(...dates)), max: new Date(Math.max(...dates)) }
       : { min: new Date(Date.now() - 365 * 86400_000), max: new Date() }
-  }, [initialEvents])
+  }, [events])
 
   const [activeLayers, setActiveLayers] = useState<Set<EventType>>(
     new Set(Object.keys(EVENT_TYPE_META) as EventType[]),
   )
   const [dateRange, setDateRange] = useState<[Date, Date]>([allDates.min, allDates.max])
-  const [showRisk, setShowRisk] = useState(false)
+  const [showRisk, setShowRisk]   = useState(false)
 
   function toggleLayer(type: EventType) {
     setActiveLayers(prev => {
@@ -46,13 +50,36 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     })
   }
 
+  const fetchLatestEvents = useCallback(async () => {
+    setPolling(true)
+    try {
+      const res  = await fetch('/api/events?limit=500', { cache: 'no-store' })
+      if (!res.ok) return
+      const data = await res.json() as { events?: ProcessedEventDTO[] }
+      if (data.events && data.events.length > 0) {
+        setEvents(data.events)
+        setLastUpdated(new Date())
+      }
+    } catch {
+      // silent — keep stale data on network error
+    } finally {
+      setPolling(false)
+    }
+  }, [])
+
+  // Auto-poll every 5 minutes
+  useEffect(() => {
+    const id = setInterval(fetchLatestEvents, POLL_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [fetchLatestEvents])
+
   const filteredEvents = useMemo(
     () =>
-      initialEvents.filter(e => {
+      events.filter(e => {
         const d = new Date(e.date)
         return activeLayers.has(e.type) && d >= dateRange[0] && d <= dateRange[1]
       }),
-    [initialEvents, activeLayers, dateRange],
+    [events, activeLayers, dateRange],
   )
 
   return (
@@ -79,6 +106,21 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             }`}
           >
             🌡 Risk Heatmap
+          </button>
+        </div>
+
+        {/* Live update status */}
+        <div className="px-3 py-2 border-b border-white/[0.07] flex items-center gap-2">
+          <span className={`w-1.5 h-1.5 rounded-full ${polling ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'}`} />
+          <span className="text-[10px] font-mono text-slate-500">
+            {polling ? 'Updating…' : `Updated ${lastUpdated.toLocaleTimeString()}`}
+          </span>
+          <button
+            onClick={fetchLatestEvents}
+            disabled={polling}
+            className="ml-auto text-[10px] font-mono text-slate-500 hover:text-slate-300 disabled:opacity-40"
+          >
+            ↺
           </button>
         </div>
 

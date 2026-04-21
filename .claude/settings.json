@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:specialadvisorycouncil.org)"
+      "WebFetch(domain:specialadvisorycouncil.org)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\MSI\\MiroFish\\myanmar-risk-platform"
