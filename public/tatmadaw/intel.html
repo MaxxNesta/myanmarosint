@@ -118,7 +118,16 @@
 ══════════════════════════════════════════════════════ -->
 <script>
 (function () {
-  // Inject a full-screen overlay
+  var host = window.location.hostname;
+  var isLocal = host === 'localhost' || host === '127.0.0.1' || window.location.protocol === 'file:';
+
+  // On a deployed domain (Vercel, etc.) the Next.js app is on the same origin — redirect immediately.
+  if (!isLocal) {
+    window.location.replace('/intel');
+    return;
+  }
+
+  // ── Local dev: probe localhost:3000 ──────────────────────────
   var ov = document.createElement('div');
   ov.id = 'plat-ov';
   ov.innerHTML = [
@@ -133,7 +142,6 @@
     '</div>'
   ].join('');
   document.documentElement.appendChild(ov);
-  // Kick off the progress bar animation
   setTimeout(function () {
     var bar = document.getElementById('plat-bar');
     if (bar) bar.style.width = '88%';
@@ -156,12 +164,10 @@
   function onFail() {
     if (resolved) return;
     resolved = true;
-    // Remove probe overlay, restore normal preloader flow, show offline banner
     var o = document.getElementById('plat-ov');
     if (o) o.remove();
     var banner = document.getElementById('platform-offline-banner');
     if (banner) banner.style.display = 'flex';
-    // Let the normal preloader animate from here
     setTimeout(function () {
       var pre = document.getElementById('preloader');
       if (pre) pre.classList.add('hidden');
@@ -171,7 +177,6 @@
   var img = new Image();
   img.onload  = onSuccess;
   img.onerror = onFail;
-  // Fallback timeout — 2.2 s max probe wait
   setTimeout(onFail, 2200);
   img.src = 'http://localhost:3000/favicon.ico?_t=' + Date.now();
 })();
