@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import type { IntelSummaryDTO, RiskScoreDTO, ProcessedEventDTO } from '@/lib/types'
 import DailyBrief from '@/components/intel/DailyBrief'
 import RiskOutlook from '@/components/intel/RiskOutlook'
@@ -7,7 +9,8 @@ import SourceTransparency from '@/components/intel/SourceTransparency'
 import ThreatconBanner from '@/components/shared/ThreatconBanner'
 import { THREATCON_LABELS } from '@/lib/risk'
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+const BASE = process.env.NEXT_PUBLIC_APP_URL
+  ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
 async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
   try {

@@ -7,9 +7,9 @@ import clsx from 'clsx'
 
 // URL of the parent Tatmadaw static site.
 // Set NEXT_PUBLIC_TATMADAW_URL in .env.local to override.
-// Default: VS Code Live Server at port 5500.
+// Default: served from /tatmadaw/ inside the same Next.js deployment.
 const TATMADAW_URL =
-  process.env.NEXT_PUBLIC_TATMADAW_URL ?? 'http://127.0.0.1:5500'
+  process.env.NEXT_PUBLIC_TATMADAW_URL ?? '/tatmadaw'
 
 const NAV_LINKS = [
   { href: '/map',   label: '🗺 Conflict Map'    },

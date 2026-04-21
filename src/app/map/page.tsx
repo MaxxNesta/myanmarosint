@@ -1,8 +1,10 @@
-import dynamic from 'next/dynamic'
+export const dynamic = 'force-dynamic'
+
 import type { ProcessedEventDTO, RiskScoreDTO } from '@/lib/types'
 import MapShell from '@/components/map/MapShell'
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+const BASE = process.env.NEXT_PUBLIC_APP_URL
+  ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
 async function getEvents(): Promise<ProcessedEventDTO[]> {
   try {
