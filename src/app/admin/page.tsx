@@ -21,7 +21,7 @@ export default function AdminPage() {
 
     // Step 1 — scrape RSS feeds
     try {
-      const res  = await fetch('/api/scrape', { cache: 'no-store' })
+      const res  = await fetch('/api/admin/scrape', { cache: 'no-store' })
       const data = await res.json()
       setScrape({ status: res.ok ? 'done' : 'error', data })
     } catch (err) {
@@ -35,7 +35,7 @@ export default function AdminPage() {
     const batches: unknown[] = []
     for (let i = 0; i < 3; i++) {
       try {
-        const res  = await fetch('/api/cron/process', { cache: 'no-store' })
+        const res  = await fetch('/api/admin/process', { cache: 'no-store' })
         const data = await res.json() as { message?: string; articles?: number }
         batches.push(data)
         if (!res.ok || data.message === 'No unprocessed articles' || (data.articles ?? 0) === 0) break
