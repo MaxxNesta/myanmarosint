@@ -12,7 +12,8 @@
     "db:push": "prisma db push",
     "db:seed": "tsx src/scripts/seed.ts",
     "ingest": "tsx src/scripts/ingest.ts",
-    "process": "tsx src/scripts/process.ts"
+    "process": "tsx src/scripts/process.ts",
+    "process:local": "tsx src/scripts/process-local.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
