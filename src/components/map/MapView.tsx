@@ -73,7 +73,7 @@ export default function MapView({ events, showHeatmap }: Props) {
 
     const map = new mapboxgl.Map({
       container:    containerRef.current,
-      style:        'mapbox://styles/mapbox/dark-v11',
+      style:        'mapbox://styles/mapbox/satellite-streets-v12',
       center:       [96.0, 19.8],
       zoom:         5.6,
       minZoom:      4,
@@ -129,10 +129,10 @@ export default function MapView({ events, showHeatmap }: Props) {
             'HUMANITARIAN_ALERT',        EVENT_TYPE_META.HUMANITARIAN_ALERT.color,
             '#6b7280',
           ],
-          'circle-opacity':        0.88,
-          'circle-stroke-width':   1.5,
-          'circle-stroke-color':   'rgba(255,255,255,0.25)',
-          'circle-stroke-opacity': 0.8,
+          'circle-opacity':        0.92,
+          'circle-stroke-width':   2,
+          'circle-stroke-color':   'rgba(255,255,255,0.7)',
+          'circle-stroke-opacity': 1,
         },
       })
 
