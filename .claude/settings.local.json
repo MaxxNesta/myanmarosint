@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check \"c:/Users/MSI/MiroFish/tatmadaw/app.js\")",
+      "WebSearch",
+      "WebFetch(domain:myanmar-now.org)",
+      "Bash(grep -E \"\\\\.json$|\\\\.ts$|\\\\.js$|\\\\.env\")",
+      "Bash(npm install *)"
+    ]
+  }
+}

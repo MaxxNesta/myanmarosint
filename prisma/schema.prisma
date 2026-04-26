@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  ARMED_CONFLICT
+  POLITICAL_UNREST
+  INFRASTRUCTURE_DISRUPTION
+  HUMANITARIAN_ALERT
+}
+
+enum SourceReliability {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model RawEvent {
+  id         String   @id @default(cuid())
+  sourceId   String   @unique
+  source     String
+  rawData    Json
+  ingestedAt DateTime @default(now())
+  processed  Boolean  @default(false)
+
+  @@index([processed])
+  @@index([ingestedAt])
+}
+
+model RawArticle {
+  id          String         @id @default(cuid())
+  url         String         @unique
+  title       String
+  content     String         @db.Text
+  sourceName  String
+  publishedAt DateTime?
+  ingestedAt  DateTime       @default(now())
+  processed   Boolean        @default(false)
+  events      EventArticle[]
+
+  @@index([processed])
+  @@index([ingestedAt])
+}
+
+model ProcessedEvent {
+  id              String            @id @default(cuid())
+  date            DateTime
+  country         String            @default("Myanmar")
+  region          String
+  adminArea       String?
+  type            EventType
+  severity        Int               // 1–5
+  summary         String
+  source          String
+  sourceUrl       String?
+  reliability     SourceReliability @default(MEDIUM)
+  confidence      Float             // 0–1 (multi-factor calculated score)
+  latitude        Float?
+  longitude       Float?
+  coordPrecision  String            @default("region") // exact | township | district | region
+  // Casualties stored as min–max range; fatalities kept for backward compat
+  fatalities      Int               @default(0)  // best-estimate midpoint
+  fatalitiesMin   Int               @default(0)
+  fatalitiesMax   Int               @default(0)
+  woundedMin      Int               @default(0)
+  woundedMax      Int               @default(0)
+  capturedMin     Int               @default(0)
+  capturedMax     Int               @default(0)
+  displacement    Int?
+  sourceCount     Int               @default(1)  // how many sources reported this event
+  actors          String[]
+  tags            String[]
+  rawEventId      String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  articles        EventArticle[]
+
+  @@index([date])
+  @@index([region])
+  @@index([type])
+  @@index([confidence])
+  @@index([latitude, longitude])
+}
+
+// Junction table — links each ProcessedEvent to every RawArticle that contributed to it
+model EventArticle {
+  id               String         @id @default(cuid())
+  processedEventId String
+  rawArticleId     String
+  processedEvent   ProcessedEvent @relation(fields: [processedEventId], references: [id], onDelete: Cascade)
+  rawArticle       RawArticle     @relation(fields: [rawArticleId], references: [id])
+  createdAt        DateTime       @default(now())
+
+  @@unique([processedEventId, rawArticleId])
+  @@index([processedEventId])
+  @@index([rawArticleId])
+}
+
+// Dynamic per-source reliability tracker — updated after each ingestion batch
+model SourceStats {
+  id               String   @id @default(cuid())
+  sourceName       String   @unique
+  totalEvents      Int      @default(0)
+  corroborated     Int      @default(0)  // events confirmed by ≥1 other source
+  contradicted     Int      @default(0)  // events later flagged as wrong
+  reliabilityScore Float    @default(0.65)
+  lastUpdated      DateTime @updatedAt
+
+  @@index([sourceName])
+}
+
+model RiskScore {
+  id              String   @id @default(cuid())
+  region          String
+  date            DateTime @db.Date
+  score           Float    // 0–100 composite
+  conflictScore   Float
+  protestScore    Float
+  disruptionScore Float
+  humanScore      Float
+  eventCount      Int
+  trend           String   @default("stable")
+  calculatedAt    DateTime @default(now())
+
+  @@unique([region, date])
+  @@index([date])
+  @@index([region])
+}
+
+model SimulationResult {
+  id             String   @id @default(cuid())
+  scenarioParams Json
+  results        Json
+  iterations     Int
+  runAt          DateTime @default(now())
+
+  @@index([runAt])
+}
+
+model UpdateLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  change    String
+  reason    String
+  source    String?
+  metadata  Json?
+
+  @@index([timestamp])
+}
