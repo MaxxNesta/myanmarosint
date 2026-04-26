@@ -31,13 +31,10 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
   const today = useMemo(() => new Date(), [])
 
-  const allDates = useMemo(() => {
-    const dates = events.map(e => new Date(e.date).getTime()).filter(Boolean)
-    const min = dates.length
-      ? new Date(Math.min(...dates))
-      : new Date(Date.now() - 5 * 365 * 86400_000)
-    return { min, max: today }
-  }, [events, today])
+  const allDates = useMemo(() => ({
+    min: new Date('2021-01-01'),
+    max: today,
+  }), [today])
 
   const defaultStart = useMemo(
     () => new Date(today.getTime() - 90 * 86400_000),
