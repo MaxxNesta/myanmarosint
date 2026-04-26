@@ -29,17 +29,25 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [polling, setPolling]     = useState(false)
 
+  const today = useMemo(() => new Date(), [])
+
   const allDates = useMemo(() => {
     const dates = events.map(e => new Date(e.date).getTime()).filter(Boolean)
-    return dates.length
-      ? { min: new Date(Math.min(...dates)), max: new Date(Math.max(...dates)) }
-      : { min: new Date(Date.now() - 365 * 86400_000), max: new Date() }
-  }, [events])
+    const min = dates.length
+      ? new Date(Math.min(...dates))
+      : new Date(Date.now() - 5 * 365 * 86400_000)
+    return { min, max: today }
+  }, [events, today])
+
+  const defaultStart = useMemo(
+    () => new Date(today.getTime() - 90 * 86400_000),
+    [today],
+  )
 
   const [activeLayers, setActiveLayers] = useState<Set<EventType>>(
     new Set(Object.keys(EVENT_TYPE_META) as EventType[]),
   )
-  const [dateRange, setDateRange] = useState<[Date, Date]>([allDates.min, allDates.max])
+  const [dateRange, setDateRange] = useState<[Date, Date]>([defaultStart, today])
   const [showRisk, setShowRisk]   = useState(false)
 
   function toggleLayer(type: EventType) {
