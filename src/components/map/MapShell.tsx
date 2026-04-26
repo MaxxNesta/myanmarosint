@@ -36,15 +36,10 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     max: today,
   }), [today])
 
-  const defaultStart = useMemo(
-    () => new Date(today.getTime() - 90 * 86400_000),
-    [today],
-  )
-
   const [activeLayers, setActiveLayers] = useState<Set<EventType>>(
     new Set(Object.keys(EVENT_TYPE_META) as EventType[]),
   )
-  const [dateRange, setDateRange] = useState<[Date, Date]>([defaultStart, today])
+  const [dateRange, setDateRange] = useState<[Date, Date]>([allDates.min, today])
   const [showRisk, setShowRisk]   = useState(false)
 
   function toggleLayer(type: EventType) {
