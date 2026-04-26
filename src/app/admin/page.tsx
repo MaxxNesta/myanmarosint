@@ -54,7 +54,7 @@ export default function AdminPage() {
         <div>
           <h1 className="text-sm font-bold font-mono tracking-widest text-slate-200">ADMIN — INGEST PIPELINE</h1>
           <p className="text-xs font-mono text-slate-500 mt-1">
-            Runs: RSS scrape → Claude OSINT processing → database save
+            Runs: RSS scrape → rule-based OSINT processing → database save
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export default function AdminPage() {
         </button>
 
         <Step label="1. Scrape RSS Feeds" result={scrape} />
-        <Step label="2. Process with Claude" result={process} />
+        <Step label="2. Process Articles" result={process} />
       </div>
     </div>
   )
