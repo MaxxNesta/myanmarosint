@@ -14,6 +14,7 @@ const TATMADAW_URL =
 const NAV_LINKS = [
   { href: '/map',   label: '🗺 Conflict Map'    },
   { href: '/intel', label: '📡 Intel Dashboard' },
+  { href: '/bases', label: '🛡 Military Bases'  },
 ]
 
 export default function Navbar() {
