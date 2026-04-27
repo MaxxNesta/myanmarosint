@@ -8,61 +8,71 @@ import { BASES, STATUS_COLORS, STATUS_LABELS, type MilitaryBase } from '@/lib/ba
 const INSIGNIA_URL =
   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Shoulder_sleeve_insignia_of_Myanmar_Infantry_Corps_with_shape.svg'
 
+const STATUS_SHORT: Record<string, string> = {
+  OPERATIONAL: 'OPS',
+  CONTESTED:   'CNTST',
+  SEIZED_PDF:  'PDF',
+  SEIZED_EAO:  'EAO',
+  UNKNOWN:     'UNK',
+}
+
+const SHADOW = '0 1px 4px rgba(0,0,0,1),0 0 12px rgba(0,0,0,0.9)'
+
 interface Props {
   selected:   number | null
   onSelect:   (id: number) => void
   visibleIds: Set<number>
 }
 
-// Build a DOM element for a Mapbox custom marker
 function buildMarkerEl(base: MilitaryBase): HTMLElement {
   const color = STATUS_COLORS[base.status]
-  const num   = base.regimentEn.replace('LIB ', '')
+  const num   = base.regimentEn  // e.g. "LIB 15"
+  const short = STATUS_SHORT[base.status]
+
+  // Ambient glow on insignia at rest
+  const imgGlow = `drop-shadow(0 0 5px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
 
   const wrap = document.createElement('div')
   wrap.style.cssText =
-    'display:flex;flex-direction:column;align-items:center;cursor:pointer;' +
+    'display:flex;align-items:center;gap:5px;cursor:pointer;' +
     'transition:transform 0.15s ease;'
 
   wrap.innerHTML = `
-    <!-- Badge circle -->
-    <div style="
-      width:38px;height:38px;border-radius:50%;
-      border:3px solid ${color};
-      background:#0a1628;
-      box-shadow:0 0 10px ${color}66,0 3px 8px rgba(0,0,0,0.7);
-      display:flex;align-items:center;justify-content:center;
-      overflow:hidden;position:relative;
-    ">
+    <div style="position:relative;flex-shrink:0;width:32px;height:32px">
       <img
         src="${INSIGNIA_URL}"
-        width="28" height="28"
-        style="object-fit:contain;display:block"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        width="32" height="32"
+        style="object-fit:contain;display:block;filter:${imgGlow};transition:filter 0.15s ease"
         alt="${base.regimentEn}"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
       />
-      <!-- Fallback: regiment number -->
+      <!-- Fallback if SVG fails to load -->
       <span style="
         display:none;position:absolute;inset:0;
         align-items:center;justify-content:center;
-        font-family:monospace;font-size:11px;font-weight:bold;color:${color};
-      ">${num}</span>
+        font-family:monospace;font-size:13px;font-weight:900;
+        color:${color};
+        text-shadow:0 0 8px ${color},0 0 4px ${color};
+      ">${base.id}</span>
     </div>
-    <!-- Number label -->
-    <div style="
-      margin-top:2px;
-      background:${color};color:white;
-      border-radius:2px;padding:1px 5px;
-      font-size:8px;font-family:monospace;font-weight:bold;
-      white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.5);
-    ">${num}</div>
-    <!-- Pointer -->
-    <div style="
-      width:0;height:0;
-      border-left:4px solid transparent;
-      border-right:4px solid transparent;
-      border-top:5px solid ${color};
-    "></div>`
+
+    <div style="line-height:1.25;user-select:none">
+      <div style="
+        font-family:'Courier New',monospace;
+        font-size:10.5px;font-weight:700;letter-spacing:0.04em;
+        color:#f1f5f9;
+        text-shadow:${SHADOW};
+        white-space:nowrap;
+      ">${num}</div>
+      <div style="
+        font-family:'Courier New',monospace;
+        font-size:8px;font-weight:600;letter-spacing:0.06em;
+        color:${color};
+        text-shadow:${SHADOW};
+        white-space:nowrap;
+      ">${short}</div>
+    </div>`
+
   return wrap
 }
 
@@ -73,7 +83,7 @@ function popupHTML(b: MilitaryBase): string {
     <div style="padding:14px 16px;font-size:0.8rem;min-width:250px;max-width:310px">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
         <img src="${INSIGNIA_URL}" width="36" height="36"
-             style="object-fit:contain;border:1px solid rgba(255,255,255,0.15);border-radius:50%;background:#0a1628;padding:3px;flex-shrink:0"
+             style="object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 6px ${color})"
              onerror="this.style.display='none'" />
         <div>
           <div style="font-weight:700;color:#e2e8f0;font-size:0.9rem;font-family:monospace">${b.regimentEn}</div>
@@ -136,7 +146,7 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
         const el     = buildMarkerEl(base)
         const popup  = new mapboxgl.Popup({ offset: 8, maxWidth: '320px', closeButton: true })
           .setHTML(popupHTML(base))
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'left' })
           .setLngLat([base.lng, base.lat])
           .setPopup(popup)
           .addTo(map)
@@ -168,14 +178,21 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
   useEffect(() => {
     if (!ready) return
     markersRef.current.forEach((marker, id) => {
-      const base  = BASES.find(b => b.id === id)!
-      const color = STATUS_COLORS[base.status]
-      const el    = marker.getElement()
+      const base   = BASES.find(b => b.id === id)!
+      const color  = STATUS_COLORS[base.status]
+      const el     = marker.getElement()
+      const img    = el.querySelector('img') as HTMLImageElement | null
       const active = id === selected
 
-      el.style.transform = active ? 'scale(1.3)' : 'scale(1)'
-      el.style.filter    = active ? `drop-shadow(0 0 8px ${color})` : 'none'
+      el.style.transform = active ? 'scale(1.25)' : 'scale(1)'
       el.style.zIndex    = active ? '10' : '1'
+
+      // Intensify the insignia glow when selected; restore ambient glow otherwise
+      if (img) {
+        img.style.filter = active
+          ? `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 5px ${color}) brightness(1.3)`
+          : `drop-shadow(0 0 5px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
+      }
 
       if (active && mapRef.current) {
         mapRef.current.flyTo({
