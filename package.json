@@ -10,10 +10,11 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx src/scripts/seed.ts",
-    "ingest": "tsx src/scripts/ingest.ts",
-    "process": "tsx src/scripts/process.ts",
-    "process:local": "tsx src/scripts/process-local.ts"
+    "db:seed": "tsx --env-file=.env.local src/scripts/seed.ts",
+    "ingest": "tsx --env-file=.env.local src/scripts/ingest.ts",
+    "process": "tsx --env-file=.env.local src/scripts/process.ts",
+    "process:local": "tsx --env-file=.env.local src/scripts/process-local.ts",
+    "gdelt:import": "tsx --env-file=.env.local src/scripts/gdelt-import.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

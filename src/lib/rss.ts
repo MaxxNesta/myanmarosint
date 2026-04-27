@@ -14,28 +14,40 @@ export interface RssSource {
 
 // Myanmar conflict news sources — all publicly available RSS feeds
 export const RSS_SOURCES: RssSource[] = [
-  // Independent / Investigative
+  // ── Independent / Investigative ──────────────────────────────────────────
   { name: 'The Irrawaddy',          feedUrl: 'https://www.irrawaddy.com/feed',                        reliability: 'HIGH'   },
   { name: 'Myanmar Now',            feedUrl: 'https://myanmar-now.org/en/feed/',                      reliability: 'HIGH'   },
   { name: 'Mizzima',                feedUrl: 'https://mizzima.com/feed',                              reliability: 'HIGH'   },
   { name: 'Frontier Myanmar',       feedUrl: 'https://www.frontiermyanmar.net/en/feed',               reliability: 'HIGH'   },
+  { name: 'Eleven Myanmar',         feedUrl: 'https://elevenmyanmar.com/feed',                        reliability: 'MEDIUM' },
+  { name: 'Myanmar Times',          feedUrl: 'https://www.mmtimes.com/feed',                          reliability: 'MEDIUM' },
+  { name: 'The Myanmar Post',       feedUrl: 'https://themyanmarpost.com/feed/',                      reliability: 'MEDIUM' },
 
-  // International / Broadcast
+  // ── International Broadcast ───────────────────────────────────────────────
   { name: 'DVB News',               feedUrl: 'https://english.dvb.no/feed/',                          reliability: 'HIGH'   },
   { name: 'RFA Myanmar',            feedUrl: 'https://www.rfa.org/english/news/myanmar/feed',         reliability: 'HIGH'   },
+  { name: 'VOA Myanmar',            feedUrl: 'https://burmese.voanews.com/api/zrqmooop_t',            reliability: 'HIGH'   },
+  { name: 'BBC Burmese',            feedUrl: 'https://feeds.bbci.co.uk/burmese/rss.xml',             reliability: 'HIGH'   },
 
-  // Ethnic / Regional
+  // ── Ethnic / Regional ────────────────────────────────────────────────────
   { name: 'Narinjara News',         feedUrl: 'https://www.narinjara.com/feed',                        reliability: 'MEDIUM' },
   { name: 'Kantarawaddy Times',     feedUrl: 'https://www.kantarawaddy.com/feed',                     reliability: 'MEDIUM' },
   { name: 'Kachin News Group',      feedUrl: 'https://www.kachinnews.com/feed',                       reliability: 'MEDIUM' },
-  { name: 'SHAN',                   feedUrl: 'https://www.shanstatenews.net/feed',                    reliability: 'MEDIUM' },
+  { name: 'SHAN News',              feedUrl: 'https://www.shanstatenews.net/feed',                    reliability: 'MEDIUM' },
   { name: 'BNI Multimedia',         feedUrl: 'https://www.bnionline.net/en/feed',                     reliability: 'MEDIUM' },
+  { name: 'Chin World',             feedUrl: 'https://www.chinworld.net/feed/',                       reliability: 'MEDIUM' },
+  { name: 'Karen News',             feedUrl: 'https://karennews.org/feed/',                           reliability: 'MEDIUM' },
+  { name: 'Salween Times',          feedUrl: 'https://salweentimes.com/feed/',                        reliability: 'MEDIUM' },
 
-  // High-velocity / Social-first
+  // ── High-velocity / Social-first ─────────────────────────────────────────
   { name: 'Khit Thit Media',        feedUrl: 'https://khitthitnews.com/feed/',                        reliability: 'MEDIUM' },
 
-  // Human rights / Documentation
+  // ── Human Rights / Documentation ─────────────────────────────────────────
   { name: 'AAPP Burma',             feedUrl: 'https://aappb.org/feed/',                               reliability: 'HIGH'   },
+  { name: 'Human Rights Watch',     feedUrl: 'https://www.hrw.org/tag/myanmar/feed',                  reliability: 'HIGH'   },
+  { name: 'Amnesty International',  feedUrl: 'https://www.amnesty.org/en/tag/myanmar/feed/rss/',      reliability: 'HIGH'   },
+  { name: 'UN News Myanmar',        feedUrl: 'https://news.un.org/feed/subscribe/en/news/region/asia-pacific/feed/rss.xml', reliability: 'HIGH' },
+  { name: 'Crisis Group Myanmar',   feedUrl: 'https://www.crisisgroup.org/rss/myanmar',               reliability: 'HIGH'   },
 ]
 
 function decodeHtml(str: string): string {
