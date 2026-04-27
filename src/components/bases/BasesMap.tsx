@@ -3,105 +3,118 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { BASES, THREAT_COLORS, type MilitaryBase } from '@/lib/bases-data'
+import { BASES, STATUS_COLORS, STATUS_LABELS, type MilitaryBase } from '@/lib/bases-data'
+
+const INSIGNIA_URL =
+  'https://upload.wikimedia.org/wikipedia/commons/a/ae/Shoulder_sleeve_insignia_of_Myanmar_Infantry_Corps_with_shape.svg'
 
 interface Props {
   selected:   number | null
   onSelect:   (id: number) => void
-  filterRegion: string
+  visibleIds: Set<number>
 }
 
-function markerEl(base: MilitaryBase, active: boolean): HTMLElement {
-  const color  = THREAT_COLORS[base.threat]
-  const num    = base.regimentEn.replace('LIB ', '')
-  const size   = active ? 38 : 32
+// Build a DOM element for a Mapbox custom marker
+function buildMarkerEl(base: MilitaryBase): HTMLElement {
+  const color = STATUS_COLORS[base.status]
+  const num   = base.regimentEn.replace('LIB ', '')
 
-  const el = document.createElement('div')
-  el.style.cssText = `
-    width:${size}px;height:${size}px;cursor:pointer;
-    transition:transform 0.15s ease,filter 0.15s ease;
-    filter:${active ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'};
-    transform:${active ? 'scale(1.25)' : 'scale(1)'};
-  `
-  el.innerHTML = `
-    <svg viewBox="0 0 40 44" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size + 4}">
-      <defs>
-        <filter id="sh${base.id}"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.6"/></filter>
-      </defs>
-      <!-- Shield shape -->
-      <path d="M20 2 L38 8 L38 24 Q38 36 20 42 Q2 36 2 24 L2 8 Z"
-            fill="${color}" fill-opacity="0.92"
-            stroke="rgba(255,255,255,0.55)" stroke-width="1.5"
-            filter="url(#sh${base.id})"/>
-      <!-- Inner shield line -->
-      <path d="M20 5 L35 10 L35 24 Q35 34 20 39 Q5 34 5 24 L5 10 Z"
-            fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/>
-      <!-- Star / rank pip -->
-      <text x="20" y="22" text-anchor="middle" dominant-baseline="middle"
-            font-family="monospace" font-size="10" font-weight="bold" fill="white" opacity="0.9">
-        ${num}
-      </text>
-      <!-- Crossed swords icon at bottom -->
-      <text x="20" y="33" text-anchor="middle" dominant-baseline="middle"
-            font-size="7" fill="rgba(255,255,255,0.7)">✦</text>
-    </svg>`
-  return el
+  const wrap = document.createElement('div')
+  wrap.style.cssText =
+    'display:flex;flex-direction:column;align-items:center;cursor:pointer;' +
+    'transition:transform 0.15s ease;'
+
+  wrap.innerHTML = `
+    <!-- Badge circle -->
+    <div style="
+      width:38px;height:38px;border-radius:50%;
+      border:3px solid ${color};
+      background:#0a1628;
+      box-shadow:0 0 10px ${color}66,0 3px 8px rgba(0,0,0,0.7);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;position:relative;
+    ">
+      <img
+        src="${INSIGNIA_URL}"
+        width="28" height="28"
+        style="object-fit:contain;display:block"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        alt="${base.regimentEn}"
+      />
+      <!-- Fallback: regiment number -->
+      <span style="
+        display:none;position:absolute;inset:0;
+        align-items:center;justify-content:center;
+        font-family:monospace;font-size:11px;font-weight:bold;color:${color};
+      ">${num}</span>
+    </div>
+    <!-- Number label -->
+    <div style="
+      margin-top:2px;
+      background:${color};color:white;
+      border-radius:2px;padding:1px 5px;
+      font-size:8px;font-family:monospace;font-weight:bold;
+      white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.5);
+    ">${num}</div>
+    <!-- Pointer -->
+    <div style="
+      width:0;height:0;
+      border-left:4px solid transparent;
+      border-right:4px solid transparent;
+      border-top:5px solid ${color};
+    "></div>`
+  return wrap
 }
 
 function popupHTML(b: MilitaryBase): string {
-  const threatClr = THREAT_COLORS[b.threat]
-  const statusBg  = b.status === 'ACTIVE' ? '#166534' : b.status === 'CONTESTED' ? '#78350f' : '#1e293b'
+  const color     = STATUS_COLORS[b.status]
+  const statusLbl = STATUS_LABELS[b.status]
   return `
-    <div style="padding:14px 16px;font-size:0.8rem;min-width:240px;max-width:300px">
-      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
-        <div style="
-          width:36px;height:36px;border-radius:3px;
-          background:${threatClr}22;border:1px solid ${threatClr}55;
-          display:flex;align-items:center;justify-content:center;
-          font-size:0.75rem;font-weight:700;color:${threatClr};font-family:monospace;shrink:0">
-          ${b.regimentEn.replace('LIB ','')}
-        </div>
+    <div style="padding:14px 16px;font-size:0.8rem;min-width:250px;max-width:310px">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+        <img src="${INSIGNIA_URL}" width="36" height="36"
+             style="object-fit:contain;border:1px solid rgba(255,255,255,0.15);border-radius:50%;background:#0a1628;padding:3px;flex-shrink:0"
+             onerror="this.style.display='none'" />
         <div>
-          <div style="font-weight:700;color:#e2e8f0;font-size:0.88rem;font-family:monospace">${b.regimentEn}</div>
-          <div style="color:#94a3b8;font-size:0.72rem;font-family:monospace">${b.regimentMm}</div>
+          <div style="font-weight:700;color:#e2e8f0;font-size:0.9rem;font-family:monospace">${b.regimentEn}</div>
+          <div style="color:#64748b;font-size:0.72rem;font-family:monospace">${b.regimentMm}</div>
         </div>
       </div>
 
-      <div style="display:grid;gap:4px;margin-bottom:10px">
-        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px 8px">
-          <div style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em">Location</div>
-          <div style="color:#cbd5e1;font-size:0.78rem;margin-top:2px">${b.locationEn}</div>
-          <div style="color:#64748b;font-size:0.7rem">${b.locationMm}</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px 8px">
-          <div style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em">Region</div>
-          <div style="color:#cbd5e1;font-size:0.78rem;margin-top:2px">${b.region}</div>
-        </div>
+      <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 10px;margin-bottom:10px">
+        <div style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Location</div>
+        <div style="color:#cbd5e1;font-size:0.8rem">${b.locationEn}</div>
+        <div style="color:#64748b;font-size:0.7rem;margin-top:2px">${b.locationMm}</div>
+        <div style="color:#94a3b8;font-size:0.72rem;margin-top:4px">${b.region}</div>
       </div>
 
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <span style="background:${threatClr}20;color:${threatClr};border:1px solid ${threatClr}44;
-                     border-radius:4px;padding:2px 8px;font-size:0.67rem;font-weight:700;font-family:monospace">
-          ● ${b.threat} THREAT
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <span style="
+          background:${color}20;color:${color};border:1px solid ${color}44;
+          border-radius:4px;padding:2px 8px;font-size:0.68rem;font-weight:700;font-family:monospace">
+          ● ${statusLbl.toUpperCase()}
         </span>
-        <span style="background:${statusBg};color:${b.status==='ACTIVE'?'#86efac':b.status==='CONTESTED'?'#fcd34d':'#94a3b8'};
-                     border-radius:4px;padding:2px 8px;font-size:0.67rem;font-weight:600;font-family:monospace">
-          ${b.status}
-        </span>
-        <span style="background:rgba(255,255,255,0.06);color:#94a3b8;
-                     border-radius:4px;padding:2px 8px;font-size:0.67rem;font-family:monospace">
+        <span style="
+          background:rgba(255,255,255,0.06);color:#94a3b8;
+          border-radius:4px;padding:2px 8px;font-size:0.68rem;font-family:monospace">
           ${b.type}
+        </span>
+        <span style="
+          background:rgba(255,255,255,0.06);color:#94a3b8;
+          border-radius:4px;padding:2px 8px;font-size:0.68rem;font-family:monospace">
+          ${b.threat} THREAT
         </span>
       </div>
     </div>`
 }
 
-export default function BasesMap({ selected, onSelect, filterRegion }: Props) {
+export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef       = useRef<mapboxgl.Map | null>(null)
-  const markersRef   = useRef<Map<number, { marker: mapboxgl.Marker; el: HTMLElement }>>(new Map())
+  const markersRef   = useRef<Map<number, mapboxgl.Marker>>(new Map())
   const [ready, setReady] = useState(false)
 
+  // Initialise map and markers once
   useEffect(() => {
     if (!containerRef.current) return
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
@@ -112,26 +125,24 @@ export default function BasesMap({ selected, onSelect, filterRegion }: Props) {
       center:    [96.5, 19.5],
       zoom:      5.2,
       minZoom:   4,
-      maxZoom:   14,
+      maxZoom:   15,
       attributionControl: false,
     })
-
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
 
     map.on('load', () => {
       BASES.forEach(base => {
-        const el     = markerEl(base, false)
+        const el     = buildMarkerEl(base)
+        const popup  = new mapboxgl.Popup({ offset: 8, maxWidth: '320px', closeButton: true })
+          .setHTML(popupHTML(base))
         const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([base.lng, base.lat])
-          .setPopup(
-            new mapboxgl.Popup({ offset: 6, maxWidth: '320px', closeButton: true })
-              .setHTML(popupHTML(base))
-          )
+          .setPopup(popup)
           .addTo(map)
 
         el.addEventListener('click', () => onSelect(base.id))
-        markersRef.current.set(base.id, { marker, el })
+        markersRef.current.set(base.id, marker)
       })
       setReady(true)
     })
@@ -145,36 +156,37 @@ export default function BasesMap({ selected, onSelect, filterRegion }: Props) {
     }
   }, [onSelect])
 
-  // Highlight selected marker
+  // Layer visibility — show/hide markers based on visibleIds
   useEffect(() => {
     if (!ready) return
-    markersRef.current.forEach(({ el }, id) => {
-      const base   = BASES.find(b => b.id === id)!
-      const active = id === selected
-      const color  = THREAT_COLORS[base.threat]
-      el.style.filter    = active ? `drop-shadow(0 0 8px ${color})` : 'none'
-      el.style.transform = active ? 'scale(1.3)' : 'scale(1)'
-      el.style.zIndex    = active ? '10' : '1'
+    markersRef.current.forEach((marker, id) => {
+      marker.getElement().style.display = visibleIds.has(id) ? '' : 'none'
     })
-    if (selected && mapRef.current) {
-      const base = BASES.find(b => b.id === selected)
-      if (base) {
-        mapRef.current.flyTo({ center: [base.lng, base.lat], zoom: Math.max(mapRef.current.getZoom(), 7), duration: 800 })
-        markersRef.current.get(selected)?.marker.togglePopup()
-      }
-    }
-  }, [selected, ready])
+  }, [visibleIds, ready])
 
-  // Filter visibility by region
+  // Highlight selected marker and fly to it
   useEffect(() => {
     if (!ready) return
-    markersRef.current.forEach(({ marker }, id) => {
-      const base = BASES.find(b => b.id === id)!
-      const show = !filterRegion || base.region === filterRegion
-      const el   = marker.getElement()
-      el.style.display = show ? '' : 'none'
+    markersRef.current.forEach((marker, id) => {
+      const base  = BASES.find(b => b.id === id)!
+      const color = STATUS_COLORS[base.status]
+      const el    = marker.getElement()
+      const active = id === selected
+
+      el.style.transform = active ? 'scale(1.3)' : 'scale(1)'
+      el.style.filter    = active ? `drop-shadow(0 0 8px ${color})` : 'none'
+      el.style.zIndex    = active ? '10' : '1'
+
+      if (active && mapRef.current) {
+        mapRef.current.flyTo({
+          center:   [base.lng, base.lat],
+          zoom:     Math.max(mapRef.current.getZoom(), 7.5),
+          duration: 700,
+        })
+        marker.togglePopup()
+      }
     })
-  }, [filterRegion, ready])
+  }, [selected, ready])
 
   return <div ref={containerRef} className="w-full h-full" />
 }

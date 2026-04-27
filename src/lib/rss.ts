@@ -41,6 +41,7 @@ export const RSS_SOURCES: RssSource[] = [
 
   // ── High-velocity / Social-first ─────────────────────────────────────────
   { name: 'Khit Thit Media',        feedUrl: 'https://khitthitnews.com/feed/',                        reliability: 'MEDIUM' },
+  { name: 'YKT News',               feedUrl: 'https://yktnews.com/feed/',                             reliability: 'MEDIUM' },
 
   // ── Human Rights / Documentation ─────────────────────────────────────────
   { name: 'AAPP Burma',             feedUrl: 'https://aappb.org/feed/',                               reliability: 'HIGH'   },
