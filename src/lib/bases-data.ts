@@ -49,8 +49,10 @@ export const BASES: MilitaryBase[] = [
   { id:8,  regimentMm:'ခလရ (၈)',  regimentEn:'LIB 8',  locationMm:'မွန်ပြည်နယ်၊ ဘီးလင်းမြို့',                   locationEn:'Bilin, Mon State',              region:'Mon State',                lat:17.2115495, lng:97.2216275, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },
   { id:10, regimentMm:'ခလရ (၁၀)', regimentEn:'LIB 10', locationMm:'မကွေးတိုင်းဒေသကြီး၊ စကုမြို့',                locationEn:'Sagu, Magway Region',           region:'Magway Region',            lat:21.00, lng:95.10, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },
   { id:11, regimentMm:'ခလရ (၁၁)', regimentEn:'LIB 11', locationMm:'ဧရာဝတီတိုင်း၊ ပုသိမ်မြို့နယ်',                locationEn:'Pathein, Ayeyarwady Region',    region:'Ayeyarwady Region',        lat:16.78, lng:94.73, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
+  { id:12, regimentMm:'ခလရ (၁၂)', regimentEn:'LIB 12', locationMm:'ရှမ်းပြည်နယ်(တောင်ပိုင်း)၊ လွိုင်လင်မြို့',  locationEn:'Loilem, Southern Shan State',   region:'Shan State',               lat:20.92498091235672, lng:97.56406045810037, type:'LIB', threat:'LOW',   status:'OPERATIONAL' },
   { id:13, regimentMm:'ခလရ (၁၃)', regimentEn:'LIB 13', locationMm:'မကွေးတိုင်းဒေသကြီး၊ ချောက်မြို့',            locationEn:'Chauk, Magway Region',          region:'Magway Region',            lat:20.8817773, lng:94.8079069, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },
   { id:14, regimentMm:'ခလရ (၁၄)', regimentEn:'LIB 14', locationMm:'ပဲခူးတိုင်းဒေသကြီး၊ ပြည်မြို့',              locationEn:'Pyay, Bago Region',             region:'Bago Region',              lat:18.82, lng:95.23, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
+  { id:16, regimentMm:'ခလရ (၁၆)', regimentEn:'LIB 16', locationMm:'စစ်ကိုင်းတိုင်းဒေသကြီး၊ မုံရွာမြို့',        locationEn:'Monywa, Sagaing Region',        region:'Sagaing Region',           lat:22.11, lng:95.14, type:'LIB', threat:'HIGH',   status:'OPERATIONAL' },
   { id:18, regimentMm:'ခလရ (၁၈)', regimentEn:'LIB 18', locationMm:'ဧရာဝတီတိုင်း၊ ဟင်္သာတမြို့',                 locationEn:'Hinthada, Ayeyarwady Region',   region:'Ayeyarwady Region',        lat:17.65, lng:95.47, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:20, regimentMm:'ခလရ (၂၀)', regimentEn:'LIB 20', locationMm:'တနင်္သာရီတိုင်းဒေသကြီး၊ ခမောက်ကြီးမြို့',   locationEn:'Kamauk Gyi, Tanintharyi',       region:'Tanintharyi Region',       lat:14.03, lng:98.21, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:25, regimentMm:'ခလရ (၂၅)', regimentEn:'LIB 25', locationMm:'တနင်္သာရီတိုင်းဒေသကြီး၊ ထားဝယ်မြို့',        locationEn:'Dawei, Tanintharyi Region',     region:'Tanintharyi Region',       lat:14.09, lng:98.19, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
@@ -66,10 +68,7 @@ export const BASES: MilitaryBase[] = [
   // ── Contested ────────────────────────────────────────────────────────────────
   { id:21, regimentMm:'ခလရ (၂၁)', regimentEn:'LIB 21', locationMm:'ကချင်ပြည်နယ်၊ မြစ်ကြီးနားမြို့နယ်',          locationEn:'Myitkyina, Kachin State',       region:'Kachin State',             lat:25.38, lng:97.39, type:'LIB', threat:'HIGH',   status:'CONTESTED' },
   { id:32, regimentMm:'ခလရ (၃၂)', regimentEn:'LIB 32', locationMm:'ကရင်ပြည်နယ်၊ ကြာအင်းဆိပ်ကြီးမြို့',          locationEn:'Kya In Seikgyi, Kayin State',   region:'Kayin State',              lat:16.55, lng:98.12, type:'LIB', threat:'HIGH',   status:'CONTESTED' },
-  { id:12, regimentMm:'ခလရ (၁၂)', regimentEn:'LIB 12', locationMm:'ရှမ်းပြည်နယ်(တောင်ပိုင်း)၊ လွိုင်လင်မြို့',  locationEn:'Loilem, Southern Shan State',   region:'Shan State',               lat:20.92498091235672, lng:97.56406045810037, type:'LIB', threat:'HIGH',   status:'CONTESTED' },
-
-  // ── Seized by PDF ────────────────────────────────────────────────────────────
-  { id:16, regimentMm:'ခလရ (၁၆)', regimentEn:'LIB 16', locationMm:'စစ်ကိုင်းတိုင်းဒေသကြီး၊ မုံရွာမြို့',        locationEn:'Monywa, Sagaing Region',        region:'Sagaing Region',           lat:22.11, lng:95.14, type:'LIB', threat:'HIGH',   status:'SEIZED_PDF' },
+ 
 
   // ── Seized by EAO ────────────────────────────────────────────────────────────
   // TNLA / PSLF — Shan State
@@ -86,15 +85,15 @@ export const BASES: MilitaryBase[] = [
   { id:37, regimentMm:'ခလရ (၃၇)', regimentEn:'LIB 37', locationMm:'ကချင်ပြည်နယ်၊ ဝိုင်းမော်မြို့နယ်',            locationEn:'Waingmaw, Kachin State',        region:'Kachin State',             lat:25.36, lng:97.47, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   { id:40, regimentMm:'ခလရ (၄၀)', regimentEn:'LIB 40', locationMm:'ကချင်ပြည်နယ်၊ ဟိုပင်မြို့',                  locationEn:'Hpakant, Kachin State',         region:'Kachin State',             lat:25.90, lng:95.96, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   // KNLA — Kayin State
-  { id:19, regimentMm:'ခလရ (၁၉)', regimentEn:'LIB 19', locationMm:'ကရင်ပြည်နယ်၊ ဖာပွန်မြို့',                   locationEn:'Papun, Kayin State',            region:'Kayin State',              lat:18.04, lng:97.45, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
+  { id:19, regimentMm:'ခလရ (၁၉)', regimentEn:'LIB 19', locationMm:'ကရင်ပြည်နယ်၊ ဖာပွန်မြို့',                   locationEn:'Papun, Kayin State',            region:'Kayin State',              lat:18.048235578281876, lng:97.43934362772524, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   { id:28, regimentMm:'ခလရ (၂၈)', regimentEn:'LIB 28', locationMm:'ကရင်ပြည်နယ်၊ လှိုင်းဘွဲမြို့',               locationEn:'Hlaingbwe, Kayin State',        region:'Kayin State',              lat:17.09, lng:97.86, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   { id:29, regimentMm:'ခလရ (၂၉)', regimentEn:'LIB 29', locationMm:'ကရင်ပြည်နယ် (KNLA ထိန်းချုပ်)',               locationEn:'Kayin State (KNLA held)',       region:'Kayin State',              lat:17.15, lng:97.55, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   // AA — Rakhine State
   { id:34, regimentMm:'ခလရ (၃၄)', regimentEn:'LIB 34', locationMm:'ရခိုင်ပြည်နယ်၊ ကျောက်ဖြူမြို့နယ်',            locationEn:'Kyaukphyu, Rakhine State',      region:'Rakhine State',            lat:19.4286637, lng:93.5142758, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
 
-  // ── Unknown ──────────────────────────────────────────────────────────────────
-  { id:9,  regimentMm:'ခလရ (၉)',  regimentEn:'LIB 9',  locationMm:'ရှမ်းပြည်နယ်(အရှေ့ပိုင်း)၊ ခိုလမ်မြို့',       locationEn:'Kholam, Eastern Shan State',    region:'Shan State',          lat:21.09922581112035, lng:98.09246590813594, type:'LIB', threat:'MEDIUM', status:'UNKNOWN'     },
-  { id:66, regimentMm:'ခလရ (၆၆)', regimentEn:'LIB 66', locationMm:'နမ့်စန်မြို့နယ်၊ ခိုလမ်မြို့',                locationEn:'Kholan, Namsang, Shan State',   region:'Shan State',               lat:20.91486303852639, lng:97.70324133704442, type:'LIB', threat:'MEDIUM', status:'UNKNOWN'     },
+  
+  { id:9,  regimentMm:'ခလရ (၉)',  regimentEn:'LIB 9',  locationMm:'ရှမ်းပြည်နယ်(အရှေ့ပိုင်း)၊ ခိုလမ်မြို့',       locationEn:'Kholam, Eastern Shan State',    region:'Shan State',          lat:21.09922581112035, lng:98.09246590813594, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL'     },
+  { id:66, regimentMm:'ခလရ (၆၆)', regimentEn:'LIB 66', locationMm:'နမ့်စန်မြို့နယ်၊ ခိုလမ်မြို့',                locationEn:'Kholan, Namsang, Shan State',   region:'Shan State',               lat:20.91486303852639, lng:97.70324133704442, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL'     },
 
   // ── LIB 41–80 ────────────────────────────────────────────────────────────────
   // Operational
@@ -105,6 +104,7 @@ export const BASES: MilitaryBase[] = [
   { id:48, regimentMm:'ခလရ (၄၈)', regimentEn:'LIB 48', locationMm:'တနင်္သာရီတိုင်း၊ မြိတ်မြို့',                  locationEn:'Myeik, Tanintharyi',   region:'Tanintharyi Region',       lat:12.44, lng:98.60, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:49, regimentMm:'ခလရ (၄၉)', regimentEn:'LIB 49', locationMm:'ရှမ်းပြည်နယ်(အရှေ့ပိုင်း)၊ မိုင်းဆတ်မြို့',   locationEn:'Mong Hsat, E.Shan State',       region:'Shan State',               lat:20.51936235507661, lng:99.26364038002514, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:51, regimentMm:'ခလရ (၅၁)', regimentEn:'LIB 51', locationMm:'ဧရာဝတီတိုင်းဒေသကြီး၊ မြန်အောင်မြို့',          locationEn:'Myanaung, Ayeyarwady Region',   region:'Ayeyarwady Region',        lat:18.28, lng:95.33, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
+  { id:50, regimentMm:'ခလရ (၅၀)', regimentEn:'LIB 50', locationMm:'မကွေးတိုင်း၊ ဂန့်ဂေါမြို့နယ်',                 locationEn:'Gangaw, Magway Region',         region:'Magway Region',            lat:22.17, lng:94.13, type:'LIB', threat:'HIGH',   status:'OPERATIONAL'  },
   { id:53, regimentMm:'ခလရ (၅၃)', regimentEn:'LIB 53', locationMm:'ပဲခူးတိုင်း၊ ပေါက်ခေါင်းမြို့နယ်',             locationEn:'Paukkaung, Bago Region',        region:'Bago Region',              lat:18.52, lng:95.69, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:57, regimentMm:'ခလရ (၅၇)', regimentEn:'LIB 57', locationMm:'ပဲခူးတိုင်း၊ ရွှေကျင်မြို့နယ်',                locationEn:'Shwekyin, Bago Region',         region:'Bago Region',              lat:17.83, lng:96.92, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:59, regimentMm:'ခလရ (၅၉)', regimentEn:'LIB 59', locationMm:'ပဲခူးမြို့နယ်၊ ဘောနက်ကြီးကျေးရွာ',             locationEn:'Bago Township (Bone Net Gyi)',  region:'Bago Region',              lat:17.36, lng:96.52, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
@@ -130,11 +130,11 @@ export const BASES: MilitaryBase[] = [
   { id:64, regimentMm:'ခလရ (၆၄)', regimentEn:'LIB 64', locationMm:'ရှမ်းပြည်နယ်၊ လွိုင်လင်ခရိုင်၊ လဲချားမြို့',  locationEn:'Lel Char, Loilen, Shan State',  region:'Shan State',               lat:21.27961639667563, lng:97.6600548110156, type:'LIB', threat:'HIGH',   status:'CONTESTED'   },
   { id:74, regimentMm:'ခလရ (၇၄)', regimentEn:'LIB 74', locationMm:'ကချင်ပြည်နယ်၊ မိုးကောင်းမြို့',               locationEn:'Mogaung, Kachin State',         region:'Kachin State',             lat:25.30, lng:96.93, type:'LIB', threat:'HIGH',   status:'CONTESTED'   },
 
-  // Seized by PDF
-  { id:50, regimentMm:'ခလရ (၅၀)', regimentEn:'LIB 50', locationMm:'မကွေးတိုင်း၊ ဂန့်ဂေါမြို့နယ်',                 locationEn:'Gangaw, Magway Region',         region:'Magway Region',            lat:22.17, lng:94.13, type:'LIB', threat:'HIGH',   status:'SEIZED_PDF'  },
+ 
+  
 
   // Seized by EAO
-  { id:41, regimentMm:'ခလရ (၄၁)', regimentEn:'LIB 41', locationMm:'ရှမ်းပြည်နယ်(မြောက်ပိုင်း)၊ လားရှိုးမြို့နယ်', locationEn:'Lashio Township, N.Shan',       region:'Shan State',               lat:22.93, lng:97.75, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO'  },
+  { id:41, regimentMm:'ခလရ (၄၁)', regimentEn:'LIB 41', locationMm:'ရှမ်းပြည်နယ်(မြောက်ပိုင်း)၊ လားရှိုးမြို့နယ်', locationEn:'Lashio Township, N.Shan',       region:'Shan State',               lat:22.9250177, lng:97.7247941, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO'  },
   { id:45, regimentMm:'ခလရ (၄၅)', regimentEn:'LIB 45', locationMm:'ရှမ်းပြည်နယ်(မြောက်ပိုင်း)၊ ကွတ်ခိုင်မြို့',  locationEn:'Kutkai, N.Shan State',          region:'Shan State',               lat:23.46, lng:97.73, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO'  },
   { id:54, regimentMm:'ခလရ (၅၄)', regimentEn:'LIB 54', locationMm:'ကယားပြည်နယ်၊ လွိုင်ကော်မြို့',                locationEn:'Loikaw, Kayah State',           region:'Kayah State',              lat:19.67, lng:97.21, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO'  },
   { id:55, regimentMm:'ခလရ (၅၅)', regimentEn:'LIB 55', locationMm:'ရခိုင်ပြည်နယ်၊ သံတွဲမြို့',                   locationEn:'Thandwe, Rakhine State',        region:'Rakhine State',            lat:18.46, lng:94.37, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO'  },
@@ -173,11 +173,11 @@ export const BASES: MilitaryBase[] = [
   { id:105, regimentMm:'ခလရ (၁၀၅)', regimentEn:'LIB 105', locationMm:'ကချင်ပြည်နယ်၊ မိုးကောင်းမြို့နယ်၊ ဆားမှော်ကျေးရွာ',             locationEn:'Sar Maw, Mogaung Twp, Kachin',       region:'Kachin State',              lat:25.25, lng:96.85,          type:'LIB', threat:'HIGH',   status:'CONTESTED'   },
 
   // Unknown
-  { id:88,  regimentMm:'ခလရ (၈၈)',  regimentEn:'LIB 88',  locationMm:'အချက်အလက်မရှိ', locationEn:'Location Unknown', region:'Unknown', lat:19.50, lng:96.50, type:'LIB', threat:'MEDIUM', status:'UNKNOWN' },
-  { id:90,  regimentMm:'ခလရ (၉၀)',  regimentEn:'LIB 90',  locationMm:'အချက်အလက်မရှိ', locationEn:'Location Unknown', region:'Unknown', lat:19.55, lng:96.45, type:'LIB', threat:'MEDIUM', status:'UNKNOWN' },
-  { id:93,  regimentMm:'ခလရ (၉၃)',  regimentEn:'LIB 93',  locationMm:'အချက်အလက်မရှိ', locationEn:'Location Unknown', region:'Unknown', lat:19.45, lng:96.55, type:'LIB', threat:'MEDIUM', status:'UNKNOWN' },
-  { id:94,  regimentMm:'ခလရ (၉၄)',  regimentEn:'LIB 94',  locationMm:'အချက်အလက်မရှိ', locationEn:'Location Unknown', region:'Unknown', lat:19.60, lng:96.40, type:'LIB', threat:'MEDIUM', status:'UNKNOWN' },
-  { id:104, regimentMm:'ခလရ (၁၀၄)', regimentEn:'LIB 104', locationMm:'အချက်အလက်မရှိ', locationEn:'Location Unknown', region:'Unknown', lat:19.40, lng:96.60, type:'LIB', threat:'MEDIUM', status:'UNKNOWN' },
+  { id:88,  regimentMm:'ခလရ (၈၈)',  regimentEn:'LIB 88',  locationMm:'မကွေးတိုင်း၊ မင်းဘူးမြို့နယ်၊ စကုမြို့',        locationEn:'Sagu, Minbu Twp, Magway Region',  region:'Magway Region',  lat:20.10, lng:94.82, type:'LIB', threat:'MEDIUM', status:'UNKNOWN' },
+  { id:90,  regimentMm:'ခလရ (၉၀)',  regimentEn:'LIB 90',  locationMm:'ရန်ကုန်တိုင်း၊ သန်လျင်မြို့',                  locationEn:'Thanlyin, Yangon Region',         region:'Yangon Region',  lat:16.77, lng:96.25, type:'LIB', threat:'LOW',    status:'UNKNOWN' },
+  { id:93,  regimentMm:'ခလရ (၉၃)',  regimentEn:'LIB 93',  locationMm:'ဧရာဝတီတိုင်း၊ မြောင်းမြမြို့',                  locationEn:'Myaungmya, Ayeyarwady Region',     region:'Ayeyarwady Region', lat:16.59, lng:94.93, type:'LIB', threat:'LOW',    status:'UNKNOWN' },
+  { id:94,  regimentMm:'ခလရ (၉၄)',  regimentEn:'LIB 94',  locationMm:'ရှမ်းပြည်နယ်တောင်ပိုင်း၊ ညောင်ရွှေမြို့',       locationEn:'Nyaungshwe, Southern Shan State', region:'Shan State',     lat:20.63, lng:96.96, type:'LIB', threat:'MEDIUM', status:'UNKNOWN' },
+  { id:104, regimentMm:'ခလရ (၁၀၄)', regimentEn:'LIB 104', locationMm:'တနင်္သာရီတိုင်း၊ လောင်းလုံးမြို့နယ်',           locationEn:'Launglon Township, Tanintharyi',  region:'Tanintharyi Region', lat:14.116595345228125, lng:98.14782970274186, type:'LIB', threat:'LOW', status:'UNKNOWN' },
 ]
 
 export function baseStats(bases: MilitaryBase[]) {
