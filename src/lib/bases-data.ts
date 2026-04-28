@@ -93,8 +93,8 @@ export const BASES: MilitaryBase[] = [
   { id:34, regimentMm:'ခလရ (၃၄)', regimentEn:'LIB 34', locationMm:'ရခိုင်ပြည်နယ်၊ ကျောက်ဖြူမြို့နယ်',            locationEn:'Kyaukphyu, Rakhine State',      region:'Rakhine State',            lat:19.4286637, lng:93.5142758, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
 
   // ── Unknown ──────────────────────────────────────────────────────────────────
-  { id:9,  regimentMm:'ခလရ (၉)',  regimentEn:'LIB 9',  locationMm:'အရှေ့အလယ်ပိုင်းတိုင်းစစ်ဌာနချုပ်နယ်မြေ',     locationEn:'Eastern Central Command AO',    region:'Mandalay Region',          lat:21.20, lng:96.50, type:'LIB', threat:'MEDIUM', status:'UNKNOWN'     },
-  { id:66, regimentMm:'ခလရ (၆၆)', regimentEn:'LIB 66', locationMm:'နမ့်စန်မြို့နယ်၊ ခိုလမ်မြို့',                locationEn:'Kholan, Namsang, Shan State',   region:'Shan State',               lat:20.85, lng:97.03, type:'LIB', threat:'MEDIUM', status:'UNKNOWN'     },
+  { id:9,  regimentMm:'ခလရ (၉)',  regimentEn:'LIB 9',  locationMm:'ရှမ်းပြည်နယ်(အရှေ့ပိုင်း)၊ ခိုလမ်မြို့',       locationEn:'Kholam, Eastern Shan State',    region:'Shan State',          lat:21.09922581112035, lng:98.09246590813594, type:'LIB', threat:'MEDIUM', status:'UNKNOWN'     },
+  { id:66, regimentMm:'ခလရ (၆၆)', regimentEn:'LIB 66', locationMm:'နမ့်စန်မြို့နယ်၊ ခိုလမ်မြို့',                locationEn:'Kholan, Namsang, Shan State',   region:'Shan State',               lat:20.91486303852639, lng:97.70324133704442, type:'LIB', threat:'MEDIUM', status:'UNKNOWN'     },
 
   // ── LIB 41–80 ────────────────────────────────────────────────────────────────
   // Operational
@@ -102,7 +102,7 @@ export const BASES: MilitaryBase[] = [
   { id:43, regimentMm:'ခလရ (၄၃)', regimentEn:'LIB 43', locationMm:'ရှမ်းပြည်နယ်(အရှေ့ပိုင်း)၊ မိုင်းပြင်းမြို့',  locationEn:'Mong Phyak, E.Shan State',      region:'Shan State',               lat:20.89180248346235, lng:99.91902088495135, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:44, regimentMm:'ခလရ (၄၄)', regimentEn:'LIB 44', locationMm:'မကွေးတိုင်း၊ သရက်မြို့',                       locationEn:'Salay, Magway Region',          region:'Magway Region',            lat:20.65, lng:95.01, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:46, regimentMm:'ခလရ (၄၆)', regimentEn:'LIB 46', locationMm:'ကချင်ပြည်နယ်၊ ပူတာအိုခရိုင်၊ ဆွမ်ပရာဘွမ်မြို့',locationEn:'Sumprabum, Putao, Kachin',      region:'Kachin State',             lat:26.74, lng:97.33, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
-  { id:48, regimentMm:'ခလရ (၄၈)', regimentEn:'LIB 48', locationMm:'တနင်္သာရီတိုင်း၊ မြိတ်မြို့',                  locationEn:'Myeik (Mergui), Tanintharyi',   region:'Tanintharyi Region',       lat:12.44, lng:98.60, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
+  { id:48, regimentMm:'ခလရ (၄၈)', regimentEn:'LIB 48', locationMm:'တနင်္သာရီတိုင်း၊ မြိတ်မြို့',                  locationEn:'Myeik, Tanintharyi',   region:'Tanintharyi Region',       lat:12.44, lng:98.60, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:49, regimentMm:'ခလရ (၄၉)', regimentEn:'LIB 49', locationMm:'ရှမ်းပြည်နယ်(အရှေ့ပိုင်း)၊ မိုင်းဆတ်မြို့',   locationEn:'Mong Hsat, E.Shan State',       region:'Shan State',               lat:20.51936235507661, lng:99.26364038002514, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:51, regimentMm:'ခလရ (၅၁)', regimentEn:'LIB 51', locationMm:'ဧရာဝတီတိုင်းဒေသကြီး၊ မြန်အောင်မြို့',          locationEn:'Myanaung, Ayeyarwady Region',   region:'Ayeyarwady Region',        lat:18.28, lng:95.33, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:53, regimentMm:'ခလရ (၅၃)', regimentEn:'LIB 53', locationMm:'ပဲခူးတိုင်း၊ ပေါက်ခေါင်းမြို့နယ်',             locationEn:'Paukkaung, Bago Region',        region:'Bago Region',              lat:18.52, lng:95.69, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
