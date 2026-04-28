@@ -10,7 +10,7 @@
  */
 
 import { PrismaClient } from '@prisma/client'
-import { fetchAllFeeds } from '../lib/rss'
+import { fetchAllFeeds, TELEGRAM_SOURCE_NAMES } from '../lib/rss'
 import { resolveCoordinates } from '../lib/geocoding'
 import { calculateConfidence, classifySourceReliability } from '../lib/confidence'
 import { differenceInDays } from 'date-fns'
@@ -28,8 +28,12 @@ async function scrapeFeeds(): Promise<{ saved: number; skipped: number }> {
     const exists = await prisma.rawArticle.findUnique({ where: { url: item.url } })
     if (exists) { skipped++; continue }
 
+    // Telegram channels are Myanmar-specific by definition — skip keyword filter.
+    // For RSS, check for Myanmar keywords or Myanmar Unicode script (U+1000–U+109F).
+    const isTelegram = TELEGRAM_SOURCE_NAMES.has(item.sourceName)
     const text = `${item.title} ${item.content}`.toLowerCase()
-    const relevant =
+    const hasMyanmarScript = /[က-႟]/.test(item.title + item.content)
+    const relevant = isTelegram || hasMyanmarScript ||
       text.includes('myanmar') || text.includes('burma')    ||
       text.includes('tatmadaw') || text.includes('junta')   ||
       text.includes('pdf')     || text.includes('nug')      ||

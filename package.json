@@ -14,7 +14,8 @@
     "ingest": "tsx --env-file=.env.local src/scripts/ingest.ts",
     "process": "tsx --env-file=.env.local src/scripts/process.ts",
     "process:local": "tsx --env-file=.env.local src/scripts/process-local.ts",
-    "gdelt:import": "tsx --env-file=.env.local src/scripts/gdelt-import.ts"
+    "gdelt:import": "tsx --env-file=.env.local src/scripts/gdelt-import.ts",
+    "telegram:import": "tsx --env-file=.env.local src/scripts/telegram-import.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -27,6 +28,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "recharts": "^2.12.7",
+    "telegram": "^2.26.22",
     "zod": "^3.23.8"
   },
   "devDependencies": {

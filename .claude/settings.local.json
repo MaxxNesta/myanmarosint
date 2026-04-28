@@ -7,7 +7,11 @@
       "Bash(grep -E \"\\\\.json$|\\\\.ts$|\\\\.js$|\\\\.env\")",
       "Bash(npm install *)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_mMDH7IAEWhj3@ep-aged-silence-am1f7p5p-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" npx tsx src/scripts/process-local.ts)",
-      "Bash(del \"c:\\\\Users\\\\MSI\\\\Downloads\\\\myanmarosint\\\\postcss.config.mjs\")"
+      "Bash(del \"c:\\\\Users\\\\MSI\\\\Downloads\\\\myanmarosint\\\\postcss.config.mjs\")",
+      "Bash(node -e \"require\\('telegram'\\); console.log\\('ok'\\)\")",
+      "Bash(findstr /v \"DATABASE\\\\|MAPBOX\\\\|APP_URL\\\\|VERCEL\\\\|NEXTAUTH\\\\|SECRET\\\\|KEY\\\\|TOKEN\\\\|PASS\")",
+      "Bash(findstr /i \"TELEGRAM\" .env.local)",
+      "Bash(echo.)"
     ]
   }
 }

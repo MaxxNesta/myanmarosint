@@ -30,18 +30,18 @@ function buildMarkerEl(base: MilitaryBase): HTMLElement {
   const short = STATUS_SHORT[base.status]
 
   // Ambient glow on insignia at rest
-  const imgGlow = `drop-shadow(0 0 5px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
+  const imgGlow = `drop-shadow(0 0 4px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
 
   const wrap = document.createElement('div')
   wrap.style.cssText =
-    'display:flex;align-items:center;gap:5px;cursor:pointer;' +
+    'display:flex;align-items:center;gap:4px;cursor:pointer;' +
     'transition:transform 0.15s ease;'
 
   wrap.innerHTML = `
-    <div style="position:relative;flex-shrink:0;width:32px;height:32px">
+    <div style="position:relative;flex-shrink:0;width:16px;height:16px">
       <img
         src="${INSIGNIA_URL}"
-        width="32" height="32"
+        width="16" height="16"
         style="object-fit:contain;display:block;filter:${imgGlow};transition:filter 0.15s ease"
         alt="${base.regimentEn}"
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
@@ -50,9 +50,9 @@ function buildMarkerEl(base: MilitaryBase): HTMLElement {
       <span style="
         display:none;position:absolute;inset:0;
         align-items:center;justify-content:center;
-        font-family:monospace;font-size:13px;font-weight:900;
+        font-family:monospace;font-size:8px;font-weight:900;
         color:${color};
-        text-shadow:0 0 8px ${color},0 0 4px ${color};
+        text-shadow:0 0 6px ${color},0 0 3px ${color};
       ">${base.id}</span>
     </div>
 
@@ -82,8 +82,8 @@ function popupHTML(b: MilitaryBase): string {
   return `
     <div style="padding:14px 16px;font-size:0.8rem;min-width:250px;max-width:310px">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
-        <img src="${INSIGNIA_URL}" width="36" height="36"
-             style="object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 6px ${color})"
+        <img src="${INSIGNIA_URL}" width="20" height="20"
+             style="object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 5px ${color})"
              onerror="this.style.display='none'" />
         <div>
           <div style="font-weight:700;color:#e2e8f0;font-size:0.9rem;font-family:monospace">${b.regimentEn}</div>
@@ -190,8 +190,8 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
       // Intensify the insignia glow when selected; restore ambient glow otherwise
       if (img) {
         img.style.filter = active
-          ? `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 5px ${color}) brightness(1.3)`
-          : `drop-shadow(0 0 5px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
+          ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 3px ${color}) brightness(1.35)`
+          : `drop-shadow(0 0 4px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
       }
 
       if (active && mapRef.current) {

@@ -5,7 +5,6 @@ import DailyBrief from '@/components/intel/DailyBrief'
 import RiskOutlook from '@/components/intel/RiskOutlook'
 import ScenarioAnalysis from '@/components/intel/ScenarioAnalysis'
 import EventClusters from '@/components/intel/EventClusters'
-import SourceTransparency from '@/components/intel/SourceTransparency'
 import ThreatconBanner from '@/components/shared/ThreatconBanner'
 import { THREATCON_LABELS } from '@/lib/risk'
 
@@ -91,8 +90,7 @@ export default async function IntelPage() {
           <EventClusters events={events} />
         </div>
 
-        {/* Row 3 — Source Transparency */}
-        <SourceTransparency />
+
       </div>
     </div>
   )
