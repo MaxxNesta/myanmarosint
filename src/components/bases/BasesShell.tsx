@@ -27,15 +27,12 @@ const LAYER_META: Record<BaseStatus, { icon: string; label: string }> = {
   UNKNOWN:     { icon: '○', label: 'Unknown'       },
 }
 
-function StatCard({ label, value, color, sub }: { label: string; value: number; color?: string; sub?: string }) {
+function StatPill({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div className="flex flex-col gap-0.5 px-4 py-3 border-r border-white/[0.07] last:border-r-0 shrink-0">
-      <div className="flex items-center gap-1.5">
-        {color && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />}
-        <span className="text-[10px] font-mono text-slate-500 tracking-widest uppercase">{label}</span>
-      </div>
-      <span className="text-2xl font-bold font-mono text-slate-100">{value}</span>
-      {sub && <span className="text-[10px] font-mono text-slate-600">{sub}</span>}
+    <div className="flex items-center gap-2 px-4 h-full border-r border-white/[0.07] last:border-r-0 shrink-0">
+      {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color }} />}
+      <span className="text-[10px] font-mono text-slate-500 tracking-widest uppercase">{label}</span>
+      <span className="text-sm font-bold font-mono text-slate-200">{value}</span>
     </div>
   )
 }
@@ -93,28 +90,19 @@ export default function BasesShell() {
     <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
 
       {/* ── Top stats bar ─────────────────────────────────────────────────── */}
-      <div className="bg-surface-1 border-b border-white/[0.07] flex items-center shrink-0 overflow-x-auto">
+      <div className="bg-surface-1 border-b border-white/[0.07] flex items-center h-10 shrink-0 overflow-x-auto">
         {/* Classification badge */}
-        <div className="px-4 py-3 border-r border-white/[0.07] shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-[10px] font-mono font-bold tracking-widest text-red-400">
-              OSINT / UNCLASSIFIED
-            </span>
-          </div>
-          <div className="text-[9px] font-mono text-slate-600 mt-0.5">Myanmar Armed Forces · LIB Order of Battle</div>
+        <div className="px-4 h-full border-r border-white/[0.07] shrink-0 flex items-center gap-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+          <span className="text-[10px] font-mono font-bold tracking-widest text-red-400">OSINT · UNCLASSIFIED</span>
+          <span className="text-[9px] font-mono text-slate-600 hidden sm:inline">Myanmar Armed Forces · LIB ORBAT</span>
         </div>
 
-        <StatCard label="Total"       value={stats.total}       sub="tracked" />
-        <StatCard label="Operational" value={stats.operational} color={STATUS_COLORS.OPERATIONAL} sub="confirmed" />
-        <StatCard label="Contested"   value={stats.contested}   color={STATUS_COLORS.CONTESTED}   sub="active conflict" />
-        <StatCard label="Seized — PDF" value={stats.seizedPdf}  color={STATUS_COLORS.SEIZED_PDF}  sub="PDF held" />
-        <StatCard label="Seized — EAO" value={stats.seizedEao}  color={STATUS_COLORS.SEIZED_EAO}  sub="EAO held" />
-
-        <div className="ml-auto px-4 py-2 hidden lg:flex flex-col items-end shrink-0">
-          <span className="text-[9px] font-mono text-slate-600 tracking-widest">ပြည်တော်သာ · MYANMAR</span>
-          <span className="text-[10px] font-mono text-slate-500">LIB ORBAT 2026</span>
-        </div>
+        <StatPill label="Total"        value={stats.total}       />
+        <StatPill label="Operational"  value={stats.operational} color={STATUS_COLORS.OPERATIONAL} />
+        <StatPill label="Contested"    value={stats.contested}   color={STATUS_COLORS.CONTESTED}   />
+        <StatPill label="Seized — PDF" value={stats.seizedPdf}   color={STATUS_COLORS.SEIZED_PDF}  />
+        <StatPill label="Seized — EAO" value={stats.seizedEao}   color={STATUS_COLORS.SEIZED_EAO}  />
       </div>
 
       {/* ── Main layout ───────────────────────────────────────────────────── */}
