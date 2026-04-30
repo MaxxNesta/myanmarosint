@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import type { ProcessedEventDTO, RiskScoreDTO, EventType, ConflictEventDTO } from '@/lib/types'
-import { EVENT_TYPE_META, CONFLICT_EVENT_META, CONFLICT_TYPE_GROUP } from '@/lib/types'
+import { EVENT_TYPE_META, CONFLICT_EVENT_META } from '@/lib/types'
 import LayerToggle from './LayerToggle'
 import TimelineSlider from './TimelineSlider'
 import RiskPanel from '../shared/RiskPanel'
@@ -19,14 +19,6 @@ const MapView = dynamic(() => import('./MapView'), {
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000
 
-type ConflictGroup = 'combat' | 'territorial' | 'humanitarian' | 'political'
-
-const GROUP_META: Record<ConflictGroup, { label: string; color: string }> = {
-  combat:       { label: 'Combat',       color: '#ef4444' },
-  territorial:  { label: 'Territorial',  color: '#7c3aed' },
-  humanitarian: { label: 'Humanitarian', color: '#06b6d4' },
-  political:    { label: 'Political',    color: '#8b5cf6' },
-}
 
 interface Props {
   initialEvents:     ProcessedEventDTO[]
@@ -50,9 +42,8 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [activeLayers,    setActiveLayers]    = useState<Set<EventType>>(new Set(Object.keys(EVENT_TYPE_META) as EventType[]))
   const [dateRange,       setDateRange]        = useState<[Date, Date]>([allDates.min, today])
   const [showRisk,        setShowRisk]         = useState(false)
-  const [showConflict,    setShowConflict]     = useState(true)
-  const [conflictGroups,  setConflictGroups]   = useState<Set<ConflictGroup>>(new Set(['combat', 'territorial', 'humanitarian', 'political']))
-  const [actorSearch,     setActorSearch]      = useState('')
+  const [showConflict,  setShowConflict] = useState(true)
+  const [actorSearch,   setActorSearch]  = useState('')
 
   // Load conflict events once on mount
   useEffect(() => {
@@ -66,14 +57,6 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     setActiveLayers(prev => {
       const next = new Set(prev)
       next.has(type) ? next.delete(type) : next.add(type)
-      return next
-    })
-  }
-
-  function toggleGroup(g: ConflictGroup) {
-    setConflictGroups(prev => {
-      const next = new Set(prev)
-      next.has(g) ? next.delete(g) : next.add(g)
       return next
     })
   }
@@ -107,11 +90,10 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     return conflictEvents.filter(e => {
       const d = new Date(e.date)
       if (d < dateRange[0] || d > dateRange[1]) return false
-      if (!conflictGroups.has(CONFLICT_TYPE_GROUP[e.eventType])) return false
       if (q && !e.actors.some(a => a.toLowerCase().includes(q))) return false
       return true
     })
-  }, [conflictEvents, showConflict, conflictGroups, actorSearch, dateRange])
+  }, [conflictEvents, showConflict, actorSearch, dateRange])
 
   const isEmpty = events.length === 0
 
@@ -161,56 +143,30 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
         {/* ── Incident Intel section ───────────────────────────────────────── */}
         <div className="px-3 py-2 border-b border-white/[0.07] space-y-2">
-          {/* Section header + master toggle */}
           <div className="flex items-center justify-between">
             <span className="text-[9px] font-mono text-slate-500 tracking-widest uppercase">Incident Intel</span>
-            <button
-              onClick={() => setShowConflict(v => !v)}
-              className={`text-[9px] font-mono px-2 py-0.5 rounded transition-colors ${
-                showConflict
-                  ? 'bg-accent-red/20 text-red-400 border border-red-500/30'
-                  : 'text-slate-600 border border-white/[0.06]'
-              }`}
-            >
-              {showConflict ? 'ON' : 'OFF'}
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-mono text-slate-600">{filteredConflict.length} shown</span>
+              <button
+                onClick={() => setShowConflict(v => !v)}
+                className={`text-[9px] font-mono px-2 py-0.5 rounded transition-colors ${
+                  showConflict
+                    ? 'bg-accent-red/20 text-red-400 border border-red-500/30'
+                    : 'text-slate-600 border border-white/[0.06]'
+                }`}
+              >
+                {showConflict ? 'ON' : 'OFF'}
+              </button>
+            </div>
           </div>
-
           {showConflict && (
-            <>
-              {/* Group toggles */}
-              <div className="grid grid-cols-2 gap-1">
-                {(Object.entries(GROUP_META) as [ConflictGroup, typeof GROUP_META[ConflictGroup]][]).map(([g, m]) => {
-                  const on = conflictGroups.has(g)
-                  return (
-                    <button
-                      key={g}
-                      onClick={() => toggleGroup(g)}
-                      className={`flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-mono transition-colors ${
-                        on ? 'bg-white/[0.05] text-slate-300' : 'text-slate-600 opacity-50'
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: on ? m.color : '#475569' }} />
-                      {m.label}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Actor search */}
-              <input
-                type="text"
-                placeholder="Filter by actor…"
-                value={actorSearch}
-                onChange={e => setActorSearch(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/40"
-              />
-
-              {/* Count */}
-              <div className="text-[9px] font-mono text-slate-600">
-                {filteredConflict.length} incidents · {conflictEvents.length} total
-              </div>
-            </>
+            <input
+              type="text"
+              placeholder="Filter by actor…"
+              value={actorSearch}
+              onChange={e => setActorSearch(e.target.value)}
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/40"
+            />
           )}
         </div>
 

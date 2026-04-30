@@ -16,10 +16,10 @@ const mono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Myanmar Risk Platform — Geopolitical Intelligence',
+  title: 'Myanmar War Map — Conflict Intelligence',
   description:
-    'Open-source conflict monitoring and geopolitical risk analysis platform for Myanmar. ' +
-    'OSINT-based intelligence dashboard, interactive conflict map, and probabilistic risk modeling.',
+    'Open-source conflict monitoring and geopolitical intelligence platform for Myanmar. ' +
+    'OSINT-based war map, incident tracking, and probabilistic risk modeling.',
   keywords: ['Myanmar', 'OSINT', 'conflict', 'risk analysis', 'geopolitical', 'intelligence'],
 }
 

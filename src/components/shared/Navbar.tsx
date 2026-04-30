@@ -36,9 +36,7 @@ export default function Navbar() {
 
       {/* Brand */}
       <Link href="/map" className="flex items-center gap-2 mr-6 shrink-0">
-        <span className="text-accent-red font-bold text-xs tracking-widest font-mono">&#9650;</span>
-        <span className="text-sm font-bold tracking-widest text-slate-100">MYANMAR RISK</span>
-        <span className="hidden lg:inline text-xs text-slate-500 tracking-wider font-mono">PLATFORM</span>
+        <span className="text-sm font-bold tracking-widest text-slate-100">MYANMAR WAR MAP</span>
       </Link>
 
       {/* Desktop nav links */}
