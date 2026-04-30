@@ -5,14 +5,6 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { BASES, STATUS_COLORS, STATUS_LABELS, type MilitaryBase } from '@/lib/bases-data'
 
-type StyleKey = 'SATELLITE' | 'NIGHT' | 'MORNING' | 'DAWN'
-
-const MAP_STYLES: Record<StyleKey, { label: string; url: string; icon: string }> = {
-  SATELLITE: { label: 'Satellite', icon: '🛰', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
-  NIGHT:     { label: 'Night',     icon: '🌑', url: 'mapbox://styles/mapbox/dark-v11'               },
-  MORNING:   { label: 'Morning',   icon: '☀',  url: 'mapbox://styles/mapbox/light-v11'              },
-  DAWN:      { label: 'Dawn',      icon: '🌅', url: 'mapbox://styles/mapbox/navigation-night-v1'    },
-}
 
 const INSIGNIA_URL =
   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Shoulder_sleeve_insignia_of_Myanmar_Infantry_Corps_with_shape.svg'
@@ -131,8 +123,7 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef       = useRef<mapboxgl.Map | null>(null)
   const markersRef   = useRef<Map<number, mapboxgl.Marker>>(new Map())
-  const [ready,     setReady]     = useState(false)
-  const [mapStyle,  setMapStyle]  = useState<StyleKey>('SATELLITE')
+  const [ready, setReady] = useState(false)
 
   // Initialise map and markers once
   useEffect(() => {
@@ -141,7 +132,7 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style:     MAP_STYLES.SATELLITE.url,
+      style:     'mapbox://styles/mapbox/satellite-streets-v12',
       center:    [96.5, 19.5],
       zoom:      5.2,
       minZoom:   4,
@@ -249,40 +240,9 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
     })
   }, [selected, ready])
 
-  // Switch map style
-  useEffect(() => {
-    if (!mapRef.current) return
-    mapRef.current.setStyle(MAP_STYLES[mapStyle].url)
-  }, [mapStyle])
-
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
-
-      {/* Style switcher */}
-      <div className="absolute top-3 right-12 z-20 flex gap-1">
-        {(Object.keys(MAP_STYLES) as StyleKey[]).map(key => {
-          const s      = MAP_STYLES[key]
-          const active = mapStyle === key
-          return (
-            <button
-              key={key}
-              onClick={() => setMapStyle(key)}
-              title={s.label}
-              className={`
-                flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono
-                border transition-colors backdrop-blur
-                ${active
-                  ? 'bg-slate-800/90 border-slate-500 text-slate-200'
-                  : 'bg-slate-900/70 border-slate-700/50 text-slate-500 hover:text-slate-300 hover:border-slate-600'}
-              `}
-            >
-              <span>{s.icon}</span>
-              <span className="hidden sm:inline">{s.label}</span>
-            </button>
-          )
-        })}
-      </div>
     </div>
   )
 }
