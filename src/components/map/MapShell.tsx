@@ -43,7 +43,14 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [dateRange,       setDateRange]        = useState<[Date, Date]>([allDates.min, today])
   const [showRisk,        setShowRisk]         = useState(false)
   const [showConflict,  setShowConflict] = useState(true)
-  const [actorSearch,   setActorSearch]  = useState('')
+  const [actorFilter,   setActorFilter]  = useState('')
+
+  // Sorted unique actor list derived from loaded events
+  const actorOptions = useMemo(() => {
+    const set = new Set<string>()
+    conflictEvents.forEach(e => e.actors.forEach(a => { if (a) set.add(a) }))
+    return Array.from(set).sort()
+  }, [conflictEvents])
 
   // Load all 2023+ conflict events on mount (no days limit — activeOnly covers the boundary)
   useEffect(() => {
@@ -86,20 +93,13 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
   const filteredConflict = useMemo(() => {
     if (!showConflict) return []
-    const q = actorSearch.toLowerCase().trim()
     return conflictEvents.filter(e => {
       const d = new Date(e.date)
       if (d < dateRange[0] || d > dateRange[1]) return false
-      if (q) {
-        const inActors  = e.actors.some(a => a.toLowerCase().includes(q))
-        const inSummary = e.summary.toLowerCase().includes(q)
-        const inSource  = e.sourceName.toLowerCase().includes(q)
-        const inRegion  = e.region.toLowerCase().includes(q)
-        if (!inActors && !inSummary && !inSource && !inRegion) return false
-      }
+      if (actorFilter && !e.actors.includes(actorFilter)) return false
       return true
     })
-  }, [conflictEvents, showConflict, actorSearch, dateRange])
+  }, [conflictEvents, showConflict, actorFilter, dateRange])
 
   const isEmpty = events.length === 0
 
@@ -166,13 +166,16 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             </div>
           </div>
           {showConflict && (
-            <input
-              type="text"
-              placeholder="Filter by actor…"
-              value={actorSearch}
-              onChange={e => setActorSearch(e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/40"
-            />
+            <select
+              value={actorFilter}
+              onChange={e => setActorFilter(e.target.value)}
+              className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
+            >
+              <option value="">All actors</option>
+              {actorOptions.map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
           )}
         </div>
 

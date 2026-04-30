@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { ProcessedEventDTO, ConflictEventDTO, GeoFeatureCollection } from '@/lib/types'
@@ -156,8 +156,12 @@ const CONFLICT_COLOR_EXPR = [
 ] as any
 
 export default function MapView({ events, conflictEvents, showHeatmap, showConflict }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef       = useRef<mapboxgl.Map | null>(null)
+  const containerRef        = useRef<HTMLDivElement>(null)
+  const mapRef              = useRef<mapboxgl.Map | null>(null)
+  const conflictEventsRef   = useRef<ConflictEventDTO[]>(conflictEvents)
+
+  // Keep ref current so the load callback can read the latest data
+  useEffect(() => { conflictEventsRef.current = conflictEvents }, [conflictEvents])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -235,7 +239,9 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
       })
 
       // ── ConflictEvent source & layers ─────────────────
-      map.addSource('conflict-events', { type: 'geojson', data: conflictToGeoJSON([]) })
+      // Seed with whatever data arrived before map load (avoids the race condition
+      // where fetch resolves before the 'load' event fires)
+      map.addSource('conflict-events', { type: 'geojson', data: conflictToGeoJSON(conflictEventsRef.current) })
 
       // Outer glow ring for lethal events
       map.addLayer({
