@@ -7,35 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum EventType {
-  ARMED_CONFLICT
-  POLITICAL_UNREST
-  INFRASTRUCTURE_DISRUPTION
-  HUMANITARIAN_ALERT
-}
-
-enum SourceReliability {
-  HIGH
-  MEDIUM
-  LOW
-}
-
-enum ConflictEventType {
-  CLASH
-  AIRSTRIKE
-  ARTILLERY_SHELLING
-  AMBUSH
-  SIEGE_SEIZED
-  RECAPTURED
-  WITHDRAWAL
-  CEASEFIRE
-  ARMED_MOBILIZATION
-  CIVILIAN_HARM
-  DISPLACEMENT
-  HUMANITARIAN_CRISIS
-  POLITICAL_DEVELOPMENT
-}
-
 model RawEvent {
   id         String   @id @default(cuid())
   sourceId   String   @unique
@@ -52,12 +23,12 @@ model RawArticle {
   id          String         @id @default(cuid())
   url         String         @unique
   title       String
-  content     String         @db.Text
+  content     String
   sourceName  String
-  sourceType  String         @default("RSS")
   publishedAt DateTime?
   ingestedAt  DateTime       @default(now())
   processed   Boolean        @default(false)
+  sourceType  String         @default("RSS")
   events      EventArticle[]
 
   @@index([processed])
@@ -66,38 +37,37 @@ model RawArticle {
 }
 
 model ProcessedEvent {
-  id              String            @id @default(cuid())
-  date            DateTime
-  country         String            @default("Myanmar")
-  region          String
-  adminArea       String?
-  type            EventType
-  severity        Int               // 1–5
-  summary         String
-  source          String
-  sourceUrl       String?
-  reliability     SourceReliability @default(MEDIUM)
-  confidence      Float             // 0–1 (multi-factor calculated score)
-  latitude        Float?
-  longitude       Float?
-  coordPrecision  String            @default("region") // exact | township | district | region
-  // Casualties stored as min–max range; fatalities kept for backward compat
-  fatalities      Int               @default(0)  // best-estimate midpoint
-  fatalitiesMin   Int               @default(0)
-  fatalitiesMax   Int               @default(0)
-  woundedMin      Int               @default(0)
-  woundedMax      Int               @default(0)
-  capturedMin     Int               @default(0)
-  capturedMax     Int               @default(0)
-  displacement    Int?
-  sourceCount     Int               @default(1)  // how many sources reported this event
-  actors          String[]
-  tags            String[]
-  rawEventId            String?
-  isActiveIntelligence  Boolean           @default(false)
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
-  articles              EventArticle[]
+  id                   String            @id @default(cuid())
+  date                 DateTime
+  country              String            @default("Myanmar")
+  region               String
+  adminArea            String?
+  type                 EventType
+  severity             Int
+  summary              String
+  source               String
+  sourceUrl            String?
+  reliability          SourceReliability @default(MEDIUM)
+  confidence           Float
+  latitude             Float?
+  longitude            Float?
+  coordPrecision       String            @default("region")
+  fatalities           Int               @default(0)
+  fatalitiesMin        Int               @default(0)
+  fatalitiesMax        Int               @default(0)
+  woundedMin           Int               @default(0)
+  woundedMax           Int               @default(0)
+  capturedMin          Int               @default(0)
+  capturedMax          Int               @default(0)
+  displacement         Int?
+  sourceCount          Int               @default(1)
+  actors               String[]
+  tags                 String[]
+  rawEventId           String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  isActiveIntelligence Boolean           @default(false)
+  articles             EventArticle[]
 
   @@index([date])
   @@index([region])
@@ -106,27 +76,25 @@ model ProcessedEvent {
   @@index([latitude, longitude])
 }
 
-// Junction table — links each ProcessedEvent to every RawArticle that contributed to it
 model EventArticle {
   id               String         @id @default(cuid())
   processedEventId String
   rawArticleId     String
+  createdAt        DateTime       @default(now())
   processedEvent   ProcessedEvent @relation(fields: [processedEventId], references: [id], onDelete: Cascade)
   rawArticle       RawArticle     @relation(fields: [rawArticleId], references: [id])
-  createdAt        DateTime       @default(now())
 
   @@unique([processedEventId, rawArticleId])
   @@index([processedEventId])
   @@index([rawArticleId])
 }
 
-// Dynamic per-source reliability tracker — updated after each ingestion batch
 model SourceStats {
   id               String   @id @default(cuid())
   sourceName       String   @unique
   totalEvents      Int      @default(0)
-  corroborated     Int      @default(0)  // events confirmed by ≥1 other source
-  contradicted     Int      @default(0)  // events later flagged as wrong
+  corroborated     Int      @default(0)
+  contradicted     Int      @default(0)
   reliabilityScore Float    @default(0.65)
   lastUpdated      DateTime @updatedAt
 
@@ -137,7 +105,7 @@ model RiskScore {
   id              String   @id @default(cuid())
   region          String
   date            DateTime @db.Date
-  score           Float    // 0–100 composite
+  score           Float
   conflictScore   Float
   protestScore    Float
   disruptionScore Float
@@ -184,7 +152,7 @@ model ConflictEvent {
   actors               String[]
   attackerActor        String?
   defenderActor        String?
-  summary              String            @db.Text
+  summary              String
   fatalities           Int               @default(0)
   fatalitiesMin        Int               @default(0)
   fatalitiesMax        Int               @default(0)
@@ -204,4 +172,33 @@ model ConflictEvent {
   @@index([isActiveIntelligence])
   @@index([confidence])
   @@index([lat, lng])
+}
+
+enum EventType {
+  ARMED_CONFLICT
+  POLITICAL_UNREST
+  INFRASTRUCTURE_DISRUPTION
+  HUMANITARIAN_ALERT
+}
+
+enum SourceReliability {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ConflictEventType {
+  CLASH
+  AIRSTRIKE
+  ARTILLERY_SHELLING
+  AMBUSH
+  SIEGE_SEIZED
+  RECAPTURED
+  WITHDRAWAL
+  CEASEFIRE
+  ARMED_MOBILIZATION
+  CIVILIAN_HARM
+  DISPLACEMENT
+  HUMANITARIAN_CRISIS
+  POLITICAL_DEVELOPMENT
 }
