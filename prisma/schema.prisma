@@ -20,6 +20,22 @@ enum SourceReliability {
   LOW
 }
 
+enum ConflictEventType {
+  CLASH
+  AIRSTRIKE
+  ARTILLERY_SHELLING
+  AMBUSH
+  SIEGE_SEIZED
+  RECAPTURED
+  WITHDRAWAL
+  CEASEFIRE
+  ARMED_MOBILIZATION
+  CIVILIAN_HARM
+  DISPLACEMENT
+  HUMANITARIAN_CRISIS
+  POLITICAL_DEVELOPMENT
+}
+
 model RawEvent {
   id         String   @id @default(cuid())
   sourceId   String   @unique
@@ -38,6 +54,7 @@ model RawArticle {
   title       String
   content     String         @db.Text
   sourceName  String
+  sourceType  String         @default("RSS")
   publishedAt DateTime?
   ingestedAt  DateTime       @default(now())
   processed   Boolean        @default(false)
@@ -45,6 +62,7 @@ model RawArticle {
 
   @@index([processed])
   @@index([ingestedAt])
+  @@index([sourceType])
 }
 
 model ProcessedEvent {
@@ -75,10 +93,11 @@ model ProcessedEvent {
   sourceCount     Int               @default(1)  // how many sources reported this event
   actors          String[]
   tags            String[]
-  rawEventId      String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  articles        EventArticle[]
+  rawEventId            String?
+  isActiveIntelligence  Boolean           @default(false)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  articles              EventArticle[]
 
   @@index([date])
   @@index([region])
@@ -151,4 +170,38 @@ model UpdateLog {
   metadata  Json?
 
   @@index([timestamp])
+}
+
+model ConflictEvent {
+  id                   String            @id @default(cuid())
+  eventType            ConflictEventType
+  date                 DateTime
+  region               String
+  adminArea            String?
+  location             String?
+  lat                  Float?
+  lng                  Float?
+  actors               String[]
+  attackerActor        String?
+  defenderActor        String?
+  summary              String            @db.Text
+  fatalities           Int               @default(0)
+  fatalitiesMin        Int               @default(0)
+  fatalitiesMax        Int               @default(0)
+  sourceUrl            String
+  sourceName           String
+  sourceType           String            @default("RSS")
+  biasFlag             String            @default("neutral")
+  confidence           Float             @default(0.5)
+  dedupHash            String            @unique
+  isActiveIntelligence Boolean           @default(true)
+  rawArticleId         String?
+  createdAt            DateTime          @default(now())
+
+  @@index([date])
+  @@index([region])
+  @@index([eventType])
+  @@index([isActiveIntelligence])
+  @@index([confidence])
+  @@index([lat, lng])
 }

@@ -11,7 +11,9 @@
       "Bash(node -e \"require\\('telegram'\\); console.log\\('ok'\\)\")",
       "Bash(findstr /v \"DATABASE\\\\|MAPBOX\\\\|APP_URL\\\\|VERCEL\\\\|NEXTAUTH\\\\|SECRET\\\\|KEY\\\\|TOKEN\\\\|PASS\")",
       "Bash(findstr /i \"TELEGRAM\" .env.local)",
-      "Bash(echo.)"
+      "Bash(echo.)",
+      "Bash(npx prisma *)",
+      "Bash(npm run *)"
     ]
   }
 }

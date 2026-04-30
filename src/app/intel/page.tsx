@@ -5,6 +5,8 @@ import DailyBrief from '@/components/intel/DailyBrief'
 import RiskOutlook from '@/components/intel/RiskOutlook'
 import ScenarioAnalysis from '@/components/intel/ScenarioAnalysis'
 import EventClusters from '@/components/intel/EventClusters'
+import EscalationSignals from '@/components/intel/EscalationSignals'
+import VolatilityTable from '@/components/intel/VolatilityTable'
 import ThreatconBanner from '@/components/shared/ThreatconBanner'
 import { THREATCON_LABELS } from '@/lib/risk'
 
@@ -90,6 +92,15 @@ export default async function IntelPage() {
           <EventClusters events={events} />
         </div>
 
+        {/* Row 3 — Conflict intelligence */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="h-96">
+            <EscalationSignals />
+          </div>
+          <div className="h-96">
+            <VolatilityTable />
+          </div>
+        </div>
 
       </div>
     </div>

@@ -15,7 +15,9 @@
     "process": "tsx --env-file=.env.local src/scripts/process.ts",
     "process:local": "tsx --env-file=.env.local src/scripts/process-local.ts",
     "gdelt:import": "tsx --env-file=.env.local src/scripts/gdelt-import.ts",
-    "telegram:import": "tsx --env-file=.env.local src/scripts/telegram-import.ts"
+    "telegram:import": "tsx --env-file=.env.local src/scripts/telegram-import.ts",
+    "extract": "tsx --env-file=.env.local src/scripts/extract-events.ts",
+    "db:migrate": "tsx --env-file=.env.local src/scripts/db-migrate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

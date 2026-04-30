@@ -1,3 +1,66 @@
+// ─── Conflict intelligence types ─────────────────────────────────────────────
+
+export type ConflictEventType =
+  | 'CLASH' | 'AIRSTRIKE' | 'ARTILLERY_SHELLING' | 'AMBUSH'
+  | 'SIEGE_SEIZED' | 'RECAPTURED' | 'WITHDRAWAL' | 'CEASEFIRE'
+  | 'ARMED_MOBILIZATION' | 'CIVILIAN_HARM' | 'DISPLACEMENT'
+  | 'HUMANITARIAN_CRISIS' | 'POLITICAL_DEVELOPMENT'
+
+export interface ConflictEventDTO {
+  id:            string
+  eventType:     ConflictEventType
+  date:          string
+  region:        string
+  adminArea:     string | null
+  location:      string | null
+  lat:           number | null
+  lng:           number | null
+  actors:        string[]
+  attackerActor: string | null
+  defenderActor: string | null
+  summary:       string
+  fatalities:    number
+  fatalitiesMin: number
+  fatalitiesMax: number
+  sourceUrl:     string
+  sourceName:    string
+  biasFlag:      string
+  confidence:    number
+}
+
+export const CONFLICT_EVENT_META: Record<ConflictEventType, { color: string; label: string }> = {
+  CLASH:                 { color: '#ef4444', label: 'Clash'          },
+  AIRSTRIKE:             { color: '#f97316', label: 'Airstrike'      },
+  ARTILLERY_SHELLING:    { color: '#fb923c', label: 'Shelling'       },
+  AMBUSH:                { color: '#dc2626', label: 'Ambush'         },
+  SIEGE_SEIZED:          { color: '#7c3aed', label: 'Seized'         },
+  RECAPTURED:            { color: '#10b981', label: 'Recaptured'     },
+  WITHDRAWAL:            { color: '#6b7280', label: 'Withdrawal'     },
+  CEASEFIRE:             { color: '#22c55e', label: 'Ceasefire'      },
+  ARMED_MOBILIZATION:    { color: '#3b82f6', label: 'Mobilization'   },
+  CIVILIAN_HARM:         { color: '#b91c1c', label: 'Civilian Harm'  },
+  DISPLACEMENT:          { color: '#f59e0b', label: 'Displacement'   },
+  HUMANITARIAN_CRISIS:   { color: '#06b6d4', label: 'Humanitarian'   },
+  POLITICAL_DEVELOPMENT: { color: '#8b5cf6', label: 'Political'      },
+}
+
+// Groups used for sidebar filter toggles
+export const CONFLICT_TYPE_GROUP: Record<ConflictEventType, 'combat' | 'territorial' | 'humanitarian' | 'political'> = {
+  CLASH:                 'combat',
+  AIRSTRIKE:             'combat',
+  ARTILLERY_SHELLING:    'combat',
+  AMBUSH:                'combat',
+  ARMED_MOBILIZATION:    'combat',
+  SIEGE_SEIZED:          'territorial',
+  RECAPTURED:            'territorial',
+  WITHDRAWAL:            'territorial',
+  CEASEFIRE:             'territorial',
+  CIVILIAN_HARM:         'humanitarian',
+  DISPLACEMENT:          'humanitarian',
+  HUMANITARIAN_CRISIS:   'humanitarian',
+  POLITICAL_DEVELOPMENT: 'political',
+}
+
 // ─── Domain enums ────────────────────────────────────────────────────────────
 
 export type EventType =
