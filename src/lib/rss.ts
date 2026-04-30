@@ -53,7 +53,6 @@ export const RSS_SOURCES: RssSource[] = [
   { name: 'YKT News',               feedUrl: 'https://yktnews.com/feed/',                             reliability: 'MEDIUM' },
 
   // ── Human Rights / Documentation ─────────────────────────────────────────
-  { name: 'AAPP Burma',             feedUrl: 'https://aappb.org/feed/',                               reliability: 'HIGH'   },
   { name: 'Human Rights Watch',     feedUrl: 'https://www.hrw.org/tag/myanmar/feed',                  reliability: 'HIGH'   },
   { name: 'Amnesty International',  feedUrl: 'https://www.amnesty.org/en/tag/myanmar/feed/rss/',      reliability: 'HIGH'   },
   { name: 'UN News Myanmar',        feedUrl: 'https://news.un.org/feed/subscribe/en/news/region/asia-pacific/feed/rss.xml', reliability: 'HIGH' },
