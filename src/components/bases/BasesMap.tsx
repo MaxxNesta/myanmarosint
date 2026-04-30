@@ -5,6 +5,15 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { BASES, STATUS_COLORS, STATUS_LABELS, type MilitaryBase } from '@/lib/bases-data'
 
+type StyleKey = 'SATELLITE' | 'NIGHT' | 'MORNING' | 'DAWN'
+
+const MAP_STYLES: Record<StyleKey, { label: string; url: string; icon: string }> = {
+  SATELLITE: { label: 'Satellite', icon: '🛰', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
+  NIGHT:     { label: 'Night',     icon: '🌑', url: 'mapbox://styles/mapbox/dark-v11'               },
+  MORNING:   { label: 'Morning',   icon: '☀',  url: 'mapbox://styles/mapbox/light-v11'              },
+  DAWN:      { label: 'Dawn',      icon: '🌅', url: 'mapbox://styles/mapbox/navigation-night-v1'    },
+}
+
 const INSIGNIA_URL =
   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Shoulder_sleeve_insignia_of_Myanmar_Infantry_Corps_with_shape.svg'
 
@@ -122,7 +131,8 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef       = useRef<mapboxgl.Map | null>(null)
   const markersRef   = useRef<Map<number, mapboxgl.Marker>>(new Map())
-  const [ready, setReady] = useState(false)
+  const [ready,     setReady]     = useState(false)
+  const [mapStyle,  setMapStyle]  = useState<StyleKey>('SATELLITE')
 
   // Initialise map and markers once
   useEffect(() => {
@@ -131,15 +141,47 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style:     'mapbox://styles/mapbox/satellite-streets-v12',
+      style:     MAP_STYLES.SATELLITE.url,
       center:    [96.5, 19.5],
       zoom:      5.2,
       minZoom:   4,
-      maxZoom:   15,
+      maxZoom:   20,
       attributionControl: false,
     })
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
+
+    function applyMarkerSizes(zoom: number) {
+      const t        = Math.max(0, Math.min(1, (zoom - 4) / (20 - 4)))
+      const size     = Math.round(8 + 8 * t)               // 8px → 16px
+      const nameFs   = +(8   + 2.5 * t).toFixed(1)         // 8px → 10.5px
+      const shortFs  = +(6   + 2   * t).toFixed(1)         // 6px → 8px
+      const gap      = Math.round(2 + 2 * t)               // 2px → 4px
+      const showText = zoom >= 6.5
+
+      markersRef.current.forEach(marker => {
+        const el       = marker.getElement()
+        const iconWrap = el.children[0] as HTMLElement | null
+        const textWrap = el.children[1] as HTMLElement | null
+
+        el.style.gap = `${gap}px`
+
+        if (iconWrap) {
+          iconWrap.style.width  = `${size}px`
+          iconWrap.style.height = `${size}px`
+          const img = iconWrap.querySelector('img') as HTMLImageElement | null
+          if (img) { img.width = size; img.height = size }
+        }
+
+        if (textWrap) {
+          textWrap.style.display = showText ? '' : 'none'
+          const nameEl  = textWrap.children[0] as HTMLElement | null
+          const shortEl = textWrap.children[1] as HTMLElement | null
+          if (nameEl)  nameEl.style.fontSize  = `${nameFs}px`
+          if (shortEl) shortEl.style.fontSize = `${shortFs}px`
+        }
+      })
+    }
 
     map.on('load', () => {
       BASES.forEach(base => {
@@ -154,6 +196,8 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
         el.addEventListener('click', () => onSelect(base.id))
         markersRef.current.set(base.id, marker)
       })
+      applyMarkerSizes(map.getZoom())
+      map.on('zoom', () => applyMarkerSizes(map.getZoom()))
       setReady(true)
     })
 
@@ -205,5 +249,40 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
     })
   }, [selected, ready])
 
-  return <div ref={containerRef} className="w-full h-full" />
+  // Switch map style
+  useEffect(() => {
+    if (!mapRef.current) return
+    mapRef.current.setStyle(MAP_STYLES[mapStyle].url)
+  }, [mapStyle])
+
+  return (
+    <div className="relative w-full h-full">
+      <div ref={containerRef} className="w-full h-full" />
+
+      {/* Style switcher */}
+      <div className="absolute top-3 right-12 z-20 flex gap-1">
+        {(Object.keys(MAP_STYLES) as StyleKey[]).map(key => {
+          const s      = MAP_STYLES[key]
+          const active = mapStyle === key
+          return (
+            <button
+              key={key}
+              onClick={() => setMapStyle(key)}
+              title={s.label}
+              className={`
+                flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono
+                border transition-colors backdrop-blur
+                ${active
+                  ? 'bg-slate-800/90 border-slate-500 text-slate-200'
+                  : 'bg-slate-900/70 border-slate-700/50 text-slate-500 hover:text-slate-300 hover:border-slate-600'}
+              `}
+            >
+              <span>{s.icon}</span>
+              <span className="hidden sm:inline">{s.label}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
