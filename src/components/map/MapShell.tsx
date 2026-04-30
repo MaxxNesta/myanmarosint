@@ -45,9 +45,9 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [showConflict,  setShowConflict] = useState(true)
   const [actorSearch,   setActorSearch]  = useState('')
 
-  // Load conflict events once on mount
+  // Load all 2023+ conflict events on mount (no days limit — activeOnly covers the boundary)
   useEffect(() => {
-    fetch('/api/conflict-events?days=730&limit=3000&minConfidence=0.3')
+    fetch('/api/conflict-events?limit=5000&minConfidence=0.2')
       .then(r => r.json())
       .then(d => setConflict(d.events ?? []))
       .catch(() => {})
@@ -86,11 +86,17 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
   const filteredConflict = useMemo(() => {
     if (!showConflict) return []
-    const q = actorSearch.toLowerCase()
+    const q = actorSearch.toLowerCase().trim()
     return conflictEvents.filter(e => {
       const d = new Date(e.date)
       if (d < dateRange[0] || d > dateRange[1]) return false
-      if (q && !e.actors.some(a => a.toLowerCase().includes(q))) return false
+      if (q) {
+        const inActors  = e.actors.some(a => a.toLowerCase().includes(q))
+        const inSummary = e.summary.toLowerCase().includes(q)
+        const inSource  = e.sourceName.toLowerCase().includes(q)
+        const inRegion  = e.region.toLowerCase().includes(q)
+        if (!inActors && !inSummary && !inSource && !inRegion) return false
+      }
       return true
     })
   }, [conflictEvents, showConflict, actorSearch, dateRange])

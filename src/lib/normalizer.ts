@@ -1,4 +1,20 @@
 const ACTOR_ALIASES: Record<string, string> = {
+  // Burmese script entries (Myanmar Unicode — case fold is no-op, exact string match)
+  'စစ်တပ်':                                   'Tatmadaw',
+  'တပ်မတော်':                                  'Tatmadaw',
+  'စစ်ကောင်စီ':                                'Tatmadaw',
+  'စစ်ကောင်စီတပ်':                             'Tatmadaw',
+  'ပြည်သူ့ကာကွယ်ရေးတပ်':                       "People's Defence Force",
+  'တအာင်း':                                    "Ta'ang National Liberation Army",
+  'တအောင်း':                                   "Ta'ang National Liberation Army",
+  'ကိုးကန့်':                                   'Myanmar National Democratic Alliance Army',
+  'မိုင်းလားတပ်':                               'Myanmar National Democratic Alliance Army',
+  'ရခိုင်တပ်မတော်':                             'Arakan Army',
+  'ရခိုင်တပ်တော်':                              'Arakan Army',
+  'ကချင်လွတ်မြောက်ရေးတပ်မတော်':               'Kachin Independence Army',
+  'ကချင်':                                     'Kachin Independence Army',
+
+  // English entries
   'tatmadaw':                                  'Tatmadaw',
   'myanmar military':                          'Tatmadaw',
   'myanmar army':                              'Tatmadaw',

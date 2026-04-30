@@ -81,6 +81,7 @@ async function importChannel(
             title,
             content:     `${title}\n\n${text}`.slice(0, 8000),
             sourceName,
+            sourceType:  'TELEGRAM',
             publishedAt: new Date(message.date * 1000),
           },
         })

@@ -1,5 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk'
+﻿import Anthropic from '@anthropic-ai/sdk'
 import type { ConflictEventType } from '@prisma/client'
+import { findTownInText } from './towns'
 
 export interface ExtractedEvent {
   eventType:     ConflictEventType
@@ -17,58 +18,140 @@ export interface ExtractedEvent {
   biasFlag:      'neutral' | 'pro_resistance' | 'pro_junta' | 'unverified_claim'
 }
 
-const EXTRACTION_SYSTEM = `You are a Myanmar conflict intelligence analyst. Extract structured events from news articles. Output valid JSON only — no markdown, no prose.
+// Raw shape Claude returns in the bilingual output format
+interface RawClaudeEvent {
+  date:            string
+  actors:          string[]
+  event_types:     string[]
+  location?:       { name_en?: string; name_mm?: string }
+  region?:         string
+  admin_area?:     string
+  summary:         string
+  fatalities?:     number
+  fatalities_min?: number
+  fatalities_max?: number
+  bias_flag?:      string
+  // legacy fields — kept for backward compat if Claude still emits them
+  eventType?:      string
+  adminArea?:      string
+  attackerActor?:  string
+  defenderActor?:  string
+  fatalitiesMin?:  number
+  fatalitiesMax?:  number
+  biasFlag?:       string
+}
 
-Event types: CLASH, AIRSTRIKE, ARTILLERY_SHELLING, AMBUSH, SIEGE_SEIZED, RECAPTURED, WITHDRAWAL, CEASEFIRE, ARMED_MOBILIZATION, CIVILIAN_HARM, DISPLACEMENT, HUMANITARIAN_CRISIS, POLITICAL_DEVELOPMENT
+// Highest priority event type wins when Claude returns multiple
+const EVENT_TYPE_PRIORITY: ConflictEventType[] = [
+  'AIRSTRIKE', 'ARTILLERY_SHELLING', 'AMBUSH', 'SIEGE_SEIZED', 'RECAPTURED',
+  'WITHDRAWAL', 'CIVILIAN_HARM', 'CEASEFIRE', 'CLASH', 'ARMED_MOBILIZATION',
+  'DISPLACEMENT', 'HUMANITARIAN_CRISIS', 'POLITICAL_DEVELOPMENT',
+]
 
-Actor normalization — always use these canonical names:
-Tatmadaw/SAC/junta/Myanmar military → "Tatmadaw"
-PDF/People's Defence Force → "People's Defence Force"
-NUG → "National Unity Government"
-TNLA → "Ta'ang National Liberation Army"
-MNDAA/Kokang → "Myanmar National Democratic Alliance Army"
-AA → "Arakan Army"
-KIA → "Kachin Independence Army"
-KNU → "Karen National Union"
-KNLA → "Karen National Liberation Army"
-CNF → "Chin National Front"
-RCSS/SSA-S → "Restoration Council of Shan State"
-UWSA → "United Wa State Army"
+function pickEventType(types: string[]): ConflictEventType {
+  const valid = new Set(types.map(t => t.toUpperCase()))
+  for (const t of EVENT_TYPE_PRIORITY) {
+    if (valid.has(t)) return t
+  }
+  return 'CLASH'
+}
 
-Bias flags: neutral | pro_resistance | pro_junta | unverified_claim
+const VALID_BIAS = new Set(['neutral', 'pro_resistance', 'pro_junta', 'unverified_claim'])
 
-Output (JSON array, max 3 events per article):
-[{"eventType":"CLASH","date":"2024-03-15","region":"Sagaing Region","adminArea":"Taze","location":"near Kanbalu","actors":["Tatmadaw","People's Defence Force"],"attackerActor":"Tatmadaw","defenderActor":"People's Defence Force","summary":"...","fatalities":5,"fatalitiesMin":3,"fatalitiesMax":7,"biasFlag":"neutral"}]
+function toBiasFlag(raw?: string): ExtractedEvent['biasFlag'] {
+  return VALID_BIAS.has(raw ?? '') ? (raw as ExtractedEvent['biasFlag']) : 'neutral'
+}
 
-Return [] if the article contains no conflict events.`
+const EXTRACTION_SYSTEM = `You are a Myanmar conflict OSINT analyst. Analyze articles in both English and Myanmar (Burmese) script. Extract structured conflict events. Output valid JSON only — no markdown, no prose.
+
+## Actor codes — ALWAYS use these exact short codes
+TATMADAW  = Myanmar military / Tatmadaw / SAC / စစ်တပ် / တပ်မတော် / စစ်ကောင်စီ / junta / regime
+PDF       = People's Defence Force / ပြည်သူ့ကာကွယ်ရေးတပ် / resistance
+TNLA      = Ta'ang National Liberation Army / တအာင်း / တအောင်း
+MNDAA     = Myanmar National Democratic Alliance Army / Kokang / ကိုးကန့်
+AA        = Arakan Army / ရခိုင်တပ်မတော် / ရခိုင်တပ်တော်
+KIA       = Kachin Independence Army / ကချင်လွတ်မြောက်ရေးတပ်မတော် / ကချင်
+NUG       = National Unity Government
+KNU       = Karen National Union
+KNLA      = Karen National Liberation Army
+CNF       = Chin National Front
+RCSS      = Restoration Council of Shan State / SSA-S
+UWSA      = United Wa State Army
+
+## Event types (use ALL that apply, most specific first)
+AIRSTRIKE          — air strike / bomb / drone / လေကြောင်းတိုက်ခိုက် / လေတိုက်
+ARTILLERY_SHELLING — artillery / mortar / shelling / ဒုံးကျည် / မော်တာ / အမြောက်
+AMBUSH             — ambush / ချုံခိုတိုက်ခိုက် / ချောင်းမြောင်းတိုက်ခိုက် / အလစ်တိုက်ခိုက်
+SIEGE_SEIZED       — seized / captured / fell to / သိမ်းပိုက် / သိမ်းယူ / ကျဆုံး
+RECAPTURED         — recaptured / retook / ပြန်သိမ်း / ပြန်ယူ
+WITHDRAWAL         — withdrew / retreat / ဆုတ်ခွာ / ရုတ်သိမ်း
+CEASEFIRE          — ceasefire / truce / အပစ်ရပ် / ငြိမ်းချမ်းရေး
+CIVILIAN_HARM      — civilians killed / village burned / executions / အရပ်သားသေ / ရွာမီးရှို့
+DISPLACEMENT       — displaced / fled / refugees / ထွက်ပြေး / နေရပ်စွန့်ခွာ
+ARMED_MOBILIZATION — deployment / reinforcements / troops moved
+HUMANITARIAN_CRISIS— aid blocked / food shortage / humanitarian
+CLASH              — clash / battle / fight / gunfight / တိုက်ပွဲ / တိုက်ခိုက် / စစ်ဆင်ရေး
+POLITICAL_DEVELOPMENT — political / election / governance / နိုင်ငံရေး
+
+## Output format (JSON array, max 3 events per article)
+[{
+  "date": "YYYY-MM-DD",
+  "actors": ["TATMADAW", "PDF"],
+  "event_types": ["ARTILLERY_SHELLING", "CLASH"],
+  "location": { "name_en": "Kale", "name_mm": "ကလေး" },
+  "region": "Sagaing Region",
+  "admin_area": "Kale Township",
+  "summary": "Factual English summary, max 200 chars",
+  "fatalities": 5,
+  "fatalities_min": 3,
+  "fatalities_max": 7,
+  "bias_flag": "neutral"
+}]
+
+## Rules
+- location.name_en must be a real Myanmar town/township name in English
+- location.name_mm must be the same town in Myanmar script
+- Omit "location" entirely if the specific place is unknown
+- bias_flag: neutral | pro_resistance | pro_junta | unverified_claim
+- Lower confidence sources (Telegram, social media): note unverified claims appropriately
+- Return [] if no conflict events found`
+
+// ── Fallback patterns (English + Burmese) ────────────────────────────────────
 
 const FALLBACK_TYPE_MAP: [RegExp, ConflictEventType][] = [
-  [/airstrike|air.?strike|bomb(?:ing|ed)|drone.?strike/i,          'AIRSTRIKE'],
-  [/artillery|mortar|shelling|shell(?:ed|ing)\b/i,                  'ARTILLERY_SHELLING'],
-  [/\bambush(?:ed)?\b/i,                                            'AMBUSH'],
-  [/seize[sd]?|captur|overrun|fell\s+to|taken\s+by|storm(?:ed)?/i, 'SIEGE_SEIZED'],
-  [/recaptur|retook|retaken|liberat/i,                              'RECAPTURED'],
-  [/withdraw|retreat|pull.?back/i,                                  'WITHDRAWAL'],
-  [/ceasefire|cease-fire|truce/i,                                   'CEASEFIRE'],
-  [/deploy|mobiliz|reinforc|troop.{0,20}mov/i,                     'ARMED_MOBILIZATION'],
-  [/civilian.{0,30}kill|village.{0,30}burn|execut|torture/i,       'CIVILIAN_HARM'],
-  [/displace|flee|refugee|exodus|idp\b/i,                           'DISPLACEMENT'],
-  [/humanitarian|aid.{0,20}block|food.{0,20}short|medicine.{0,20}short/i, 'HUMANITARIAN_CRISIS'],
-  [/clash|battle|fight|combat|gun.?fight|firefight|skirmish/i,     'CLASH'],
+  [/airstrike|air.?strike|bomb(?:ing|ed)|drone.?strike|လေကြောင်းတိုက်ခိုက်|လေတိုက်/i, 'AIRSTRIKE'],
+  [/artillery|mortar|shelling|shell(?:ed|ing)\b|ဒုံးကျည်|မော်တာ|အမြောက်/i,            'ARTILLERY_SHELLING'],
+  [/\bambush(?:ed)?\b|ချုံခိုတိုက်ခိုက်|ချောင်းမြောင်းတိုက်ခိုက်|အလစ်တိုက်ခိုက်/i,                                                    'AMBUSH'],
+  [/seize[sd]?|captur|overrun|fell\s+to|taken\s+by|storm(?:ed)?|သိမ်းပိုက်|သိမ်းယူ|ကျဆုံး/i, 'SIEGE_SEIZED'],
+  [/recaptur|retook|retaken|liberat|ပြန်သိမ်း|ပြန်ယူ/i,                               'RECAPTURED'],
+  [/withdraw|retreat|pull.?back|ဆုတ်ခွာ|ရုတ်သိမ်း/i,                                  'WITHDRAWAL'],
+  [/ceasefire|cease-fire|truce|အပစ်ရပ်|ငြိမ်းချမ်းရေး/i,                               'CEASEFIRE'],
+  [/civilian.{0,30}kill|village.{0,30}burn|execut|torture|အရပ်သား.{0,20}သေ|ရွာမီးရှို့/i, 'CIVILIAN_HARM'],
+  [/displace|flee|refugee|exodus|idp\b|ထွက်ပြေး|နေရပ်စွန့်ခွာ/i,                        'DISPLACEMENT'],
+  [/deploy|mobiliz|reinforc|troop.{0,20}mov/i,                                          'ARMED_MOBILIZATION'],
+  [/humanitarian|aid.{0,20}block|food.{0,20}short/i,                                    'HUMANITARIAN_CRISIS'],
+  [/clash|battle|fight|combat|gun.?fight|firefight|skirmish|တိုက်ပွဲ|တိုက်ခိုက်|စစ်ဆင်ရေး/i, 'CLASH'],
 ]
 
 const REGION_MAP: [RegExp, string][] = [
-  [/sagaing/i,'Sagaing Region'],[/rakhine|arakan/i,'Rakhine State'],
-  [/kachin/i,'Kachin State'],[/northern shan|southern shan|eastern shan|shan state/i,'Shan State'],
-  [/kayah|karenni/i,'Kayah State'],[/kayin|karen state/i,'Kayin State'],
-  [/chin state/i,'Chin State'],[/\bmon state\b/i,'Mon State'],
-  [/mandalay/i,'Mandalay Region'],[/yangon/i,'Yangon Region'],
-  [/\bbago\b/i,'Bago Region'],[/magway/i,'Magway Region'],
-  [/ayeyarwady|irrawaddy/i,'Ayeyarwady Region'],
-  [/naypyidaw/i,'Naypyidaw Union Territory'],
-  [/tanintharyi|mergui/i,'Tanintharyi Region'],
-  // Short-form fallback (only after full-form failed)
-  [/\bshan\b/i,'Shan State'],[/\bchin\b/i,'Chin State'],[/\bmon\b/i,'Mon State'],
+  [/sagaing|စစ်ကိုင်း/i,                       'Sagaing Region'],
+  [/rakhine|arakan|ရခိုင်/i,                    'Rakhine State'],
+  [/kachin|ကချင်/i,                             'Kachin State'],
+  [/shan state|northern shan|southern shan|eastern shan|ရှမ်းပြည်/i, 'Shan State'],
+  [/kayah|karenni|ကယား/i,                       'Kayah State'],
+  [/kayin|karen state|ကရင်/i,                   'Kayin State'],
+  [/chin state|ချင်းပြည်/i,                     'Chin State'],
+  [/\bmon state\b|မွန်ပြည်/i,                   'Mon State'],
+  [/mandalay|မန္တလေး/i,                         'Mandalay Region'],
+  [/yangon|ရန်ကုန်/i,                            'Yangon Region'],
+  [/\bbago\b|ပဲခူး/i,                           'Bago Region'],
+  [/magway|မကွေး/i,                             'Magway Region'],
+  [/ayeyarwady|irrawaddy|ဧရာဝတီ/i,             'Ayeyarwady Region'],
+  [/naypyidaw|နေပြည်တော်/i,                    'Naypyidaw Union Territory'],
+  [/tanintharyi|mergui|တနင်္သာရီ/i,             'Tanintharyi Region'],
+  [/\bshan\b/i,                                 'Shan State'],
+  [/\bchin\b/i,                                 'Chin State'],
+  [/\bmon\b/i,                                  'Mon State'],
 ]
 
 const FATAL_PATTERNS = [
@@ -79,11 +162,14 @@ const FATAL_PATTERNS = [
   /(\d+)\s+fatalities/i,
   /killing\s+at least\s+(\d+)/i,
   /killing\s+(\d+)/i,
+  // Burmese: N ဦး/ယောက် ကျဆုံး/သဆုံး
+  /(\d+)\s*(?:ဦး|ယောက်)\s*(?:ကျဆုံး|သဆုံး|ဆုံးပါး)/,
 ]
 
 const RANGE_PATTERN = /(\d+)\s*(?:to|-)\s*(\d+)\s*(?:soldiers?|troops?|people|civilians?)?\s*killed/i
 
-const CONFLICT_SIGNAL = /kill|clash|attack|airstrike|bomb|shell|seize|captur|fight|battle|troops|military|tatmadaw|pdf\b|armed|artillery|offensive|ambush|withdraw|displace/i
+const CONFLICT_SIGNAL =
+  /kill|clash|attack|airstrike|bomb|shell|seize|captur|fight|battle|troops|military|tatmadaw|pdf\b|armed|artillery|offensive|ambush|withdraw|displace|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ထွက်ပြေး|ဆုတ်ခွာ|စစ်ဆင်ရေး|ကျဆုံး/i
 
 function fallbackExtract(
   title:      string,
@@ -111,15 +197,26 @@ function fallbackExtract(
     }
   }
 
-  let region = 'Myanmar'
-  for (const [rx, r] of REGION_MAP) { if (rx.test(text)) { region = r; break } }
+  // Try TOWNS lookup first (bilingual), then regex region map
+  let region    = 'Myanmar'
+  let adminArea: string | null = null
+  let location:  string | null = null
+
+  const town = findTownInText(text)
+  if (town) {
+    region    = town.region
+    adminArea = town.name_en
+    location  = town.name_en
+  } else {
+    for (const [rx, r] of REGION_MAP) { if (rx.test(text)) { region = r; break } }
+  }
 
   return {
     eventType,
     date:          (publishedAt ?? new Date()).toISOString().split('T')[0],
     region,
-    adminArea:     null,
-    location:      null,
+    adminArea,
+    location,
     actors:        [],
     attackerActor: null,
     defenderActor: null,
@@ -131,11 +228,83 @@ function fallbackExtract(
   }
 }
 
+// ── Claude parsing ────────────────────────────────────────────────────────────
+
+function parseClaudeResponse(raw: unknown, fullText: string): ExtractedEvent[] {
+  if (!Array.isArray(raw)) return []
+
+  return (raw as RawClaudeEvent[]).slice(0, 3).flatMap(ev => {
+    if (!ev || typeof ev !== 'object') return []
+
+    // Support both new event_types[] and legacy eventType string
+    const types: string[] = Array.isArray(ev.event_types)
+      ? ev.event_types
+      : ev.eventType ? [ev.eventType] : []
+    const eventType = pickEventType(types)
+
+    // Date
+    const date = typeof ev.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ev.date)
+      ? ev.date
+      : new Date().toISOString().split('T')[0]
+
+    // Region
+    let region    = 'Myanmar'
+    let adminArea: string | null = ev.admin_area ?? ev.adminArea ?? null
+    let location:  string | null = null
+
+    // Location from Claude's bilingual location object
+    if (ev.location?.name_en) {
+      location  = ev.location.name_en
+      adminArea = adminArea ?? ev.location.name_en
+    }
+
+    // If Claude gave a region string, use it; otherwise fall back to TOWNS lookup
+    if (ev.region && ev.region !== 'Myanmar') {
+      region = ev.region
+    } else {
+      // Try to resolve from location name or full article text
+      const lookupText = [ev.location?.name_en, ev.location?.name_mm, location, fullText].filter(Boolean).join(' ')
+      const town = findTownInText(lookupText)
+      if (town) {
+        region    = town.region
+        if (!location) location = town.name_en
+        if (!adminArea) adminArea = town.name_en
+      }
+    }
+
+    const actors = Array.isArray(ev.actors) ? ev.actors.filter(a => typeof a === 'string') : []
+
+    const fatalities    = Number(ev.fatalities)    || 0
+    const fatalitiesMin = Number(ev.fatalities_min ?? ev.fatalitiesMin) || fatalities
+    const fatalitiesMax = Number(ev.fatalities_max ?? ev.fatalitiesMax) || fatalities
+
+    return [{
+      eventType,
+      date,
+      region,
+      adminArea,
+      location,
+      actors,
+      attackerActor: ev.attackerActor ?? null,
+      defenderActor: ev.defenderActor ?? null,
+      summary:       String(ev.summary ?? '').slice(0, 800),
+      fatalities,
+      fatalitiesMin,
+      fatalitiesMax,
+      biasFlag:      toBiasFlag(ev.bias_flag ?? ev.biasFlag),
+    } satisfies ExtractedEvent]
+  })
+}
+
+// ── Client singleton ──────────────────────────────────────────────────────────
+
 let _client: Anthropic | null = null
 function getClient(): Anthropic {
   if (!_client) _client = new Anthropic()
   return _client
 }
+
+// ── Public API ────────────────────────────────────────────────────────────────
 
 export async function extractEvents(
   title:       string,
@@ -148,7 +317,8 @@ export async function extractEvents(
     return ev ? [ev] : []
   }
 
-  const prompt =
+  const fullText = `${title}\n\n${content.slice(0, 3500)}`
+  const prompt   =
     `Source: ${sourceName}\nPublished: ${publishedAt?.toISOString() ?? 'unknown'}\n\nTitle: ${title}\n\nContent:\n${content.slice(0, 3500)}`
 
   try {
@@ -159,12 +329,12 @@ export async function extractEvents(
       messages:   [{ role: 'user', content: prompt }],
     })
 
-    const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '[]'
+    const text   = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '[]'
     const parsed = JSON.parse(text)
-    if (!Array.isArray(parsed)) return []
-    return (parsed as ExtractedEvent[]).slice(0, 3)
-  } catch {
-    const ev = fallbackExtract(title, content, publishedAt)
-    return ev ? [ev] : []
-  }
+    const events = parseClaudeResponse(parsed, fullText)
+    if (events.length > 0) return events
+  } catch { /* fall through to regex */ }
+
+  const ev = fallbackExtract(title, content, publishedAt)
+  return ev ? [ev] : []
 }
