@@ -116,16 +116,6 @@ const SOURCE_DOCS = [
     description: 'High-velocity social-first outlet. Fast on breaking conflict events; verify before citing.',
     refresh:     'Live via RSS',
   },
-  // Human rights documentation
-  {
-    name:        'AAPP Burma',
-    full:        'Assistance Association for Political Prisoners',
-    reliability: 0.85,
-    bias:        'Anti-military',
-    url:         'https://aappb.org',
-    description: 'Tracks political prisoner counts, executions, and detention events. Primary source for judicial violence data.',
-    refresh:     'Live via RSS',
-  },
 ]
 
 function ReliabilityBar({ value }: { value: number }) {
