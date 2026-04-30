@@ -43,18 +43,24 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [dateRange,       setDateRange]        = useState<[Date, Date]>([allDates.min, today])
   const [showRisk,        setShowRisk]         = useState(false)
   const [showConflict,  setShowConflict] = useState(true)
-  const [actorFilter,   setActorFilter]  = useState('')
+  const [regionFilter,  setRegionFilter] = useState('')
+  const [actorSearch,   setActorSearch]  = useState('')
 
-  // Sorted unique actor list derived from loaded events
+  const regionOptions = useMemo(() => {
+    const set = new Set<string>()
+    conflictEvents.forEach(e => { if (e.region) set.add(e.region) })
+    return Array.from(set).sort()
+  }, [conflictEvents])
+
   const actorOptions = useMemo(() => {
     const set = new Set<string>()
     conflictEvents.forEach(e => e.actors.forEach(a => { if (a) set.add(a) }))
     return Array.from(set).sort()
   }, [conflictEvents])
 
-  // Load all 2023+ conflict events on mount (no days limit — activeOnly covers the boundary)
+  // Load all 2023+ conflict events on mount
   useEffect(() => {
-    fetch('/api/conflict-events?limit=5000&minConfidence=0.3')
+    fetch('/api/conflict-events?limit=5000')
       .then(r => r.json())
       .then(d => setConflict(d.events ?? []))
       .catch(() => {})
@@ -93,13 +99,15 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
   const filteredConflict = useMemo(() => {
     if (!showConflict) return []
+    const q = actorSearch.trim().toLowerCase()
     return conflictEvents.filter(e => {
       const d = new Date(e.date)
       if (d < dateRange[0] || d > dateRange[1]) return false
-      if (actorFilter && !e.actors.includes(actorFilter)) return false
+      if (regionFilter && e.region !== regionFilter) return false
+      if (q && !e.actors.some(a => a.toLowerCase().includes(q)) && !e.summary.toLowerCase().includes(q)) return false
       return true
     })
-  }, [conflictEvents, showConflict, actorFilter, dateRange])
+  }, [conflictEvents, showConflict, regionFilter, actorSearch, dateRange])
 
   const isEmpty = events.length === 0
 
@@ -166,16 +174,38 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             </div>
           </div>
           {showConflict && (
-            <select
-              value={actorFilter}
-              onChange={e => setActorFilter(e.target.value)}
-              className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
-            >
-              <option value="">All actors</option>
-              {actorOptions.map(a => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
+            <div className="space-y-1.5">
+              <select
+                value={regionFilter}
+                onChange={e => setRegionFilter(e.target.value)}
+                className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
+              >
+                <option value="">All regions</option>
+                {regionOptions.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              {actorOptions.length > 0 ? (
+                <select
+                  value={actorSearch}
+                  onChange={e => setActorSearch(e.target.value)}
+                  className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
+                >
+                  <option value="">All actors</option>
+                  {actorOptions.map(a => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Search actor / keyword…"
+                  value={actorSearch}
+                  onChange={e => setActorSearch(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/40"
+                />
+              )}
+            </div>
           )}
         </div>
 

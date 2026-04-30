@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { ProcessedEventDTO, ConflictEventDTO, GeoFeatureCollection } from '@/lib/types'
@@ -87,14 +87,28 @@ function popupHTML(p: ProcessedEventDTO): string {
     </div>`
 }
 
-function conflictPopupHTML(p: ConflictEventDTO): string {
-  const meta   = CONFLICT_EVENT_META[p.eventType]
-  const date   = format(new Date(p.date), 'dd MMM yyyy')
-  const conf   = (p.confidence * 100).toFixed(0)
-  const fatStr = p.fatalities > 0
-    ? `${p.fatalitiesMin === p.fatalitiesMax ? p.fatalities : `${p.fatalitiesMin}–${p.fatalitiesMax}`} KIA`
+// Mapbox serializes array properties to JSON strings — parse safely
+function safeActorsStr(p: Record<string, unknown>): string {
+  if (typeof p.actorsStr === 'string' && p.actorsStr) return p.actorsStr
+  if (Array.isArray(p.actors)) return p.actors.join(', ')
+  if (typeof p.actors === 'string' && p.actors.startsWith('[')) {
+    try { return (JSON.parse(p.actors) as string[]).join(', ') } catch { /* fall */ }
+  }
+  return ''
+}
+
+function conflictPopupHTML(p: Record<string, unknown>): string {
+  const eventType = p.eventType as string
+  const meta   = CONFLICT_EVENT_META[eventType as keyof typeof CONFLICT_EVENT_META] ?? { color: '#94a3b8', label: eventType }
+  const date   = format(new Date(p.date as string), 'dd MMM yyyy')
+  const conf   = ((p.confidence as number) * 100).toFixed(0)
+  const fat    = p.fatalities as number
+  const fatMin = p.fatalitiesMin as number
+  const fatMax = p.fatalitiesMax as number
+  const fatStr = fat > 0
+    ? `${fatMin === fatMax ? fat : `${fatMin}–${fatMax}`} KIA`
     : ''
-  const actors = (p.actors ?? []).join(', ')
+  const actors = safeActorsStr(p)
 
   return `
     <div style="padding:14px 16px;font-size:0.8rem;line-height:1.5;max-width:320px">
@@ -288,11 +302,13 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
       map.on('click', 'conflict-circles', e => {
         const feature = e.features?.[0]
         if (!feature) return
-        const p = feature.properties as ConflictEventDTO
-        new mapboxgl.Popup({ maxWidth: '380px', closeButton: true, offset: 12 })
-          .setLngLat(e.lngLat)
-          .setHTML(conflictPopupHTML(p))
-          .addTo(map)
+        try {
+          const p = feature.properties as Record<string, unknown>
+          new mapboxgl.Popup({ maxWidth: '380px', closeButton: true, offset: 12 })
+            .setLngLat(e.lngLat)
+            .setHTML(conflictPopupHTML(p))
+            .addTo(map)
+        } catch { /* ignore malformed feature */ }
       })
       map.on('mouseenter', 'conflict-circles', () => { map.getCanvas().style.cursor = 'crosshair' })
       map.on('mouseleave', 'conflict-circles', () => { map.getCanvas().style.cursor = '' })

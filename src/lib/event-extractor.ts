@@ -171,6 +171,31 @@ const RANGE_PATTERN = /(\d+)\s*(?:to|-)\s*(\d+)\s*(?:soldiers?|troops?|people|ci
 const CONFLICT_SIGNAL =
   /kill|clash|attack|airstrike|bomb|shell|seize|captur|fight|battle|troops|military|tatmadaw|pdf\b|armed|artillery|offensive|ambush|withdraw|displace|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ထွက်ပြေး|ဆုတ်ခွာ|စစ်ဆင်ရေး|ကျဆုံး/i
 
+// Actor detection patterns — matched against full article text (English + Burmese)
+// Returns the short code; normalizeActors() in extract-events.ts maps these to full names
+const ACTOR_PATTERNS: [RegExp, string][] = [
+  [/\btatmadaw\b|myanmar\s+(?:military|army|air\s+force)|state\s+administration\s+council|\bsac\b(?!\w)|\bjunta\b|\bregime\b|military\s+council|စစ်တပ်|တပ်မတော်|စစ်ကောင်စီ/i, 'Tatmadaw'],
+  [/\bpdf\b|people'?s\s+def[e]?nc[e]\s+force|pro.?democracy\s+force|resistance\s+force|ပြည်သူ့ကာကွယ်ရေးတပ်/i,                                                                 "People's Defence Force"],
+  [/\btnla\b|ta'?ang\s+national\s+liberation|တအာင်း|တအောင်း/i,                                                                                                               "Ta'ang National Liberation Army"],
+  [/\bmndaa\b|\bkokang\b|myanmar\s+national\s+democratic\s+alliance|ကိုးကန့်/i,                                                                                               'Myanmar National Democratic Alliance Army'],
+  [/\barakan\s+army\b|\baa\b(?=\s+(?:forces?|troops?|fighters?|soldiers?|units?|captured|seized|launched|attacked|advanced))|ရခိုင်တပ်မတော်|ရခိုင်တပ်တော်/i,                'Arakan Army'],
+  [/\bkia\b|kachin\s+independence\s+army|ကချင်လွတ်မြောက်ရေးတပ်မတော်/i,                                                                                                      'Kachin Independence Army'],
+  [/\bnug\b|national\s+unity\s+government/i,                                                                                                                                  'National Unity Government'],
+  [/\bknu\b|karen\s+national\s+union/i,                                                                                                                                       'Karen National Union'],
+  [/\bknla\b|karen\s+national\s+liberation\s+army/i,                                                                                                                          'Karen National Liberation Army'],
+  [/\bcnf\b|chin\s+national\s+front/i,                                                                                                                                        'Chin National Front'],
+  [/\brcss\b|\bssa-s\b|restoration\s+council\s+of\s+shan/i,                                                                                                                   'Restoration Council of Shan State'],
+  [/\buwsa\b|united\s+wa\s+state\s+army/i,                                                                                                                                    'United Wa State Army'],
+]
+
+function detectActors(text: string): string[] {
+  const found: string[] = []
+  for (const [rx, name] of ACTOR_PATTERNS) {
+    if (rx.test(text)) found.push(name)
+  }
+  return found
+}
+
 function fallbackExtract(
   title:      string,
   content:    string,
@@ -217,7 +242,7 @@ function fallbackExtract(
     region,
     adminArea,
     location,
-    actors:        [],
+    actors:        detectActors(text),
     attackerActor: null,
     defenderActor: null,
     summary:       title.slice(0, 300),
