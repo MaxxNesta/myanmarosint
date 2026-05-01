@@ -15,7 +15,7 @@
 import { TelegramClient } from 'telegram'
 import { StringSession }  from 'telegram/sessions'
 import { Api }            from 'telegram'
-import { PrismaClient }   from '@prisma/client'
+import { makePrisma }     from './make-prisma'
 import * as readline      from 'readline'
 import { TELEGRAM_SOURCES } from '../lib/rss'
 
