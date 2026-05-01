@@ -1,4 +1,4 @@
-﻿import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { ConflictEventType } from '@prisma/client'
 import { findTownInText } from './towns'
 
@@ -18,8 +18,17 @@ export interface ExtractedEvent {
   biasFlag:      'neutral' | 'pro_resistance' | 'pro_junta' | 'unverified_claim'
 }
 
-// Raw shape Claude returns in the bilingual output format
-interface RawClaudeEvent {
+// Only direct battle event types — no analysis, political, or humanitarian
+export const BATTLE_EVENT_TYPES: ConflictEventType[] = [
+  'CLASH', 'AIRSTRIKE', 'ARTILLERY_SHELLING', 'AMBUSH',
+  'SIEGE_SEIZED', 'RECAPTURED', 'WITHDRAWAL', 'CEASEFIRE',
+]
+
+const BATTLE_SET = new Set<string>(BATTLE_EVENT_TYPES)
+
+// ── Raw shape from Gemini response ────────────────────────────────────────────
+
+interface RawExtractedEvent {
   date:            string
   actors:          string[]
   event_types:     string[]
@@ -31,7 +40,7 @@ interface RawClaudeEvent {
   fatalities_min?: number
   fatalities_max?: number
   bias_flag?:      string
-  // legacy fields — kept for backward compat if Claude still emits them
+  // legacy fields
   eventType?:      string
   adminArea?:      string
   attackerActor?:  string
@@ -41,28 +50,35 @@ interface RawClaudeEvent {
   biasFlag?:       string
 }
 
-// Highest priority event type wins when Claude returns multiple
+// Highest priority wins when multiple event types apply
 const EVENT_TYPE_PRIORITY: ConflictEventType[] = [
   'AIRSTRIKE', 'ARTILLERY_SHELLING', 'AMBUSH', 'SIEGE_SEIZED', 'RECAPTURED',
-  'WITHDRAWAL', 'CIVILIAN_HARM', 'CEASEFIRE', 'CLASH', 'ARMED_MOBILIZATION',
-  'DISPLACEMENT', 'HUMANITARIAN_CRISIS', 'POLITICAL_DEVELOPMENT',
+  'WITHDRAWAL', 'CEASEFIRE', 'CLASH',
 ]
 
-function pickEventType(types: string[]): ConflictEventType {
+function pickEventType(types: string[]): ConflictEventType | null {
   const valid = new Set(types.map(t => t.toUpperCase()))
   for (const t of EVENT_TYPE_PRIORITY) {
     if (valid.has(t)) return t
   }
-  return 'CLASH'
+  return null
 }
 
 const VALID_BIAS = new Set(['neutral', 'pro_resistance', 'pro_junta', 'unverified_claim'])
-
 function toBiasFlag(raw?: string): ExtractedEvent['biasFlag'] {
   return VALID_BIAS.has(raw ?? '') ? (raw as ExtractedEvent['biasFlag']) : 'neutral'
 }
 
-const EXTRACTION_SYSTEM = `You are a Myanmar conflict OSINT analyst. Analyze articles in both English and Myanmar (Burmese) script. Extract structured conflict events. Output valid JSON only — no markdown, no prose.
+// ── Gemini system prompt ──────────────────────────────────────────────────────
+
+const EXTRACTION_SYSTEM = `You are a Myanmar conflict OSINT analyst specialising in direct battle reporting. Analyze articles in both English and Myanmar (Burmese) script.
+
+IMPORTANT: Extract ONLY direct kinetic battle events. Skip articles that are:
+- Political commentary or analysis
+- Diplomatic statements or peace talks (unless a ceasefire was actually declared)
+- Humanitarian aid reports or casualty statistics summaries
+- Protest or civil disobedience
+- Economic or governance news
 
 ## Actor codes — ALWAYS use these exact short codes
 TATMADAW  = Myanmar military / Tatmadaw / SAC / စစ်တပ် / တပ်မတော် / စစ်ကောင်စီ / junta / regime
@@ -78,30 +94,25 @@ CNF       = Chin National Front
 RCSS      = Restoration Council of Shan State / SSA-S
 UWSA      = United Wa State Army
 
-## Event types (use ALL that apply, most specific first)
-AIRSTRIKE          — air strike / bomb / drone / လေကြောင်းတိုက်ခိုက် / လေတိုက်
-ARTILLERY_SHELLING — artillery / mortar / shelling / ဒုံးကျည် / မော်တာ / အမြောက်
-AMBUSH             — ambush / ချုံခိုတိုက်ခိုက် / ချောင်းမြောင်းတိုက်ခိုက် / အလစ်တိုက်ခိုက်
-SIEGE_SEIZED       — seized / captured / fell to / သိမ်းပိုက် / သိမ်းယူ / ကျဆုံး
-RECAPTURED         — recaptured / retook / ပြန်သိမ်း / ပြန်ယူ
-WITHDRAWAL         — withdrew / retreat / ဆုတ်ခွာ / ရုတ်သိမ်း
-CEASEFIRE          — ceasefire / truce / အပစ်ရပ် / ငြိမ်းချမ်းရေး
-CIVILIAN_HARM      — civilians killed / village burned / executions / အရပ်သားသေ / ရွာမီးရှို့
-DISPLACEMENT       — displaced / fled / refugees / ထွက်ပြေး / နေရပ်စွန့်ခွာ
-ARMED_MOBILIZATION — deployment / reinforcements / troops moved
-HUMANITARIAN_CRISIS— aid blocked / food shortage / humanitarian
-CLASH              — clash / battle / fight / gunfight / တိုက်ပွဲ / တိုက်ခိုက် / စစ်ဆင်ရေး
-POLITICAL_DEVELOPMENT — political / election / governance / နိုင်ငံရေး
+## Battle event types ONLY — return [] for anything else
+CLASH              — armed clash / battle / firefight / gun battle / တိုက်ပွဲ / တိုက်ခိုက်
+AIRSTRIKE          — air strike / bombing / drone strike / လေကြောင်းတိုက်ခိုက် / လေတိုက်
+ARTILLERY_SHELLING — artillery / mortar / rocket shelling / ဒုံးကျည် / မော်တာ / အမြောက်
+AMBUSH             — ambush attack / ချုံခိုတိုက်ခိုက် / ချောင်းမြောင်းတိုက်ခိုက် / အလစ်တိုက်ခိုက်
+SIEGE_SEIZED       — town / base seized / captured / fell to / သိမ်းပိုက် / သိမ်းယူ / ကျဆုံး
+RECAPTURED         — town / base recaptured / retaken / ပြန်သိမ်း / ပြန်ယူ
+WITHDRAWAL         — military withdrawal / strategic retreat / ဆုတ်ခွာ / ရုတ်သိမ်း
+CEASEFIRE          — ceasefire declared / truce agreed / အပစ်ရပ် / ငြိမ်းချမ်းရေးကြေညာ
 
 ## Output format (JSON array, max 3 events per article)
 [{
   "date": "YYYY-MM-DD",
   "actors": ["TATMADAW", "PDF"],
-  "event_types": ["ARTILLERY_SHELLING", "CLASH"],
+  "event_types": ["AIRSTRIKE", "CLASH"],
   "location": { "name_en": "Kale", "name_mm": "ကလေး" },
   "region": "Sagaing Region",
   "admin_area": "Kale Township",
-  "summary": "Factual English summary, max 200 chars",
+  "summary": "Factual English battle summary, max 200 chars",
   "fatalities": 5,
   "fatalities_min": 3,
   "fatalities_max": 7,
@@ -109,28 +120,21 @@ POLITICAL_DEVELOPMENT — political / election / governance / နိုင်င
 }]
 
 ## Rules
-- location.name_en must be a real Myanmar town/township name in English
-- location.name_mm must be the same town in Myanmar script
-- Omit "location" entirely if the specific place is unknown
+- location.name_en must be a real Myanmar town name; omit location if unknown
 - bias_flag: neutral | pro_resistance | pro_junta | unverified_claim
-- Lower confidence sources (Telegram, social media): note unverified claims appropriately
-- Return [] if no conflict events found`
+- Return [] if no direct battle events found (analysis, politics, humanitarian → return [])`
 
-// ── Fallback patterns (English + Burmese) ────────────────────────────────────
+// ── Fallback patterns (regex, English + Burmese) ──────────────────────────────
 
 const FALLBACK_TYPE_MAP: [RegExp, ConflictEventType][] = [
-  [/airstrike|air.?strike|bomb(?:ing|ed)|drone.?strike|လေကြောင်းတိုက်ခိုက်|လေတိုက်/i, 'AIRSTRIKE'],
-  [/artillery|mortar|shelling|shell(?:ed|ing)\b|ဒုံးကျည်|မော်တာ|အမြောက်/i,            'ARTILLERY_SHELLING'],
-  [/\bambush(?:ed)?\b|ချုံခိုတိုက်ခိုက်|ချောင်းမြောင်းတိုက်ခိုက်|အလစ်တိုက်ခိုက်/i,                                                    'AMBUSH'],
-  [/seize[sd]?|captur|overrun|fell\s+to|taken\s+by|storm(?:ed)?|သိမ်းပိုက်|သိမ်းယူ|ကျဆုံး/i, 'SIEGE_SEIZED'],
-  [/recaptur|retook|retaken|liberat|ပြန်သိမ်း|ပြန်ယူ/i,                               'RECAPTURED'],
-  [/withdraw|retreat|pull.?back|ဆုတ်ခွာ|ရုတ်သိမ်း/i,                                  'WITHDRAWAL'],
-  [/ceasefire|cease-fire|truce|အပစ်ရပ်|ငြိမ်းချမ်းရေး/i,                               'CEASEFIRE'],
-  [/civilian.{0,30}kill|village.{0,30}burn|execut|torture|အရပ်သား.{0,20}သေ|ရွာမီးရှို့/i, 'CIVILIAN_HARM'],
-  [/displace|flee|refugee|exodus|idp\b|ထွက်ပြေး|နေရပ်စွန့်ခွာ/i,                        'DISPLACEMENT'],
-  [/deploy|mobiliz|reinforc|troop.{0,20}mov/i,                                          'ARMED_MOBILIZATION'],
-  [/humanitarian|aid.{0,20}block|food.{0,20}short/i,                                    'HUMANITARIAN_CRISIS'],
-  [/clash|battle|fight|combat|gun.?fight|firefight|skirmish|တိုက်ပွဲ|တိုက်ခိုက်|စစ်ဆင်ရေး/i, 'CLASH'],
+  [/airstrike|air.?strike|bomb(?:ing|ed)|drone.?strike|လေကြောင်းတိုက်ခိုက်|လေတိုက်/i,                                              'AIRSTRIKE'],
+  [/artillery|mortar|shelling|shell(?:ed|ing)\b|ဒုံးကျည်|မော်တာ|အမြောက်/i,                                                        'ARTILLERY_SHELLING'],
+  [/\bambush(?:ed)?\b|ချုံခိုတိုက်ခိုက်|ချောင်းမြောင်းတိုက်ခိုက်|အလစ်တိုက်ခိုက်/i,                                               'AMBUSH'],
+  [/seize[sd]?|captur|overrun|fell\s+to|taken\s+by|storm(?:ed)?|သိမ်းပိုက်|သိမ်းယူ|ကျဆုံး/i,                                     'SIEGE_SEIZED'],
+  [/recaptur|retook|retaken|liberat|ပြန်သိမ်း|ပြန်ယူ/i,                                                                           'RECAPTURED'],
+  [/withdraw|retreat|pull.?back|ဆုတ်ခွာ|ရုတ်သိမ်း/i,                                                                              'WITHDRAWAL'],
+  [/ceasefire|cease-fire|truce|အပစ်ရပ်|ငြိမ်းချမ်းရေးကြေညာ/i,                                                                    'CEASEFIRE'],
+  [/clash|battle|fight|combat|gun.?fight|firefight|skirmish|တိုက်ပွဲ|တိုက်ခိုက်|စစ်ဆင်ရေး/i,                                     'CLASH'],
 ]
 
 const REGION_MAP: [RegExp, string][] = [
@@ -162,23 +166,21 @@ const FATAL_PATTERNS = [
   /(\d+)\s+fatalities/i,
   /killing\s+at least\s+(\d+)/i,
   /killing\s+(\d+)/i,
-  // Burmese: N ဦး/ယောက် ကျဆုံး/သဆုံး
   /(\d+)\s*(?:ဦး|ယောက်)\s*(?:ကျဆုံး|သဆုံး|ဆုံးပါး)/,
 ]
 
 const RANGE_PATTERN = /(\d+)\s*(?:to|-)\s*(\d+)\s*(?:soldiers?|troops?|people|civilians?)?\s*killed/i
 
-const CONFLICT_SIGNAL =
-  /kill|clash|attack|airstrike|bomb|shell|seize|captur|fight|battle|troops|military|tatmadaw|pdf\b|armed|artillery|offensive|ambush|withdraw|displace|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ထွက်ပြေး|ဆုတ်ခွာ|စစ်ဆင်ရေး|ကျဆုံး/i
+// Battle signal — must match at least one for fallback to trigger
+const BATTLE_SIGNAL =
+  /clash|battle|fight|airstrike|bomb|shell|seize|captur|ambush|withdraw|ceasefire|truce|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ဆုတ်ခွာ|အပစ်ရပ်|ကျဆုံး/i
 
-// Actor detection patterns — matched against full article text (English + Burmese)
-// Returns the short code; normalizeActors() in extract-events.ts maps these to full names
 const ACTOR_PATTERNS: [RegExp, string][] = [
   [/\btatmadaw\b|myanmar\s+(?:military|army|air\s+force)|state\s+administration\s+council|\bsac\b(?!\w)|\bjunta\b|\bregime\b|military\s+council|စစ်တပ်|တပ်မတော်|စစ်ကောင်စီ/i, 'Tatmadaw'],
-  [/\bpdf\b|people'?s\s+def[e]?nc[e]\s+force|pro.?democracy\s+force|resistance\s+force|ပြည်သူ့ကာကွယ်ရေးတပ်/i,                                                                 "People's Defence Force"],
+  [/\bpdf\b|people'?s\s+def[e]?nc[e]\s+force|resistance\s+force|ပြည်သူ့ကာကွယ်ရေးတပ်/i,                                                                                       "People's Defence Force"],
   [/\btnla\b|ta'?ang\s+national\s+liberation|တအာင်း|တအောင်း/i,                                                                                                               "Ta'ang National Liberation Army"],
   [/\bmndaa\b|\bkokang\b|myanmar\s+national\s+democratic\s+alliance|ကိုးကန့်/i,                                                                                               'Myanmar National Democratic Alliance Army'],
-  [/\barakan\s+army\b|\baa\b(?=\s+(?:forces?|troops?|fighters?|soldiers?|units?|captured|seized|launched|attacked|advanced))|ရခိုင်တပ်မတော်|ရခိုင်တပ်တော်/i,                'Arakan Army'],
+  [/\barakan\s+army\b|\baa\b(?=\s+(?:forces?|troops?|fighters?|soldiers?|captured|seized|launched|attacked|advanced))|ရခိုင်တပ်မတော်|ရခိုင်တပ်တော်/i,                        'Arakan Army'],
   [/\bkia\b|kachin\s+independence\s+army|ကချင်လွတ်မြောက်ရေးတပ်မတော်/i,                                                                                                      'Kachin Independence Army'],
   [/\bnug\b|national\s+unity\s+government/i,                                                                                                                                  'National Unity Government'],
   [/\bknu\b|karen\s+national\s+union/i,                                                                                                                                       'Karen National Union'],
@@ -202,12 +204,15 @@ function fallbackExtract(
   publishedAt: Date | null,
 ): ExtractedEvent | null {
   const text = `${title}\n${content}`
-  if (!CONFLICT_SIGNAL.test(text)) return null
+  if (!BATTLE_SIGNAL.test(text)) return null
 
   let eventType: ConflictEventType = 'CLASH'
   for (const [rx, t] of FALLBACK_TYPE_MAP) {
     if (rx.test(text)) { eventType = t; break }
   }
+
+  // Only keep battle event types
+  if (!BATTLE_SET.has(eventType)) return null
 
   let fatals = 0, fatalMin = 0, fatalMax = 0
   const rangeM = text.match(RANGE_PATTERN)
@@ -222,7 +227,6 @@ function fallbackExtract(
     }
   }
 
-  // Try TOWNS lookup first (bilingual), then regex region map
   let region    = 'Myanmar'
   let adminArea: string | null = null
   let location:  string | null = null
@@ -253,53 +257,49 @@ function fallbackExtract(
   }
 }
 
-// ── Claude parsing ────────────────────────────────────────────────────────────
+// ── Response parser (shared between Gemini and fallback) ─────────────────────
 
-function parseClaudeResponse(raw: unknown, fullText: string): ExtractedEvent[] {
+function parseResponse(raw: unknown, fullText: string): ExtractedEvent[] {
   if (!Array.isArray(raw)) return []
 
-  return (raw as RawClaudeEvent[]).slice(0, 3).flatMap(ev => {
+  return (raw as RawExtractedEvent[]).slice(0, 3).flatMap(ev => {
     if (!ev || typeof ev !== 'object') return []
 
-    // Support both new event_types[] and legacy eventType string
     const types: string[] = Array.isArray(ev.event_types)
       ? ev.event_types
       : ev.eventType ? [ev.eventType] : []
-    const eventType = pickEventType(types)
 
-    // Date
+    const eventType = pickEventType(types)
+    if (!eventType) return []  // skip non-battle events
+
     const date = typeof ev.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ev.date)
       ? ev.date
       : new Date().toISOString().split('T')[0]
 
-    // Region
     let region    = 'Myanmar'
     let adminArea: string | null = ev.admin_area ?? ev.adminArea ?? null
     let location:  string | null = null
 
-    // Location from Claude's bilingual location object
     if (ev.location?.name_en) {
       location  = ev.location.name_en
       adminArea = adminArea ?? ev.location.name_en
     }
 
-    // If Claude gave a region string, use it; otherwise fall back to TOWNS lookup
     if (ev.region && ev.region !== 'Myanmar') {
       region = ev.region
     } else {
-      // Try to resolve from location name or full article text
       const lookupText = [ev.location?.name_en, ev.location?.name_mm, location, fullText].filter(Boolean).join(' ')
       const town = findTownInText(lookupText)
       if (town) {
         region    = town.region
-        if (!location) location = town.name_en
-        if (!adminArea) adminArea = town.name_en
+        if (!location)   location  = town.name_en
+        if (!adminArea)  adminArea = town.name_en
       }
     }
 
     const actors = Array.isArray(ev.actors) ? ev.actors.filter(a => typeof a === 'string') : []
 
-    const fatalities    = Number(ev.fatalities)    || 0
+    const fatalities    = Number(ev.fatalities)                    || 0
     const fatalitiesMin = Number(ev.fatalities_min ?? ev.fatalitiesMin) || fatalities
     const fatalitiesMax = Number(ev.fatalities_max ?? ev.fatalitiesMax) || fatalities
 
@@ -321,12 +321,41 @@ function parseClaudeResponse(raw: unknown, fullText: string): ExtractedEvent[] {
   })
 }
 
-// ── Client singleton ──────────────────────────────────────────────────────────
+// ── Gemini client singleton ───────────────────────────────────────────────────
 
-let _client: Anthropic | null = null
-function getClient(): Anthropic {
-  if (!_client) _client = new Anthropic()
-  return _client
+let _gemini: GoogleGenerativeAI | null = null
+function getGemini() {
+  if (!_gemini) _gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+  return _gemini
+}
+
+async function extractWithGemini(
+  title:       string,
+  content:     string,
+  sourceName:  string,
+  publishedAt: Date | null,
+): Promise<ExtractedEvent[]> {
+  const model = getGemini().getGenerativeModel({
+    model:             'gemini-2.0-flash-lite',
+    systemInstruction: EXTRACTION_SYSTEM,
+  })
+
+  const prompt =
+    `Source: ${sourceName}\nPublished: ${publishedAt?.toISOString() ?? 'unknown'}\n\nTitle: ${title}\n\nContent:\n${content.slice(0, 4000)}`
+
+  const result = await model.generateContent(prompt)
+  const text   = result.response.text().trim()
+
+  // Strip markdown code fences if Gemini wraps the JSON
+  const json = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+
+  try {
+    const parsed = JSON.parse(json)
+    const events = parseResponse(parsed, `${title}\n${content}`)
+    if (events.length > 0) return events
+  } catch { /* fall through to regex */ }
+
+  return []
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -337,28 +366,12 @@ export async function extractEvents(
   sourceName:  string,
   publishedAt: Date | null,
 ): Promise<ExtractedEvent[]> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const ev = fallbackExtract(title, content, publishedAt)
-    return ev ? [ev] : []
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const events = await extractWithGemini(title, content, sourceName, publishedAt)
+      if (events.length > 0) return events
+    } catch { /* fall through to regex */ }
   }
-
-  const fullText = `${title}\n\n${content.slice(0, 3500)}`
-  const prompt   =
-    `Source: ${sourceName}\nPublished: ${publishedAt?.toISOString() ?? 'unknown'}\n\nTitle: ${title}\n\nContent:\n${content.slice(0, 3500)}`
-
-  try {
-    const msg = await getClient().messages.create({
-      model:      'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system:     EXTRACTION_SYSTEM,
-      messages:   [{ role: 'user', content: prompt }],
-    })
-
-    const text   = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '[]'
-    const parsed = JSON.parse(text)
-    const events = parseClaudeResponse(parsed, fullText)
-    if (events.length > 0) return events
-  } catch { /* fall through to regex */ }
 
   const ev = fallbackExtract(title, content, publishedAt)
   return ev ? [ev] : []

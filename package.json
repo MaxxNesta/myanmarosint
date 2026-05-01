@@ -13,6 +13,7 @@
     "db:pull": "tsx --env-file=.env.local src/scripts/db-pull.ts",
     "db:seed": "tsx --env-file=.env.local src/scripts/seed.ts",
     "ingest": "tsx --env-file=.env.local src/scripts/ingest.ts",
+    "ingest:all": "npm run ingest && npm run extract",
     "process": "tsx --env-file=.env.local src/scripts/process.ts",
     "process:local": "tsx --env-file=.env.local src/scripts/process-local.ts",
     "gdelt:import": "tsx --env-file=.env.local src/scripts/gdelt-import.ts",
@@ -23,7 +24,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@google/generative-ai": "^0.24.1",
+    "@neondatabase/serverless": "^0.10.4",
+    "@prisma/adapter-neon": "^5.22.0",
     "@prisma/client": "^5.22.0",
+    "@types/ws": "^8.18.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "mapbox-gl": "^3.4.0",
@@ -33,6 +38,7 @@
     "react-dom": "^18.3.0",
     "recharts": "^2.12.7",
     "telegram": "^2.26.22",
+    "ws": "^8.20.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

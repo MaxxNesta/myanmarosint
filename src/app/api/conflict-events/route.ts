@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { subDays } from 'date-fns'
 import { z } from 'zod'
+import { BATTLE_EVENT_TYPES } from '@/lib/event-extractor'
 
 const querySchema = z.object({
   region:        z.string().optional(),
@@ -16,6 +17,7 @@ const querySchema = z.object({
   limit:         z.coerce.number().min(1).max(5000).default(1000),
   minConfidence: z.coerce.number().min(0).max(1).optional(),
   activeOnly:    z.coerce.boolean().default(true),
+  battleOnly:    z.coerce.boolean().default(true),
 })
 
 export async function GET(req: NextRequest) {
@@ -26,16 +28,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { region, eventType, actor, sourceType, startDate, endDate, days, limit, minConfidence, activeOnly } = parsed.data
+  const { region, eventType, actor, sourceType, startDate, endDate, days, limit, minConfidence, activeOnly, battleOnly } = parsed.data
 
   const where: Record<string, unknown> = {}
 
   if (activeOnly)                      where.isActiveIntelligence = true
   if (region)                          where.region = { contains: region, mode: 'insensitive' }
-  if (eventType)                       where.eventType = eventType
   if (sourceType)                      where.sourceType = sourceType
   if (minConfidence !== undefined)     where.confidence = { gte: minConfidence }
   if (actor)                           where.actors = { has: actor }
+  // Filter to direct battle types by default; a specific eventType overrides
+  if (eventType)                       where.eventType = eventType
+  else if (battleOnly)                 where.eventType = { in: BATTLE_EVENT_TYPES }
 
   const dateFilter: Record<string, unknown> = {}
   if (startDate) dateFilter.gte = new Date(startDate)

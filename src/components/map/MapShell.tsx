@@ -7,6 +7,7 @@ import { EVENT_TYPE_META, CONFLICT_EVENT_META } from '@/lib/types'
 import LayerToggle from './LayerToggle'
 import TimelineSlider from './TimelineSlider'
 import RiskPanel from '../shared/RiskPanel'
+import ConflictTimeline from './ConflictTimeline'
 
 const MapView = dynamic(() => import('./MapView'), {
   ssr: false,
@@ -43,6 +44,7 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [dateRange,       setDateRange]        = useState<[Date, Date]>([allDates.min, today])
   const [showRisk,        setShowRisk]         = useState(false)
   const [showConflict,  setShowConflict] = useState(true)
+  const [showTimeline,  setShowTimeline] = useState(false)
   const [regionFilter,  setRegionFilter] = useState('')
   const [actorSearch,   setActorSearch]  = useState('')
 
@@ -50,6 +52,21 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     const set = new Set<string>()
     conflictEvents.forEach(e => { if (e.region) set.add(e.region) })
     return Array.from(set).sort()
+  }, [conflictEvents])
+
+  const stats = useMemo(() => {
+    const total = conflictEvents.length
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const recent = conflictEvents.filter(e => new Date(e.date) >= cutoff).length
+    const regionCount = new Map<string, number>()
+    conflictEvents.forEach(e => { if (e.region) regionCount.set(e.region, (regionCount.get(e.region) ?? 0) + 1) })
+    let topRegion = '', topCount = 0
+    regionCount.forEach((c, r) => { if (c > topCount) { topCount = c; topRegion = r } })
+    const actorCount = new Map<string, number>()
+    conflictEvents.forEach(e => e.actors.forEach(a => { if (a) actorCount.set(a, (actorCount.get(a) ?? 0) + 1) }))
+    let topActor = '', topActorCount = 0
+    actorCount.forEach((c, a) => { if (c > topActorCount) { topActorCount = c; topActor = a } })
+    return { total, recent, topRegion, topCount, topActor, topActorCount }
   }, [conflictEvents])
 
   const actorOptions = useMemo(() => {
@@ -135,6 +152,32 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             <button onClick={() => setSidebarOpen(false)} className="text-slate-500 hover:text-slate-300 text-lg leading-none px-1">×</button>
           </div>
         </div>
+
+        {/* Stats panel */}
+        {stats.total > 0 && (
+          <div className="px-3 py-2 border-b border-white/[0.07] grid grid-cols-2 gap-1.5">
+            <div className="bg-white/[0.03] rounded px-2 py-1.5">
+              <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Total Events</div>
+              <div className="text-sm font-bold text-slate-200 font-mono">{stats.total.toLocaleString()}</div>
+            </div>
+            <div className="bg-white/[0.03] rounded px-2 py-1.5">
+              <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Last 7 Days</div>
+              <div className="text-sm font-bold text-accent-red font-mono">{stats.recent}</div>
+            </div>
+            {stats.topRegion && (
+              <div className="bg-white/[0.03] rounded px-2 py-1.5 col-span-2">
+                <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Most Active Region</div>
+                <div className="text-[11px] font-semibold text-slate-300 truncate">{stats.topRegion} <span className="text-slate-600 font-normal">({stats.topCount})</span></div>
+              </div>
+            )}
+            {stats.topActor && (
+              <div className="bg-white/[0.03] rounded px-2 py-1.5 col-span-2">
+                <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Top Actor</div>
+                <div className="text-[11px] font-semibold text-slate-300 truncate">{stats.topActor} <span className="text-slate-600 font-normal">({stats.topActorCount})</span></div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Event layer toggles */}
         <div className="p-3 space-y-2 border-b border-white/[0.07]">
@@ -266,8 +309,29 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
           />
         </div>
 
-        <div className="h-20 bg-surface-1 border-t border-white/[0.07] px-4 sm:px-6 flex items-center">
-          <TimelineSlider min={allDates.min} max={allDates.max} value={dateRange} onChange={setDateRange} />
+        {/* Timeline chart */}
+        {showTimeline && filteredConflict.length > 0 && (
+          <div className="h-36 bg-surface-1 border-t border-white/[0.07] px-4 pt-2 pb-1">
+            <ConflictTimeline events={filteredConflict} />
+          </div>
+        )}
+
+        {/* Date slider + chart toggle */}
+        <div className="h-14 bg-surface-1 border-t border-white/[0.07] px-4 sm:px-6 flex items-center gap-3">
+          <div className="flex-1">
+            <TimelineSlider min={allDates.min} max={allDates.max} value={dateRange} onChange={setDateRange} />
+          </div>
+          <button
+            onClick={() => setShowTimeline(v => !v)}
+            title="Toggle event chart"
+            className={`shrink-0 px-2 py-1 rounded text-[10px] font-mono transition-colors border ${
+              showTimeline
+                ? 'bg-accent-blue/20 text-accent-blue-light border-accent-blue/30'
+                : 'text-slate-500 border-white/[0.07] hover:text-slate-300'
+            }`}
+          >
+            ▲ Chart
+          </button>
         </div>
       </div>
     </div>

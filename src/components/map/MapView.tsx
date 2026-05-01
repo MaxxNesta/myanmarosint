@@ -128,7 +128,17 @@ function conflictPopupHTML(p: Record<string, unknown>): string {
       <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 10px;margin-bottom:10px;color:#cbd5e1;font-size:0.78rem">
         ${p.summary}
       </div>
-      ${actors ? `
+      ${p.attackerActor || p.defenderActor ? `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:5px 8px">
+          <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Attacker</div>
+          <div style="color:#fca5a5;font-size:0.70rem;font-weight:600">${p.attackerActor || '—'}</div>
+        </div>
+        <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:4px;padding:5px 8px">
+          <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Defender</div>
+          <div style="color:#93c5fd;font-size:0.70rem;font-weight:600">${p.defenderActor || '—'}</div>
+        </div>
+      </div>` : actors ? `
       <div style="margin-bottom:8px">
         <span style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em">Actors</span>
         <div style="color:#94a3b8;font-size:0.72rem;margin-top:2px">${actors}</div>
@@ -141,6 +151,7 @@ function conflictPopupHTML(p: Record<string, unknown>): string {
         <span style="background:rgba(255,255,255,0.06);color:#64748b;border-radius:4px;padding:2px 7px;font-size:0.68rem">
           ${p.sourceName}
         </span>
+        ${p.biasFlag ? `<span style="background:rgba(234,179,8,0.12);color:#fbbf24;border-radius:4px;padding:2px 7px;font-size:0.68rem">${p.biasFlag}</span>` : ''}
       </div>
       <div style="color:#475569;font-size:0.68rem;font-family:monospace">
         ${p.sourceUrl ? `<a href="${p.sourceUrl}" target="_blank" rel="noopener" style="color:#3b9fd8">View source →</a>` : ''}

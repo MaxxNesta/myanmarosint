@@ -12,13 +12,29 @@
  */
 
 import { PrismaClient } from '@prisma/client'
+import { Pool, neonConfig } from '@neondatabase/serverless'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import ws from 'ws'
 import { extractEvents } from '../lib/event-extractor'
 import { normalizeActors, normalizeRegion } from '../lib/normalizer'
 import { buildDedupHash } from '../lib/dedup'
 import { resolveCoordinates } from '../lib/geocoding'
 import { getBaseReliability } from '../lib/confidence'
 
-const prisma      = new PrismaClient()
+neonConfig.webSocketConstructor = ws
+
+function makePrisma() {
+  // Strip non-pg params that confuse the neon serverless URL parser
+  const raw  = (process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? '')
+    .replace(/[?&]connect_timeout=\d+/g, '')
+    .replace(/[?&]pgbouncer=true/g, '')
+    .replace(/[?&]channel_binding=\w+/g, '')
+  const pool    = new Pool({ connectionString: raw })
+  const adapter = new PrismaNeon(pool)
+  return new PrismaClient({ adapter })
+}
+
+const prisma = makePrisma()
 const INTEL_START = new Date('2023-01-01T00:00:00Z')
 const BATCH_SIZE  = 100
 const AI_DELAY    = 200  // ms between Claude calls
@@ -104,10 +120,30 @@ async function processBatch(
   return { processed: articles.length, saved, skipped }
 }
 
+async function connectWithRetry(retries = 6, delayMs = 5000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await prisma.$connect()
+      return
+    } catch {
+      if (i < retries - 1) {
+        process.stdout.write(`   DB cold start, retrying in ${delayMs / 1000}s… `)
+        await sleep(delayMs)
+      } else {
+        throw new Error('Could not connect to database after retries')
+      }
+    }
+  }
+}
+
 async function main() {
-  const useAI = !!process.env.ANTHROPIC_API_KEY
-  console.log(`🧠 Conflict event extraction [${useAI ? 'AI — Claude Haiku' : 'regex fallback (no ANTHROPIC_API_KEY)'}]`)
+  const mode = process.env.GEMINI_API_KEY ? 'Gemini 2.0 Flash Lite' : process.env.ANTHROPIC_API_KEY ? 'Claude Haiku' : 'regex fallback'
+  console.log(`🧠 Conflict event extraction [${mode}] — battle events only`)
   console.log(`   Intelligence boundary: 2023-01-01+`)
+
+  process.stdout.write('   Connecting to database… ')
+  await connectWithRetry()
+  console.log('connected.')
 
   let offset = 0, totalProcessed = 0, totalSaved = 0, totalSkipped = 0
 
@@ -129,7 +165,7 @@ async function main() {
       change:   `Event extraction: ${totalSaved} conflict events upserted`,
       reason:   'npm run extract',
       source:   'extract-events.ts',
-      metadata: { processed: totalProcessed, saved: totalSaved, skipped: totalSkipped, mode: useAI ? 'ai' : 'regex' },
+      metadata: { processed: totalProcessed, saved: totalSaved, skipped: totalSkipped, mode },
     },
   })
 }
