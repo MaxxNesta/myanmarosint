@@ -67,19 +67,31 @@ export default function BasesShell() {
   const [filterRegion,    setFilterRegion]    = useState<string>('')
   const [filterThreat,    setFilterThreat]    = useState<ThreatLevel | ''>('')
   const [visibleStatuses, setVisibleStatuses] = useState<Set<BaseStatus>>(new Set(ALL_STATUSES))
-  const [sidebarOpen,     setSidebarOpen]     = useState(true)
-  const [search,          setSearch]          = useState('')
+  const [sidebarOpen,        setSidebarOpen]        = useState(true)
+  const [scenarioPanelOpen,  setScenarioPanelOpen]  = useState(false)
+  const [search,             setSearch]             = useState('')
 
   // Commander dashboard state
   const [areaSelection,   setAreaSelection]   = useState<AreaSelection | null>(null)
   const [analysis,        setAnalysis]        = useState<ScenarioAnalysis | null>(null)
   const [analyzing,       setAnalyzing]       = useState(false)
   const [analyzeError,    setAnalyzeError]    = useState<string | null>(null)
+  const [clearSignal,     setClearSignal]     = useState(0)
   const [conflictEvents,  setConflictEvents]  = useState<ConflictEventDTO[]>([])
 
   const analyzeAbortRef = useRef<AbortController | null>(null)
 
   const stats = useMemo(() => baseStats(BASES), [])
+
+  // Close sidebar by default on mobile
+  useEffect(() => {
+    if (window.innerWidth < 768) setSidebarOpen(false)
+  }, [])
+
+  // Auto-open scenario sheet on mobile when analysis arrives
+  useEffect(() => {
+    if (analysis && window.innerWidth < 768) setScenarioPanelOpen(true)
+  }, [analysis])
 
   // Load recent conflict events for the news feed
   useEffect(() => {
@@ -361,7 +373,7 @@ export default function BasesShell() {
         </aside>
 
         {/* ── Center: Map ───────────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col min-w-0 relative">
+        <div className="flex-1 flex flex-col min-w-0 relative pb-14 md:pb-0">
           <div className="flex-1 relative">
 
             {/* Sidebar toggle */}
@@ -405,6 +417,7 @@ export default function BasesShell() {
               onSelect={handleSelect}
               visibleIds={visibleIds}
               sidebarOpen={sidebarOpen}
+              clearSignal={clearSignal}
               onAreaSelected={handleAreaSelected}
             />
           </div>
@@ -460,10 +473,10 @@ export default function BasesShell() {
                 </>
               )}
               <button
-                onClick={() => { setAreaSelection(null); setAnalysis(null) }}
+                onClick={() => { setAreaSelection(null); setAnalysis(null); setAnalyzeError(null); setClearSignal(s => s + 1) }}
                 className="ml-auto shrink-0 text-[9px] font-mono text-slate-600 hover:text-slate-300 px-2 py-1 border border-white/[0.07] rounded transition-colors"
               >
-                ✕ Clear
+                ✕ Clear Area
               </button>
             </div>
           )}
@@ -477,7 +490,52 @@ export default function BasesShell() {
           analyzeError={analyzeError}
           nearbyEvents={nearbyEvents}
           onAnalyze={() => areaSelection && runAnalysis(areaSelection)}
+          mobileOpen={scenarioPanelOpen}
+          onMobileClose={() => setScenarioPanelOpen(false)}
         />
+      </div>
+
+      {/* ── Mobile bottom toolbar ─────────────────────────────────────────── */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface-1/95 backdrop-blur border-t border-white/[0.10] flex items-stretch h-14">
+
+        {/* Units toggle */}
+        <button
+          onClick={() => setSidebarOpen(v => !v)}
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+            sidebarOpen ? 'text-accent-blue-light' : 'text-slate-500'
+          }`}
+        >
+          <span className="text-base leading-none">☰</span>
+          <span className="text-[9px] font-mono tracking-widest">UNITS</span>
+        </button>
+
+        {/* Center area status */}
+        <div className="flex flex-col items-center justify-center px-4 border-x border-white/[0.07]">
+          {areaSelection ? (
+            <>
+              <span className="text-[10px] font-mono font-bold text-amber-400">{areaSelection.bases.length} BASES</span>
+              <span className="text-[8px] font-mono text-amber-600">{areaSelection.area_km2.toFixed(0)} km²</span>
+            </>
+          ) : analyzing ? (
+            <div className="w-4 h-4 border-2 border-accent-blue/30 border-t-accent-blue rounded-full animate-spin" />
+          ) : (
+            <span className="text-[9px] font-mono text-slate-600 text-center leading-tight">DRAW<br/>AREA</span>
+          )}
+        </div>
+
+        {/* Analysis toggle */}
+        <button
+          onClick={() => setScenarioPanelOpen(v => !v)}
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors ${
+            scenarioPanelOpen ? 'text-accent-blue-light' : analysis ? 'text-amber-400' : 'text-slate-500'
+          }`}
+        >
+          {analysis && !scenarioPanelOpen && (
+            <span className="absolute top-2 right-5 w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          )}
+          <span className="text-base leading-none">⊡</span>
+          <span className="text-[9px] font-mono tracking-widest">ANALYSIS</span>
+        </button>
       </div>
     </div>
   )

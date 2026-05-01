@@ -24,11 +24,24 @@ const STATUS_SHORT: Record<string, string> = {
 
 const SHADOW = '0 1px 4px rgba(0,0,0,1),0 0 12px rgba(0,0,0,0.9)'
 
+// Custom amber draw styles for military look
+const DRAW_STYLES = [
+  { id: 'draw-poly-fill',          type: 'fill',   filter: ['all', ['==', '$type', 'Polygon']],                                                       paint: { 'fill-color': '#f59e0b', 'fill-opacity': 0.12 } },
+  { id: 'draw-poly-fill-active',   type: 'fill',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],                              paint: { 'fill-color': '#f59e0b', 'fill-opacity': 0.20 } },
+  { id: 'draw-poly-stroke',        type: 'line',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'false']],  layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#f59e0b', 'line-width': 2, 'line-dasharray': [3, 2] } },
+  { id: 'draw-poly-stroke-active', type: 'line',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],   layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fbbf24', 'line-width': 2.5 } },
+  { id: 'draw-line-active',        type: 'line',   filter: ['all', ['==', '$type', 'LineString'], ['==', 'active', 'true']], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fbbf24', 'line-width': 2.5, 'line-dasharray': [0.5, 2] } },
+  { id: 'draw-vertex-halo',        type: 'circle', filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],                                paint: { 'circle-radius': 6, 'circle-color': '#fff' } },
+  { id: 'draw-vertex',             type: 'circle', filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],                                paint: { 'circle-radius': 4, 'circle-color': '#f59e0b' } },
+  { id: 'draw-midpoint',           type: 'circle', filter: ['all', ['==', 'meta', 'midpoint'], ['==', '$type', 'Point']],                              paint: { 'circle-radius': 3, 'circle-color': '#fbbf24', 'circle-opacity': 0.8 } },
+]
+
 interface Props {
   selected:        number | null
   onSelect:        (id: number) => void
   visibleIds:      Set<number>
   sidebarOpen?:    boolean
+  clearSignal?:    number
   onAreaSelected?: (sel: AreaSelection | null) => void
 }
 
@@ -124,7 +137,7 @@ function popupHTML(b: MilitaryBase): string {
     </div>`
 }
 
-export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, onAreaSelected }: Props) {
+export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, onAreaSelected }: Props) {
   const containerRef      = useRef<HTMLDivElement>(null)
   const mapRef            = useRef<mapboxgl.Map | null>(null)
   const markersRef        = useRef<Map<number, mapboxgl.Marker>>(new Map())
@@ -133,6 +146,13 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
   const [ready, setReady] = useState(false)
 
   useEffect(() => { onAreaSelectedRef.current = onAreaSelected }, [onAreaSelected])
+
+  // Clear drawn polygon when parent signals it
+  useEffect(() => {
+    if (clearSignal && drawRef.current) {
+      drawRef.current.deleteAll()
+    }
+  }, [clearSignal])
 
   // Resize when sidebar toggles
   useEffect(() => {
@@ -157,10 +177,11 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
 
-    // Draw control
+    // Draw control with custom amber military styling
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: { polygon: true, trash: true },
+      styles: DRAW_STYLES,
     })
     map.addControl(draw, 'top-right')
     drawRef.current = draw
