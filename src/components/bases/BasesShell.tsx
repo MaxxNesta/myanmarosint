@@ -164,7 +164,10 @@ export default function BasesShell() {
         }),
       })
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(errBody.error ?? `HTTP ${res.status}`)
+      }
       const data = await res.json() as ScenarioAnalysis
       setAnalysis(data)
     } catch (err) {

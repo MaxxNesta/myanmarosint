@@ -10,6 +10,10 @@ const groq = new OpenAI({
 })
 
 export async function POST(req: NextRequest) {
+  if (!process.env.GROQ_API_KEY) {
+    return NextResponse.json({ error: 'GROQ_API_KEY not set — restart the dev server after adding the key to .env.local' }, { status: 500 })
+  }
+
   try {
     const body = await req.json()
     const { bases = [], events = [], area_km2 = 0, center = [96.5, 19.5] } = body
