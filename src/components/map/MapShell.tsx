@@ -45,6 +45,7 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [showRisk,        setShowRisk]         = useState(false)
   const [showConflict,  setShowConflict] = useState(true)
   const [showTimeline,  setShowTimeline] = useState(false)
+  const [intelPanelOpen, setIntelPanelOpen] = useState(true)
   const [regionFilter,  setRegionFilter] = useState('')
   const [actorSearch,   setActorSearch]  = useState('')
 
@@ -198,59 +199,6 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
           </button>
         </div>
 
-        {/* ── Incident Intel section ───────────────────────────────────────── */}
-        <div className="px-3 py-2 border-b border-white/[0.07] space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-mono text-slate-500 tracking-widest uppercase">Incident Intel</span>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-mono text-slate-600">{filteredConflict.length} shown</span>
-              <button
-                onClick={() => setShowConflict(v => !v)}
-                className={`text-[9px] font-mono px-2 py-0.5 rounded transition-colors ${
-                  showConflict
-                    ? 'bg-accent-red/20 text-red-400 border border-red-500/30'
-                    : 'text-slate-600 border border-white/[0.06]'
-                }`}
-              >
-                {showConflict ? 'ON' : 'OFF'}
-              </button>
-            </div>
-          </div>
-          {showConflict && (
-            <div className="space-y-1.5">
-              <select
-                value={regionFilter}
-                onChange={e => setRegionFilter(e.target.value)}
-                className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
-              >
-                <option value="">All regions</option>
-                {regionOptions.map(r => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
-              {actorOptions.length > 0 ? (
-                <select
-                  value={actorSearch}
-                  onChange={e => setActorSearch(e.target.value)}
-                  className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
-                >
-                  <option value="">All actors</option>
-                  {actorOptions.map(a => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  placeholder="Search actor / keyword…"
-                  value={actorSearch}
-                  onChange={e => setActorSearch(e.target.value)}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/40"
-                />
-              )}
-            </div>
-          )}
-        </div>
 
         {/* Live update status */}
         <div className="px-3 py-2 border-b border-white/[0.07] flex items-center gap-2 shrink-0">
@@ -278,6 +226,70 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             <span className="text-base leading-none">{sidebarOpen ? '◀' : '▶'}</span>
             <span className="hidden sm:inline">{sidebarOpen ? 'Hide' : 'Layers'}</span>
           </button>
+
+          {/* ── Right panel: Incident Intel ─────────────────── */}
+          <div className="absolute top-3 right-12 z-20 flex flex-col items-end gap-1">
+            <button
+              onClick={() => setIntelPanelOpen(v => !v)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 backdrop-blur border rounded text-xs font-mono shadow-lg transition-colors ${
+                showConflict
+                  ? 'bg-surface-1/90 border-red-500/30 text-red-400 hover:bg-surface-1'
+                  : 'bg-surface-1/90 border-white/[0.10] text-slate-400 hover:bg-surface-1'
+              }`}
+            >
+              <span className="text-base leading-none">{intelPanelOpen ? '▶' : '◀'}</span>
+              <span className="hidden sm:inline">Intel</span>
+              {showConflict && <span className="text-[10px] text-slate-500">{filteredConflict.length}</span>}
+            </button>
+
+            {intelPanelOpen && (
+              <div className="bg-surface-1/95 backdrop-blur border border-white/[0.10] rounded shadow-lg w-52 overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.07]">
+                  <span className="text-[9px] font-mono text-slate-400 tracking-widest uppercase">Incident Intel</span>
+                  <button
+                    onClick={() => setShowConflict(v => !v)}
+                    className={`text-[9px] font-mono px-2 py-0.5 rounded transition-colors ${
+                      showConflict
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        : 'text-slate-600 border border-white/[0.06]'
+                    }`}
+                  >
+                    {showConflict ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+                {showConflict && (
+                  <div className="p-2 space-y-1.5">
+                    <select
+                      value={regionFilter}
+                      onChange={e => setRegionFilter(e.target.value)}
+                      className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
+                    >
+                      <option value="">All regions</option>
+                      {regionOptions.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    {actorOptions.length > 0 ? (
+                      <select
+                        value={actorSearch}
+                        onChange={e => setActorSearch(e.target.value)}
+                        className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
+                      >
+                        <option value="">All actors</option>
+                        {actorOptions.map(a => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Search actor / keyword…"
+                        value={actorSearch}
+                        onChange={e => setActorSearch(e.target.value)}
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/40"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Incident legend — floats bottom-right */}
           {showConflict && filteredConflict.length > 0 && (

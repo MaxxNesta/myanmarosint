@@ -128,21 +128,16 @@ function conflictPopupHTML(p: Record<string, unknown>): string {
       <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 10px;margin-bottom:10px;color:#cbd5e1;font-size:0.78rem">
         ${p.summary}
       </div>
-      ${p.attackerActor || p.defenderActor ? `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
         <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:5px 8px">
           <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Attacker</div>
-          <div style="color:#fca5a5;font-size:0.70rem;font-weight:600">${p.attackerActor || '—'}</div>
+          <div style="color:#fca5a5;font-size:0.70rem;font-weight:600">${p.attackerActor || (actors ? actors.split(',')[0]?.trim() : '—')}</div>
         </div>
         <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:4px;padding:5px 8px">
           <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Defender</div>
-          <div style="color:#93c5fd;font-size:0.70rem;font-weight:600">${p.defenderActor || '—'}</div>
+          <div style="color:#93c5fd;font-size:0.70rem;font-weight:600">${p.defenderActor || (actors ? actors.split(',')[1]?.trim() : '—') || '—'}</div>
         </div>
-      </div>` : actors ? `
-      <div style="margin-bottom:8px">
-        <span style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em">Actors</span>
-        <div style="color:#94a3b8;font-size:0.72rem;margin-top:2px">${actors}</div>
-      </div>` : ''}
+      </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
         ${fatStr ? `<span style="background:rgba(239,68,68,0.12);color:#f87171;border-radius:4px;padding:2px 7px;font-size:0.68rem;font-weight:600">${fatStr}</span>` : ''}
         <span style="background:rgba(255,255,255,0.06);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.68rem">
@@ -326,7 +321,12 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
     })
 
     mapRef.current = map
-    return () => { map.remove(); mapRef.current = null }
+
+    // Resize map when container dimensions change (e.g. sidebar open/close)
+    const ro = new ResizeObserver(() => { map.resize() })
+    if (containerRef.current) ro.observe(containerRef.current)
+
+    return () => { ro.disconnect(); map.remove(); mapRef.current = null }
   }, [])
 
   // ── Update ProcessedEvent GeoJSON ─────────────────────
