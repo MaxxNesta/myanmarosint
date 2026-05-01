@@ -193,7 +193,12 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
     })
 
     mapRef.current = map
+
+    const ro = new ResizeObserver(() => { map.resize() })
+    if (containerRef.current) ro.observe(containerRef.current)
+
     return () => {
+      ro.disconnect()
       map.remove()
       mapRef.current = null
       markersRef.current.clear()

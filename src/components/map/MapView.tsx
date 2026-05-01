@@ -17,6 +17,7 @@ interface Props {
   conflictEvents:  ConflictEventDTO[]
   showHeatmap:     boolean
   showConflict:    boolean
+  sidebarOpen:     boolean
 }
 
 function toGeoJSON(events: ProcessedEventDTO[]): GeoFeatureCollection {
@@ -175,7 +176,7 @@ const CONFLICT_COLOR_EXPR = [
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ] as any
 
-export default function MapView({ events, conflictEvents, showHeatmap, showConflict }: Props) {
+export default function MapView({ events, conflictEvents, showHeatmap, showConflict, sidebarOpen }: Props) {
   const containerRef        = useRef<HTMLDivElement>(null)
   const mapRef              = useRef<mapboxgl.Map | null>(null)
   const conflictEventsRef   = useRef<ConflictEventDTO[]>(conflictEvents)
@@ -361,6 +362,12 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
     if (map.getLayer('conflict-circles')) map.setLayoutProperty('conflict-circles', 'visibility', vis)
     if (map.getLayer('conflict-pulse'))   map.setLayoutProperty('conflict-pulse',   'visibility', vis)
   }, [showConflict])
+
+  // Resize map after sidebar transition completes (300ms)
+  useEffect(() => {
+    const t = setTimeout(() => mapRef.current?.resize(), 320)
+    return () => clearTimeout(t)
+  }, [sidebarOpen])
 
   return <div ref={containerRef} className="w-full h-full" />
 }

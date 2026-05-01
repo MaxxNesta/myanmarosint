@@ -42,18 +42,8 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
   const [activeLayers,    setActiveLayers]    = useState<Set<EventType>>(new Set(Object.keys(EVENT_TYPE_META) as EventType[]))
   const [dateRange,       setDateRange]        = useState<[Date, Date]>([allDates.min, today])
-  const [showRisk,        setShowRisk]         = useState(false)
-  const [showConflict,  setShowConflict] = useState(true)
-  const [showTimeline,  setShowTimeline] = useState(false)
-  const [intelPanelOpen, setIntelPanelOpen] = useState(true)
-  const [regionFilter,  setRegionFilter] = useState('')
-  const [actorSearch,   setActorSearch]  = useState('')
-
-  const regionOptions = useMemo(() => {
-    const set = new Set<string>()
-    conflictEvents.forEach(e => { if (e.region) set.add(e.region) })
-    return Array.from(set).sort()
-  }, [conflictEvents])
+  const [showRisk,      setShowRisk]      = useState(false)
+  const [showTimeline,  setShowTimeline]  = useState(false)
 
   const stats = useMemo(() => {
     const total = conflictEvents.length
@@ -68,12 +58,6 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     let topActor = '', topActorCount = 0
     actorCount.forEach((c, a) => { if (c > topActorCount) { topActorCount = c; topActor = a } })
     return { total, recent, topRegion, topCount, topActor, topActorCount }
-  }, [conflictEvents])
-
-  const actorOptions = useMemo(() => {
-    const set = new Set<string>()
-    conflictEvents.forEach(e => e.actors.forEach(a => { if (a) set.add(a) }))
-    return Array.from(set).sort()
   }, [conflictEvents])
 
   // Load all 2023+ conflict events on mount
@@ -115,22 +99,51 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     [events, activeLayers, dateRange],
   )
 
-  const filteredConflict = useMemo(() => {
-    if (!showConflict) return []
-    const q = actorSearch.trim().toLowerCase()
-    return conflictEvents.filter(e => {
+  const filteredConflict = useMemo(() =>
+    conflictEvents.filter(e => {
       const d = new Date(e.date)
-      if (d < dateRange[0] || d > dateRange[1]) return false
-      if (regionFilter && e.region !== regionFilter) return false
-      if (q && !e.actors.some(a => a.toLowerCase().includes(q)) && !e.summary.toLowerCase().includes(q)) return false
-      return true
-    })
-  }, [conflictEvents, showConflict, regionFilter, actorSearch, dateRange])
+      return d >= dateRange[0] && d <= dateRange[1]
+    }),
+    [conflictEvents, dateRange],
+  )
 
   const isEmpty = events.length === 0
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] relative overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+
+      {/* ── Stats bar ─────────────────────────────────────────────────────── */}
+      {stats.total > 0 && (
+        <div className="shrink-0 flex items-center gap-6 px-4 py-1.5 bg-surface-1 border-b border-white/[0.07] overflow-x-auto">
+          <div className="flex items-baseline gap-1.5 shrink-0">
+            <span className="text-sm font-bold text-slate-200 font-mono">{stats.total.toLocaleString()}</span>
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Events</span>
+          </div>
+          <div className="w-px h-4 bg-white/[0.07] shrink-0" />
+          <div className="flex items-baseline gap-1.5 shrink-0">
+            <span className="text-sm font-bold text-red-400 font-mono">{stats.recent}</span>
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Last 7 days</span>
+          </div>
+          {stats.topRegion && <>
+            <div className="w-px h-4 bg-white/[0.07] shrink-0" />
+            <div className="flex items-baseline gap-1.5 shrink-0">
+              <span className="text-sm font-bold text-slate-200 font-mono">{stats.topRegion}</span>
+              <span className="text-[10px] font-mono text-slate-500">({stats.topCount})</span>
+              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Most active</span>
+            </div>
+          </>}
+          {stats.topActor && <>
+            <div className="w-px h-4 bg-white/[0.07] shrink-0" />
+            <div className="flex items-baseline gap-1.5 shrink-0">
+              <span className="text-sm font-bold text-slate-200 font-mono">{stats.topActor}</span>
+              <span className="text-[10px] font-mono text-slate-500">({stats.topActorCount})</span>
+              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Top actor</span>
+            </div>
+          </>}
+        </div>
+      )}
+
+    <div className="flex flex-1 relative overflow-hidden">
 
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
@@ -153,32 +166,6 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             <button onClick={() => setSidebarOpen(false)} className="text-slate-500 hover:text-slate-300 text-lg leading-none px-1">×</button>
           </div>
         </div>
-
-        {/* Stats panel */}
-        {stats.total > 0 && (
-          <div className="px-3 py-2 border-b border-white/[0.07] grid grid-cols-2 gap-1.5">
-            <div className="bg-white/[0.03] rounded px-2 py-1.5">
-              <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Total Events</div>
-              <div className="text-sm font-bold text-slate-200 font-mono">{stats.total.toLocaleString()}</div>
-            </div>
-            <div className="bg-white/[0.03] rounded px-2 py-1.5">
-              <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Last 7 Days</div>
-              <div className="text-sm font-bold text-accent-red font-mono">{stats.recent}</div>
-            </div>
-            {stats.topRegion && (
-              <div className="bg-white/[0.03] rounded px-2 py-1.5 col-span-2">
-                <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Most Active Region</div>
-                <div className="text-[11px] font-semibold text-slate-300 truncate">{stats.topRegion} <span className="text-slate-600 font-normal">({stats.topCount})</span></div>
-              </div>
-            )}
-            {stats.topActor && (
-              <div className="bg-white/[0.03] rounded px-2 py-1.5 col-span-2">
-                <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Top Actor</div>
-                <div className="text-[11px] font-semibold text-slate-300 truncate">{stats.topActor} <span className="text-slate-600 font-normal">({stats.topActorCount})</span></div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Event layer toggles */}
         <div className="p-3 space-y-2 border-b border-white/[0.07]">
@@ -227,72 +214,8 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             <span className="hidden sm:inline">{sidebarOpen ? 'Hide' : 'Layers'}</span>
           </button>
 
-          {/* ── Right panel: Incident Intel ─────────────────── */}
-          <div className="absolute top-3 right-12 z-20 flex flex-col items-end gap-1">
-            <button
-              onClick={() => setIntelPanelOpen(v => !v)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 backdrop-blur border rounded text-xs font-mono shadow-lg transition-colors ${
-                showConflict
-                  ? 'bg-surface-1/90 border-red-500/30 text-red-400 hover:bg-surface-1'
-                  : 'bg-surface-1/90 border-white/[0.10] text-slate-400 hover:bg-surface-1'
-              }`}
-            >
-              <span className="text-base leading-none">{intelPanelOpen ? '▶' : '◀'}</span>
-              <span className="hidden sm:inline">Intel</span>
-              {showConflict && <span className="text-[10px] text-slate-500">{filteredConflict.length}</span>}
-            </button>
-
-            {intelPanelOpen && (
-              <div className="bg-surface-1/95 backdrop-blur border border-white/[0.10] rounded shadow-lg w-52 overflow-hidden">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.07]">
-                  <span className="text-[9px] font-mono text-slate-400 tracking-widest uppercase">Incident Intel</span>
-                  <button
-                    onClick={() => setShowConflict(v => !v)}
-                    className={`text-[9px] font-mono px-2 py-0.5 rounded transition-colors ${
-                      showConflict
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        : 'text-slate-600 border border-white/[0.06]'
-                    }`}
-                  >
-                    {showConflict ? 'ON' : 'OFF'}
-                  </button>
-                </div>
-                {showConflict && (
-                  <div className="p-2 space-y-1.5">
-                    <select
-                      value={regionFilter}
-                      onChange={e => setRegionFilter(e.target.value)}
-                      className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
-                    >
-                      <option value="">All regions</option>
-                      {regionOptions.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
-                    {actorOptions.length > 0 ? (
-                      <select
-                        value={actorSearch}
-                        onChange={e => setActorSearch(e.target.value)}
-                        className="w-full bg-surface-1 border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-accent-blue/40"
-                      >
-                        <option value="">All actors</option>
-                        {actorOptions.map(a => <option key={a} value={a}>{a}</option>)}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        placeholder="Search actor / keyword…"
-                        value={actorSearch}
-                        onChange={e => setActorSearch(e.target.value)}
-                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded px-2 py-1 text-[10px] font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/40"
-                      />
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
           {/* Incident legend — floats bottom-right */}
-          {showConflict && filteredConflict.length > 0 && (
+          {filteredConflict.length > 0 && (
             <div className="absolute bottom-4 right-4 z-20 bg-surface-1/90 backdrop-blur border border-white/[0.10] rounded px-3 py-2 shadow-lg max-h-48 overflow-y-auto">
               <div className="text-[9px] font-mono text-slate-500 tracking-widest mb-1.5 uppercase">Incident Type</div>
               {(Object.entries(CONFLICT_EVENT_META) as [string, { color: string; label: string }][]).map(([k, m]) => (
@@ -317,7 +240,8 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
             events={filteredEvents}
             conflictEvents={filteredConflict}
             showHeatmap={showRisk}
-            showConflict={showConflict}
+            showConflict={true}
+            sidebarOpen={sidebarOpen}
           />
         </div>
 
@@ -346,6 +270,7 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
           </button>
         </div>
       </div>
+    </div>
     </div>
   )
 }
