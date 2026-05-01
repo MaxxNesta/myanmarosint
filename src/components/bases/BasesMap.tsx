@@ -3,8 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
+import { area as turfArea, center as turfCenter, booleanPointInPolygon, point as turfPoint } from '@turf/turf'
 import { BASES, STATUS_COLORS, STATUS_LABELS, type MilitaryBase } from '@/lib/bases-data'
+import type { AreaSelection } from '@/lib/analyze-types'
 
+export type { AreaSelection }
 
 const INSIGNIA_URL =
   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Shoulder_sleeve_insignia_of_Myanmar_Infantry_Corps_with_shape.svg'
@@ -20,17 +25,18 @@ const STATUS_SHORT: Record<string, string> = {
 const SHADOW = '0 1px 4px rgba(0,0,0,1),0 0 12px rgba(0,0,0,0.9)'
 
 interface Props {
-  selected:   number | null
-  onSelect:   (id: number) => void
-  visibleIds: Set<number>
+  selected:        number | null
+  onSelect:        (id: number) => void
+  visibleIds:      Set<number>
+  sidebarOpen?:    boolean
+  onAreaSelected?: (sel: AreaSelection | null) => void
 }
 
 function buildMarkerEl(base: MilitaryBase): HTMLElement {
   const color = STATUS_COLORS[base.status]
-  const num   = base.regimentEn  // e.g. "LIB 15"
+  const num   = base.regimentEn
   const short = STATUS_SHORT[base.status]
 
-  // Ambient glow on insignia at rest
   const imgGlow = `drop-shadow(0 0 4px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
 
   const wrap = document.createElement('div')
@@ -47,7 +53,6 @@ function buildMarkerEl(base: MilitaryBase): HTMLElement {
         alt="${base.regimentEn}"
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
       />
-      <!-- Fallback if SVG fails to load -->
       <span style="
         display:none;position:absolute;inset:0;
         align-items:center;justify-content:center;
@@ -119,13 +124,23 @@ function popupHTML(b: MilitaryBase): string {
     </div>`
 }
 
-export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef       = useRef<mapboxgl.Map | null>(null)
-  const markersRef   = useRef<Map<number, mapboxgl.Marker>>(new Map())
+export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, onAreaSelected }: Props) {
+  const containerRef      = useRef<HTMLDivElement>(null)
+  const mapRef            = useRef<mapboxgl.Map | null>(null)
+  const markersRef        = useRef<Map<number, mapboxgl.Marker>>(new Map())
+  const drawRef           = useRef<InstanceType<typeof MapboxDraw> | null>(null)
+  const onAreaSelectedRef = useRef(onAreaSelected)
   const [ready, setReady] = useState(false)
 
-  // Initialise map and markers once
+  useEffect(() => { onAreaSelectedRef.current = onAreaSelected }, [onAreaSelected])
+
+  // Resize when sidebar toggles
+  useEffect(() => {
+    const t = setTimeout(() => mapRef.current?.resize(), 320)
+    return () => clearTimeout(t)
+  }, [sidebarOpen])
+
+  // Initialise map, markers, and draw control
   useEffect(() => {
     if (!containerRef.current) return
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
@@ -142,12 +157,49 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
 
+    // Draw control
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: { polygon: true, trash: true },
+    })
+    map.addControl(draw, 'top-right')
+    drawRef.current = draw
+
+    function computeArea() {
+      if (!drawRef.current) return
+      const data = drawRef.current.getAll()
+      if (!data.features.length) {
+        onAreaSelectedRef.current?.(null)
+        return
+      }
+      const feat = data.features[0]
+      if (!feat || feat.geometry.type !== 'Polygon') return
+
+      type PolygonFeature = { type: 'Feature'; geometry: { type: 'Polygon'; coordinates: number[][][] }; properties: Record<string, unknown> }
+      const poly = feat as PolygonFeature
+
+      const area_km2 = turfArea(poly) / 1_000_000
+      const centerPt = turfCenter(poly)
+      const center   = centerPt.geometry.coordinates as [number, number]
+
+      const basesInside = BASES.filter(b => {
+        try { return booleanPointInPolygon(turfPoint([b.lng, b.lat]), poly) }
+        catch { return false }
+      })
+
+      onAreaSelectedRef.current?.({ bases: basesInside, area_km2, center, polygon: poly })
+    }
+
+    map.on('draw.create', computeArea)
+    map.on('draw.update', computeArea)
+    map.on('draw.delete', () => { onAreaSelectedRef.current?.(null) })
+
     function applyMarkerSizes(zoom: number) {
-      const t        = Math.max(0, Math.min(1, (zoom - 4) / (20 - 4)))
-      const size     = Math.round(8 + 8 * t)               // 8px → 16px
-      const nameFs   = +(8   + 2.5 * t).toFixed(1)         // 8px → 10.5px
-      const shortFs  = +(6   + 2   * t).toFixed(1)         // 6px → 8px
-      const gap      = Math.round(2 + 2 * t)               // 2px → 4px
+      const t       = Math.max(0, Math.min(1, (zoom - 4) / (20 - 4)))
+      const size    = Math.round(8 + 8 * t)
+      const nameFs  = +(8   + 2.5 * t).toFixed(1)
+      const shortFs = +(6   + 2   * t).toFixed(1)
+      const gap     = Math.round(2 + 2 * t)
       const showText = zoom >= 6.5
 
       markersRef.current.forEach(marker => {
@@ -199,14 +251,18 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
 
     return () => {
       ro.disconnect()
+      if (drawRef.current) {
+        try { map.removeControl(drawRef.current) } catch { /* ignore */ }
+      }
       map.remove()
-      mapRef.current = null
+      mapRef.current  = null
+      drawRef.current = null
       markersRef.current.clear()
       setReady(false)
     }
   }, [onSelect])
 
-  // Layer visibility — show/hide markers based on visibleIds
+  // Layer visibility
   useEffect(() => {
     if (!ready) return
     markersRef.current.forEach((marker, id) => {
@@ -214,7 +270,7 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
     })
   }, [visibleIds, ready])
 
-  // Highlight selected marker and fly to it
+  // Highlight selected marker
   useEffect(() => {
     if (!ready) return
     markersRef.current.forEach((marker, id) => {
@@ -227,7 +283,6 @@ export default function BasesMap({ selected, onSelect, visibleIds }: Props) {
       el.style.transform = active ? 'scale(1.25)' : 'scale(1)'
       el.style.zIndex    = active ? '10' : '1'
 
-      // Intensify the insignia glow when selected; restore ambient glow otherwise
       if (img) {
         img.style.filter = active
           ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 3px ${color}) brightness(1.35)`
