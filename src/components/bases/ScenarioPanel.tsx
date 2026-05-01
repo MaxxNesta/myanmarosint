@@ -80,11 +80,12 @@ interface Props {
   selection:    AreaSelection | null
   analysis:     ScenarioAnalysis | null
   analyzing:    boolean
+  analyzeError: string | null
   nearbyEvents: ConflictEventDTO[]
   onAnalyze:    () => void
 }
 
-export default function ScenarioPanel({ selection, analysis, analyzing, nearbyEvents, onAnalyze }: Props) {
+export default function ScenarioPanel({ selection, analysis, analyzing, analyzeError, nearbyEvents, onAnalyze }: Props) {
   const [tab, setTab] = useState<Tab>('ANALYSIS')
 
   const riskColor = analysis ? (RISK_COLORS[analysis.riskLevel] ?? '#6b7280') : '#6b7280'
@@ -133,8 +134,22 @@ export default function ScenarioPanel({ selection, analysis, analyzing, nearbyEv
       {/* Body */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
 
+        {/* Error */}
+        {analyzeError && !analyzing && (
+          <div className="m-3 bg-red-900/20 border border-red-800/40 rounded p-3">
+            <div className="text-[10px] font-mono font-bold text-red-400 mb-1">ANALYSIS FAILED</div>
+            <div className="text-[9px] text-red-400/70 font-mono break-all leading-relaxed">{analyzeError}</div>
+            <button
+              onClick={onAnalyze}
+              className="mt-2 text-[9px] font-mono text-red-400 hover:text-red-300 underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Idle */}
-        {!selection && !analyzing && !analysis && (
+        {!selection && !analyzing && !analysis && !analyzeError && (
           <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-4">
             <div className="w-12 h-12 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-xl">
               ⬡

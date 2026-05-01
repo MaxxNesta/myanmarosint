@@ -1,10 +1,13 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 import type { ScenarioAnalysis } from '@/lib/analyze-types'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
+const groq = new OpenAI({
+  apiKey:  process.env.GROQ_API_KEY,
+  baseURL: 'https://api.groq.com/openai/v1',
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,7 +39,9 @@ export async function POST(req: NextRequest) {
     const lng = (center as [number, number])[0]
     const lat = (center as [number, number])[1]
 
-    const prompt = `You are a senior military intelligence analyst specializing in Myanmar's civil war (2021–present). Analyze the selected operational area and produce a concise commander's situation assessment.
+    const systemPrompt = `You are a senior military intelligence analyst specializing in Myanmar's civil war (2021–present). You produce concise, accurate commander's situation assessments. Always respond with valid JSON only — no markdown fences, no explanation.`
+
+    const userPrompt = `Analyze this operational area and produce a situation assessment.
 
 AREA PARAMETERS:
 - Size: ${(area_km2 as number).toFixed(0)} km²
@@ -49,9 +54,9 @@ ${basesSummary}
 CONFLICT INTELLIGENCE (recent events near area):
 ${eventsSummary}
 
-Respond with ONLY valid JSON matching this exact schema — no markdown, no explanation:
+Return ONLY this JSON structure:
 {
-  "scenarioOverview": "2–3 sentence operational situation summary",
+  "scenarioOverview": "2-3 sentence operational situation summary",
   "areaSummary": {
     "operational": <number>,
     "contested": <number>,
@@ -62,29 +67,31 @@ Respond with ONLY valid JSON matching this exact schema — no markdown, no expl
     "holdPosition": "HIGH|MEDIUM|LOW",
     "lossRisk": "HIGH|MEDIUM|LOW",
     "confidence": "HIGH|MEDIUM|LOW",
-    "confidence_pct": <integer 0–100>
+    "confidence_pct": <integer 0-100>
   },
   "keyDrivers": ["factor 1", "factor 2", "factor 3"],
-  "interpretation": "2–3 sentence operational interpretation with tactical implications",
+  "interpretation": "2-3 sentence operational interpretation with tactical implications",
   "recommendedActions": ["action 1", "action 2", "action 3"],
   "threats": [
-    {"name": "threat name", "probability": "HIGH|MEDIUM|LOW", "description": "1-sentence description"},
-    {"name": "threat name", "probability": "HIGH|MEDIUM|LOW", "description": "1-sentence description"},
-    {"name": "threat name", "probability": "HIGH|MEDIUM|LOW", "description": "1-sentence description"},
-    {"name": "threat name", "probability": "HIGH|MEDIUM|LOW", "description": "1-sentence description"},
-    {"name": "threat name", "probability": "HIGH|MEDIUM|LOW", "description": "1-sentence description"}
+    {"name": "Enemy Ground Assault", "probability": "HIGH|MEDIUM|LOW", "description": "brief description"},
+    {"name": "Artillery Strike", "probability": "HIGH|MEDIUM|LOW", "description": "brief description"},
+    {"name": "Drone Surveillance", "probability": "HIGH|MEDIUM|LOW", "description": "brief description"},
+    {"name": "Supply Route Interdiction", "probability": "HIGH|MEDIUM|LOW", "description": "brief description"},
+    {"name": "Local Insurgency", "probability": "HIGH|MEDIUM|LOW", "description": "brief description"}
   ],
   "riskLevel": "CRITICAL|HIGH|MEDIUM|LOW"
 }`
 
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-lite',
-      generationConfig: { responseMimeType: 'application/json' },
+    const completion = await groq.chat.completions.create({
+      model:           'llama-3.1-8b-instant',
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user',   content: userPrompt },
+      ],
     })
 
-    const result = await model.generateContent(prompt)
-    const parsed  = JSON.parse(result.response.text()) as Omit<ScenarioAnalysis, 'generatedAt'>
-
+    const parsed = JSON.parse(completion.choices[0].message.content ?? '{}') as Omit<ScenarioAnalysis, 'generatedAt'>
     return NextResponse.json({ ...parsed, generatedAt: new Date().toISOString() })
   } catch (err) {
     console.error('POST /api/analyze-area error:', err)

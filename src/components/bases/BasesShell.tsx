@@ -74,6 +74,7 @@ export default function BasesShell() {
   const [areaSelection,   setAreaSelection]   = useState<AreaSelection | null>(null)
   const [analysis,        setAnalysis]        = useState<ScenarioAnalysis | null>(null)
   const [analyzing,       setAnalyzing]       = useState(false)
+  const [analyzeError,    setAnalyzeError]    = useState<string | null>(null)
   const [conflictEvents,  setConflictEvents]  = useState<ConflictEventDTO[]>([])
 
   const analyzeAbortRef = useRef<AbortController | null>(null)
@@ -141,6 +142,7 @@ export default function BasesShell() {
 
     setAnalyzing(true)
     setAnalysis(null)
+    setAnalyzeError(null)
 
     try {
       const bbox = getPolygonBBox(sel.polygon)
@@ -168,6 +170,7 @@ export default function BasesShell() {
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         console.error('Analysis failed:', err)
+        setAnalyzeError(String(err))
       }
     } finally {
       setAnalyzing(false)
@@ -181,6 +184,7 @@ export default function BasesShell() {
     } else {
       setAnalysis(null)
       setAnalyzing(false)
+      setAnalyzeError(null)
     }
   }, [runAnalysis])
 
@@ -467,6 +471,7 @@ export default function BasesShell() {
           selection={areaSelection}
           analysis={analysis}
           analyzing={analyzing}
+          analyzeError={analyzeError}
           nearbyEvents={nearbyEvents}
           onAnalyze={() => areaSelection && runAnalysis(areaSelection)}
         />
