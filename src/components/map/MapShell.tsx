@@ -66,7 +66,7 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
   // Load all 2023+ conflict events on mount
   useEffect(() => {
-    fetch('/api/conflict-events?limit=5000&sourceType=RSS')
+    fetch('/api/conflict-events?limit=5000')
       .then(r => r.json())
       .then(d => setConflict(d.events ?? []))
       .catch(() => {})
