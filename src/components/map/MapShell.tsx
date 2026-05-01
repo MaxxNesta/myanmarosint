@@ -49,8 +49,12 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     const total = conflictEvents.length
     const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     const recent = conflictEvents.filter(e => new Date(e.date) >= cutoff).length
+    const GENERIC_REGIONS = new Set(['myanmar', 'burma', 'unknown', ''])
     const regionCount = new Map<string, number>()
-    conflictEvents.forEach(e => { if (e.region) regionCount.set(e.region, (regionCount.get(e.region) ?? 0) + 1) })
+    conflictEvents.forEach(e => {
+      if (e.region && !GENERIC_REGIONS.has(e.region.toLowerCase()))
+        regionCount.set(e.region, (regionCount.get(e.region) ?? 0) + 1)
+    })
     let topRegion = '', topCount = 0
     regionCount.forEach((c, r) => { if (c > topCount) { topCount = c; topRegion = r } })
     const actorCount = new Map<string, number>()
