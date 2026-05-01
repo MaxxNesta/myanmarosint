@@ -4,11 +4,11 @@
  * - Everything else stays 'RSS'
  * Run: tsx --env-file=.env.local src/scripts/backfill-source-types.ts
  */
-import { PrismaClient } from '@prisma/client'
+import { makePrisma } from './make-prisma'
 import { TELEGRAM_SOURCES } from '../lib/rss'
 
 
-const prisma = new PrismaClient()
+const prisma = makePrisma()
 const TELEGRAM_NAMES = new Set(TELEGRAM_SOURCES.map(s => s.name))
 
 async function main() {

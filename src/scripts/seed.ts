@@ -3,11 +3,11 @@
  * Run: npm run db:seed
  */
 
-import { PrismaClient } from '@prisma/client'
+import { makePrisma } from './make-prisma'
 import { calculateConfidence } from '../lib/confidence'
 import { differenceInDays } from 'date-fns'
 
-const prisma = new PrismaClient()
+const prisma = makePrisma()
 
 type SeedEvent = {
   date: string; region: string; adminArea?: string; type: string

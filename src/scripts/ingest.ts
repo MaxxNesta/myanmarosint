@@ -9,14 +9,14 @@
  *   3. Call the Claude processing pipeline to convert articles → ProcessedEvents
  */
 
-import { PrismaClient } from '@prisma/client'
 import { fetchAllFeeds, TELEGRAM_SOURCE_NAMES } from '../lib/rss'
 import { resolveCoordinates } from '../lib/geocoding'
 import { calculateConfidence, classifySourceReliability } from '../lib/confidence'
 import { differenceInDays } from 'date-fns'
 import type { EventType } from '../lib/types'
+import { makePrisma } from './make-prisma'
 
-const prisma = new PrismaClient()
+const prisma = makePrisma()
 
 async function scrapeFeeds(): Promise<{ saved: number; skipped: number }> {
   const items = await fetchAllFeeds()

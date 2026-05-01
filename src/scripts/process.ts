@@ -4,11 +4,11 @@
  * Run: npm run process
  */
 
-import { PrismaClient } from '@prisma/client'
+import { makePrisma } from './make-prisma'
 import { buildRegionRiskScores } from '../lib/risk'
 import { subDays } from 'date-fns'
 
-const prisma = new PrismaClient()
+const prisma = makePrisma()
 
 type EventType = 'ARMED_CONFLICT' | 'POLITICAL_UNREST' | 'INFRASTRUCTURE_DISRUPTION' | 'HUMANITARIAN_ALERT'
 type SourceReliability = 'HIGH' | 'MEDIUM' | 'LOW'

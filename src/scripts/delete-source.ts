@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import { makePrisma } from './make-prisma'
 
-const prisma = new PrismaClient()
+const prisma = makePrisma()
 const SOURCE = 'AAPP Burma'
 
 async function main() {

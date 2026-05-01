@@ -27,7 +27,7 @@ const SESSION  = process.env.TELEGRAM_SESSION  ?? ''
 const MIN_DATE     = new Date('2021-02-01')
 const MIN_DATE_UNIX = Math.floor(MIN_DATE.getTime() / 1000)
 
-const prisma = new PrismaClient()
+const prisma = makePrisma()
 
 // ── Interactive prompt helper ─────────────────────────────────────────────────
 function ask(question: string): Promise<string> {

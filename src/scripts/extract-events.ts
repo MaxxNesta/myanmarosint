@@ -11,28 +11,12 @@
  *   6. Write UpdateLog entry
  */
 
-import { PrismaClient } from '@prisma/client'
-import { Pool, neonConfig } from '@neondatabase/serverless'
-import { PrismaNeon } from '@prisma/adapter-neon'
-import ws from 'ws'
 import { extractEvents } from '../lib/event-extractor'
 import { normalizeActors, normalizeRegion } from '../lib/normalizer'
 import { buildDedupHash } from '../lib/dedup'
 import { resolveCoordinates } from '../lib/geocoding'
 import { getBaseReliability } from '../lib/confidence'
-
-neonConfig.webSocketConstructor = ws
-
-function makePrisma() {
-  // Strip non-pg params that confuse the neon serverless URL parser
-  const raw  = (process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? '')
-    .replace(/[?&]connect_timeout=\d+/g, '')
-    .replace(/[?&]pgbouncer=true/g, '')
-    .replace(/[?&]channel_binding=\w+/g, '')
-  const pool    = new Pool({ connectionString: raw })
-  const adapter = new PrismaNeon(pool)
-  return new PrismaClient({ adapter })
-}
+import { makePrisma } from './make-prisma'
 
 const prisma = makePrisma()
 const INTEL_START = new Date('2023-01-01T00:00:00Z')

@@ -6,13 +6,13 @@
  * Run: npm run process:local
  */
 
-import { PrismaClient } from '@prisma/client'
+import { makePrisma } from './make-prisma'
 import { resolveCoordinates } from '../lib/geocoding'
 import { calculateConfidence, classifySourceReliability } from '../lib/confidence'
 import { differenceInDays } from 'date-fns'
 import type { EventType } from '../lib/types'
 
-const prisma = new PrismaClient()
+const prisma = makePrisma()
 
 // ── Event type classification ─────────────────────────────────────────────────
 

@@ -57,6 +57,15 @@ export const RSS_SOURCES: RssSource[] = [
   { name: 'Amnesty International',  feedUrl: 'https://www.amnesty.org/en/tag/myanmar/feed/rss/',      reliability: 'HIGH'   },
   { name: 'UN News Myanmar',        feedUrl: 'https://news.un.org/feed/subscribe/en/news/region/asia-pacific/feed/rss.xml', reliability: 'HIGH' },
   { name: 'Crisis Group Myanmar',   feedUrl: 'https://www.crisisgroup.org/rss/myanmar',               reliability: 'HIGH'   },
+
+  // ── International English (macro / strategic) ────────────────────────────
+  { name: 'The Diplomat Myanmar',   feedUrl: 'https://thediplomat.com/category/asia-pacific/southeast-asia/myanmar/feed/', reliability: 'HIGH' },
+  { name: 'Asia Times Myanmar',     feedUrl: 'https://asiatimes.com/tag/myanmar/feed/',               reliability: 'MEDIUM' },
+  { name: 'Channel News Asia SEA',  feedUrl: 'https://www.channelnewsasia.com/rss/8395986',           reliability: 'HIGH'   },
+  { name: 'Reuters Asia',           feedUrl: 'https://feeds.reuters.com/reuters/INdiaNews',            reliability: 'HIGH'   },
+  { name: 'Al Jazeera Myanmar',     feedUrl: 'https://www.aljazeera.com/tag/myanmar/feed/',            reliability: 'HIGH'   },
+  { name: 'Justice For Myanmar',    feedUrl: 'https://www.justiceformyanmar.org/feed',                 reliability: 'HIGH'   },
+  { name: 'Fortify Rights',         feedUrl: 'https://www.fortifyrights.org/feed/',                   reliability: 'HIGH'   },
 ]
 
 // Telegram channels — scraped via t.me/s/ public web view.
