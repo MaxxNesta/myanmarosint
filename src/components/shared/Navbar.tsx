@@ -12,9 +12,10 @@ const TATMADAW_URL =
   process.env.NEXT_PUBLIC_TATMADAW_URL ?? '/tatmadaw'
 
 const NAV_LINKS = [
-  { href: '/map',   label: '🗺 Conflict Map'    },
-  { href: '/intel', label: '📡 Intel Dashboard' },
-  { href: '/bases', label: '🛡 Military Bases'  },
+  { href: '/map',        label: '🗺 Conflict Map'      },
+  { href: '/intel',      label: '📡 Intel Dashboard'   },
+  { href: '/bases',      label: '🛡 Military Bases'    },
+  { href: '/operations', label: '⚔ Ops Timeline'      },
 ]
 
 export default function Navbar() {

@@ -80,7 +80,7 @@ export const BASES: MilitaryBase[] = [
   { id:24, regimentMm:'ခလရ (၂၄)', regimentEn:'LIB 24', locationMm:'ရှမ်းပြည်နယ်(မြောက်ပိုင်း)၊ သီပေါမြို့နယ်', locationEn:'Hsipaw Township, N.Shan',       region:'Shan State',               lat:22.58, lng:97.27, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   { id:33, regimentMm:'ခလရ (၃၃)', regimentEn:'LIB 33', locationMm:'ရှမ်းပြည်နယ်(မြောက်ပိုင်း)၊ တန့်ယန်းမြို့',  locationEn:'Tangyan, N.Shan State',         region:'Shan State',               lat:22.2105552, lng:98.4302336, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   // MNDAA — Kokang / N.Shan
-  { id:22, regimentMm:'ခလရ (၂၂)', regimentEn:'LIB 22', locationMm:'ရှမ်းပြည်နယ်(မြောက်ပိုင်း)၊ မိုင်းရယ်မြို့နယ်',locationEn:'Muse Township, N.Shan',         region:'Shan State',               lat:23.99, lng:97.64, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
+  { id:22, regimentMm:'ခလရ (၂၂)', regimentEn:'LIB 22', locationMm:'ရှမ်းပြည်နယ်(မြောက်ပိုင်း)၊ မိုင်းရယ်မြို့နယ်',locationEn:'Muse Township, N.Shan',         region:'Shan State',               lat:22.407909477074888, lng:98.05081067250805, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   // KIA — Kachin State
   { id:15, regimentMm:'ခလရ (၁၅)', regimentEn:'LIB 15', locationMm:'ကချင်ပြည်နယ်၊ မိုးညှင်းမြို့',               locationEn:'Momauk, Kachin State',          region:'Kachin State',             lat:25.46, lng:96.65, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
   { id:37, regimentMm:'ခလရ (၃၇)', regimentEn:'LIB 37', locationMm:'ကချင်ပြည်နယ်၊ ဝိုင်းမော်မြို့နယ်',            locationEn:'Waingmaw, Kachin State',        region:'Kachin State',             lat:25.36, lng:97.47, type:'LIB', threat:'HIGH',   status:'SEIZED_EAO' },
