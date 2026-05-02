@@ -54,7 +54,8 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'kyaikdon',    date: '2024-03-14', actor: 'KNLA' },
 
   // ── Karenni / Kayah State ─────────────────────────────────────────────────
-  { townId: 'moebye',       date: '2023-11-13', actor: 'KNPP' },
+  { townId: 'moebye',       date: '2023-11-13', actor: 'KNPP'    },
+  { townId: 'moebye',       date: '2025-07-07', actor: 'MILITARY', contested: true }, // disputed SAC reclaim
   { townId: 'nan-mei-khon', date: '2023-11-13', actor: 'KNPP' },
   { townId: 'ywar-thit',    date: '2024-01-28', actor: 'KNPP' },
   { townId: 'shadaw',       date: '2024-02-12', actor: 'KNPP' },
@@ -128,4 +129,32 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'ponnaygun',    date: '2024-03-04', actor: 'AA' },
   { townId: 'maei',         date: '2024-02-16', actor: 'AA' },
   { townId: 'kyeintali',    date: '2024-08-14', actor: 'AA' },
+
+  // ── New towns — initial resistance captures (estimated dates) ─────────────
+  { townId: 'hsipaw',       date: '2024-09-15', actor: 'TNLA'    }, // after Kyaukme fell Aug 6
+  { townId: 'banmauk',      date: '2024-03-01', actor: 'KIA'     }, // KIA + PDF Sagaing push
+  { townId: 'falam',        date: '2024-07-01', actor: 'CNF'     }, // Chin Brotherhood advance
+  { townId: 'hpasawng',     date: '2024-03-01', actor: 'KNPP'    }, // Karenni Kayah push
+  { townId: 'tigyaing',     date: '2024-06-01', actor: 'PDF_NUG' }, // Sagaing PDF
+  { townId: 'indaw',        date: '2024-06-01', actor: 'PDF_NUG' }, // Sagaing PDF
+  { townId: 'madaya',       date: '2024-11-01', actor: 'PDF_NUG' }, // Mandalay PDF advance
+  { townId: 'kawlin',       date: '2023-12-01', actor: 'PDF_NUG' }, // Sagaing PDF
+
+  // ── SAC / Military recaptures 2025–2026 ───────────────────────────────────
+  { townId: 'lashio',       date: '2025-04-22', actor: 'MILITARY' },
+  { townId: 'nawnghkio',    date: '2025-07-16', actor: 'MILITARY' },
+  { townId: 'kyaukme',      date: '2025-09-30', actor: 'MILITARY' },
+  { townId: 'hsipaw',       date: '2025-10-16', actor: 'MILITARY' },
+  { townId: 'mogok',        date: '2025-11-30', actor: 'MILITARY' }, // agreed TNLA withdrawal
+  { townId: 'mongmit',      date: '2025-11-30', actor: 'MILITARY' }, // agreed TNLA withdrawal
+  { townId: 'madaya',       date: '2025-12-31', actor: 'MILITARY' },
+  { townId: 'singu',        date: '2025-12-31', actor: 'MILITARY' },
+  { townId: 'thabeikkyin',  date: '2025-12-31', actor: 'MILITARY' },
+  { townId: 'banmauk',      date: '2026-02-06', actor: 'MILITARY' },
+  { townId: 'hpasawng',     date: '2026-02-15', actor: 'MILITARY', contested: true }, // disputed
+  { townId: 'tagauging',    date: '2026-03-12', actor: 'MILITARY' }, // Tagaung / Tagauging
+  { townId: 'tigyaing',     date: '2026-03-25', actor: 'MILITARY' },
+  { townId: 'kawlin',       date: '2026-01-31', actor: 'MILITARY' },
+  { townId: 'falam',        date: '2026-04-25', actor: 'MILITARY' },
+  { townId: 'indaw',        date: '2026-04-30', actor: 'MILITARY' },
 ]

@@ -195,13 +195,6 @@ export default function OperationsShell() {
           )}
         </div>
 
-        {/* ── No campaigns notice ─────────────────────────────────── */}
-        {campaigns.length === 0 && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-3 py-1.5 bg-[#0b0f14]/90 backdrop-blur border border-amber-500/30 rounded text-[10px] font-mono text-amber-400/70 pointer-events-none">
-            ✦ Campaign data pending — provide captured towns to activate arrows
-          </div>
-        )}
-
         {/* ── Date overlay (top-right of map) ─────────────────────── */}
         <div className="absolute top-3 right-12 z-10 pointer-events-none">
           <div className="px-3 py-1.5 bg-[#0b0f14]/90 backdrop-blur border border-white/[0.08] rounded text-[10px] font-mono text-slate-300 text-right">

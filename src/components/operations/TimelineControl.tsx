@@ -98,19 +98,6 @@ export default function TimelineControl({
         </div>
       </div>
 
-      {/* Timeline bar (visual tick marks) */}
-      <div className="relative h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
-        <div
-          className="absolute left-0 top-0 h-full bg-accent-blue/50 rounded-full transition-none"
-          style={{ width: `${progress * 100}%` }}
-        />
-        {/* Playhead */}
-        <div
-          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-accent-blue border border-white/30 shadow transition-none"
-          style={{ left: `calc(${progress * 100}% - 5px)` }}
-        />
-      </div>
-
     </div>
   )
 }

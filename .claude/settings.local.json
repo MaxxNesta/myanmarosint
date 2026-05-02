@@ -16,7 +16,11 @@
       "Bash(npm run *)",
       "Bash(node -e \"const t=require\\('./tsconfig.json'\\);console.log\\(t.compilerOptions.target,t.compilerOptions.lib\\)\")",
       "Bash(node -e ' *)",
-      "Bash(npm i *)"
+      "Bash(npm i *)",
+      "Read(//tmp/**)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

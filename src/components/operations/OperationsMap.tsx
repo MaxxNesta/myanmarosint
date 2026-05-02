@@ -249,13 +249,18 @@ export default function OperationsMap({
     // ── Load cities ────────────────────────────────────────────────────
     fetch('/data/myanmar-cities.json')
       .then(r => r.json())
-      .then((data: { features: Array<{ properties: { NAME: string }; geometry: { coordinates: [number, number] } }> }) => {
-        townsRef.current = data.features.map(f => ({
-          id:   townSlug(f.properties.NAME),
-          name: f.properties.NAME,
-          lng:  f.geometry.coordinates[0],
-          lat:  f.geometry.coordinates[1],
-        }))
+      .then((data: { features: Array<{ properties: Record<string, unknown>; geometry?: { coordinates: [number, number] } }> }) => {
+        townsRef.current = data.features
+          .map(f => {
+            const p = f.properties
+            const name = String(p.Town ?? p.NAME ?? '')
+            if (!name) return null
+            const lng = p.Longitude != null ? parseFloat(String(p.Longitude)) : (f.geometry?.coordinates[0] ?? 0)
+            const lat = p.Latitude  != null ? parseFloat(String(p.Latitude))  : (f.geometry?.coordinates[1] ?? 0)
+            if (!lng || !lat) return null
+            return { id: townSlug(name), name, lng, lat }
+          })
+          .filter(Boolean) as MyanmarCity[]
         townsLoadedRef.current = true
         if (readyRef.current) updateMap()
       })
@@ -337,28 +342,7 @@ export default function OperationsMap({
         },
       })
 
-      // ── 5. Campaign arrowhead (▶ at line center) ─────────────────────
-      map.addLayer({
-        id:     'campaigns-arrows',
-        type:   'symbol',
-        source: 'campaigns-source',
-        layout: {
-          'symbol-placement':        'line-center',
-          'text-field':              '▶',
-          'text-size':               14,
-          'text-rotation-alignment': 'map',
-          'text-allow-overlap':      true,
-          'text-ignore-placement':   true,
-        },
-        paint: {
-          'text-color':       ['get', 'color'],
-          'text-halo-color':  'rgba(0,0,0,0.8)',
-          'text-halo-width':  1.5,
-          'text-opacity':     0.95,
-        },
-      })
-
-      // ── 6. Incident glow ─────────────────────────────────────────────
+      // ── 5. Incident glow ─────────────────────────────────────────────
       map.addLayer({
         id:     'incidents-glow',
         type:   'circle',
@@ -447,34 +431,14 @@ export default function OperationsMap({
       readyRef.current = true
       if (townsLoadedRef.current) updateMap()
 
-      // ── Animation loop ───────────────────────────────────────────────
-      const DASH_SEQ = [
-        [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2],
-        [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5],
-        [3, 4, 0], [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 2, 3, 2],
-      ]
-      let dashStep = 0
-      let lastDashTime = 0
-
+      // ── Animation loop (pulse for contested towns) ──────────────────
       function animate(time: number) {
-        // Dash animation (80ms per step)
-        if (time - lastDashTime > 80) {
-          dashStep = (dashStep + 1) % DASH_SEQ.length
-          try {
-            map.setPaintProperty('campaigns-animated', 'line-dasharray', DASH_SEQ[dashStep])
-          } catch { /* map may be gone */ }
-          lastDashTime = time
-        }
-
-        // Pulse animation for contested towns
-        pulseTimeRef.current = time
         const pulse = 0.15 + 0.12 * Math.sin(time / 700)
         const pRad  = 18  + 5   * Math.sin(time / 700)
         try {
           map.setPaintProperty('towns-pulse', 'circle-opacity', pulse)
           map.setPaintProperty('towns-pulse', 'circle-radius',  pRad)
         } catch { /* map may be gone */ }
-
         animFrameRef.current = requestAnimationFrame(animate)
       }
       animFrameRef.current = requestAnimationFrame(animate)
