@@ -1,7 +1,7 @@
 import type { Actor, ActorId, Campaign, TownControlEvent } from './operations-types'
 
 export const ACTORS: Record<ActorId, Actor> = {
-  MILITARY: { id: 'MILITARY', name: 'Tatmadaw / SAC',                              shortName: 'SAC',   color: '#dc2626', side: 'junta'      },
+  MILITARY: { id: 'MILITARY', name: 'Tatmadaw / SAC',                              shortName: 'SAC',   color: '#6b7a2a', side: 'junta'      },
   TNLA:     { id: 'TNLA',     name: "Ta'ang National Liberation Army",              shortName: 'TNLA',  color: '#f97316', side: 'resistance' },
   MNDAA:    { id: 'MNDAA',    name: 'Myanmar National Democratic Alliance Army',    shortName: 'MNDAA', color: '#eab308', side: 'resistance' },
   AA:       { id: 'AA',       name: 'Arakan Army / ULA',                            shortName: 'AA',    color: '#06b6d4', side: 'resistance' },

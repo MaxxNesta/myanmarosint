@@ -6,6 +6,7 @@ import { ACTORS, CAMPAIGNS, TOWN_CONTROL_EVENTS } from '@/lib/operations-data'
 import type { ActorId, Campaign, TownControlEvent } from '@/lib/operations-types'
 import type { ConflictEventDTO } from '@/lib/types'
 import TimelineControl from './TimelineControl'
+import MomentumPanel from './MomentumPanel'
 
 const OperationsMap = dynamic(() => import('./OperationsMap'), {
   ssr: false,
@@ -18,36 +19,29 @@ const OperationsMap = dynamic(() => import('./OperationsMap'), {
 
 type Speed = 0.5 | 1 | 2 | 5
 
-// Default date range: 2021-02-01 (coup) → today
-const DEFAULT_MIN = new Date('2021-02-01')
-const DEFAULT_MAX = new Date()
-const DEFAULT_START = new Date() // start at today
+const DEFAULT_MIN   = new Date('2021-02-01')
+const DEFAULT_MAX   = new Date()
+const DEFAULT_START = new Date()
 
 const ALL_ACTOR_IDS = Object.keys(ACTORS) as ActorId[]
 
 export default function OperationsShell() {
-  // ── Timeline state ─────────────────────────────────────────────────
-  const [currentDate,  setCurrentDate]  = useState<Date>(DEFAULT_START)
-  const [minDate,      setMinDate]      = useState<Date>(DEFAULT_MIN)
-  const [maxDate]                       = useState<Date>(DEFAULT_MAX)
-  const [playing,      setPlaying]      = useState(false)
-  const [speed,        setSpeed]        = useState<Speed>(1)
+  const [currentDate,      setCurrentDate]  = useState<Date>(DEFAULT_START)
+  const [minDate,          setMinDate]      = useState<Date>(DEFAULT_MIN)
+  const [maxDate]                           = useState<Date>(DEFAULT_MAX)
+  const [playing,          setPlaying]      = useState(false)
+  const [speed,            setSpeed]        = useState<Speed>(1)
+  const [incidents,        setIncidents]    = useState<ConflictEventDTO[]>([])
+  const [incidentsLoading, setLoading]      = useState(true)
+  const [actorFilter,      setActorFilter]  = useState<Set<ActorId>>(new Set())
+  const [legendOpen,       setLegendOpen]   = useState(false)
 
-  // ── Data ───────────────────────────────────────────────────────────
-  const [incidents,    setIncidents]    = useState<ConflictEventDTO[]>([])
-  const [incidentsLoading, setLoading] = useState(true)
-
-  // ── Filters ────────────────────────────────────────────────────────
-  const [actorFilter, setActorFilter] = useState<Set<ActorId>>(new Set())
-  const [legendOpen,  setLegendOpen]  = useState(true)
-
-  const campaigns: Campaign[]           = CAMPAIGNS
+  const campaigns:    Campaign[]         = CAMPAIGNS
   const controlEvents: TownControlEvent[] = TOWN_CONTROL_EVENTS
 
-  // ── Load incidents ─────────────────────────────────────────────────
   useEffect(() => {
     setLoading(true)
-    fetch('/api/conflict-events?limit=5000&days=1825')  // 5 years
+    fetch('/api/conflict-events?limit=5000&days=1825')
       .then(r => r.json())
       .then(d => {
         const evts: ConflictEventDTO[] = d.events ?? []
@@ -62,7 +56,6 @@ export default function OperationsShell() {
       .finally(() => setLoading(false))
   }, [])
 
-  // ── Auto-play ──────────────────────────────────────────────────────
   const playRef = useRef(playing)
   useEffect(() => { playRef.current = playing }, [playing])
 
@@ -79,16 +72,15 @@ export default function OperationsShell() {
     return () => clearInterval(id)
   }, [playing, speed, maxDate])
 
-  // ── Derived stats ──────────────────────────────────────────────────
   const stats = useMemo(() => {
     const cutoff = currentDate
     const recent = incidents.filter(e => {
       const d = new Date(e.date as string)
       return d <= cutoff && (cutoff.getTime() - d.getTime()) < 30 * 86400000
     })
-    const total = incidents.filter(e => new Date(e.date as string) <= cutoff).length
+    const total      = incidents.filter(e => new Date(e.date as string) <= cutoff).length
     const fatalities = recent.reduce((s, e) => s + (e.fatalities ?? 0), 0)
-    const hotZones = new Set(recent.map(e => e.region)).size
+    const hotZones   = new Set(recent.map(e => e.region)).size
     return { total, recent: recent.length, fatalities, hotZones }
   }, [incidents, currentDate])
 
@@ -103,45 +95,49 @@ export default function OperationsShell() {
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden bg-[#0a0e14]">
 
-      {/* ── Top header bar ─────────────────────────────────────────── */}
-      <div className="h-10 bg-[#0b0f14] border-b border-white/[0.07] flex items-center px-4 gap-4 shrink-0 overflow-x-auto">
+      {/* ── Top header bar ───────────────────────────────────────────── */}
+      <div className="h-10 bg-[#0b0f14] border-b border-white/[0.07] flex items-center px-3 gap-3 shrink-0 overflow-x-auto scrollbar-none">
+
+        {/* Title */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-          <span className="text-[10px] font-mono font-bold tracking-widest text-red-400">OPERATIONS TIMELINE</span>
-          <span className="text-[9px] font-mono text-slate-600 hidden sm:inline">Myanmar Conflict · {currentDate.toISOString().slice(0, 10)}</span>
+          <span className="text-[10px] font-mono font-bold tracking-widest text-red-400 whitespace-nowrap">OPS TIMELINE</span>
+          <span className="text-[9px] font-mono text-slate-600 hidden md:inline whitespace-nowrap">
+            Myanmar · {currentDate.toISOString().slice(0, 10)}
+          </span>
         </div>
 
         <div className="w-px h-4 bg-white/[0.07] shrink-0" />
 
-        {/* Live stats */}
-        {[
-          { label: 'Events',    value: stats.total.toLocaleString() },
-          { label: '30-day',    value: stats.recent.toString(),     color: stats.recent > 20 ? '#ef4444' : '#f59e0b' },
-          { label: 'Casualties', value: stats.fatalities.toString(), color: '#ef4444' },
-          { label: 'Hot Zones', value: stats.hotZones.toString(),   color: '#f97316' },
-        ].map(s => (
-          <div key={s.label} className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">{s.label}</span>
-            <span className="text-sm font-bold font-mono" style={{ color: s.color ?? '#e2e8f0' }}>{s.value}</span>
-          </div>
-        ))}
+        {/* Stats — hide lower-priority ones on small screens */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest hidden sm:inline">Events</span>
+          <span className="text-sm font-bold font-mono text-slate-200">{stats.total.toLocaleString()}</span>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest hidden sm:inline">30d</span>
+          <span className="text-sm font-bold font-mono" style={{ color: stats.recent > 20 ? '#ef4444' : '#f59e0b' }}>
+            {stats.recent}
+          </span>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+          <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">KIA</span>
+          <span className="text-sm font-bold font-mono text-red-400">{stats.fatalities}</span>
+        </div>
+
+        <div className="hidden md:flex items-center gap-1.5 shrink-0">
+          <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">Zones</span>
+          <span className="text-sm font-bold font-mono text-orange-400">{stats.hotZones}</span>
+        </div>
 
         {incidentsLoading && (
-          <div className="w-3 h-3 border border-accent-blue/30 border-t-accent-blue rounded-full animate-spin shrink-0 ml-auto" />
-        )}
-
-        {/* Campaign count */}
-        {campaigns.length > 0 && (
-          <>
-            <div className="w-px h-4 bg-white/[0.07] shrink-0 ml-auto" />
-            <span className="text-[9px] font-mono text-slate-500 shrink-0">
-              {campaigns.filter(c => new Date(c.startDate) <= currentDate).length} campaigns active
-            </span>
-          </>
+          <div className="w-3 h-3 border border-blue-500/30 border-t-blue-500 rounded-full animate-spin shrink-0 ml-auto" />
         )}
       </div>
 
-      {/* ── Map area ───────────────────────────────────────────────── */}
+      {/* ── Map area ─────────────────────────────────────────────────── */}
       <div className="flex-1 relative overflow-hidden">
         <OperationsMap
           currentDate={currentDate}
@@ -151,7 +147,14 @@ export default function OperationsShell() {
           actorFilter={actorFilter}
         />
 
-        {/* ── Legend / Actor Filter ───────────────────────────────── */}
+        {/* ── Momentum Panel (top-left) ────────────────────────────── */}
+        <MomentumPanel
+          currentDate={currentDate}
+          incidents={incidents}
+          controlEvents={controlEvents}
+        />
+
+        {/* ── Actor Legend / Filter (bottom-left) ─────────────────── */}
         <div className="absolute bottom-4 left-3 z-20">
           <button
             onClick={() => setLegendOpen(v => !v)}
@@ -163,9 +166,9 @@ export default function OperationsShell() {
           </button>
 
           {legendOpen && (
-            <div className="bg-[#0b0f14]/95 backdrop-blur border border-white/[0.10] rounded shadow-xl p-2 space-y-0.5 w-44">
+            <div className="bg-[#0b0f14]/95 backdrop-blur border border-white/[0.10] rounded shadow-xl p-2 space-y-0.5 w-44 max-h-64 overflow-y-auto">
               {ALL_ACTOR_IDS.map(id => {
-                const actor = ACTORS[id]
+                const actor  = ACTORS[id]
                 const active = actorFilter.size === 0 || actorFilter.has(id)
                 return (
                   <button
@@ -195,16 +198,18 @@ export default function OperationsShell() {
           )}
         </div>
 
-        {/* ── Date overlay (top-right of map) ─────────────────────── */}
+        {/* ── Date overlay (top-right) ─────────────────────────────── */}
         <div className="absolute top-3 right-12 z-10 pointer-events-none">
-          <div className="px-3 py-1.5 bg-[#0b0f14]/90 backdrop-blur border border-white/[0.08] rounded text-[10px] font-mono text-slate-300 text-right">
+          <div className="px-2.5 py-1.5 bg-[#0b0f14]/90 backdrop-blur border border-white/[0.08] rounded text-[10px] font-mono text-slate-300 text-right">
             <div className="text-[8px] text-slate-600 tracking-widest mb-0.5">TIMELINE</div>
-            <div className="font-bold">{currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+            <div className="font-bold">
+              {currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Timeline control ───────────────────────────────────────── */}
+      {/* ── Timeline control ─────────────────────────────────────────── */}
       <TimelineControl
         currentDate={currentDate}
         minDate={minDate}

@@ -54,27 +54,42 @@ function townPopupHTML(
   actor: ActorId,
   contested: boolean,
   recentIncidents: ConflictEventDTO[],
+  history: TownControlEvent[],
 ): string {
   const a = ACTORS[actor] ?? ACTORS.UNKNOWN
   const statusLabel = contested ? '⚡ CONTESTED' : `● ${a.shortName} CONTROL`
-  const incidentRows = recentIncidents.slice(0, 4).map(e =>
-    `<div style="font-size:0.7rem;color:#94a3b8;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-       <span style="color:#64748b">${String(e.date).slice(0,10)}</span>
+  const statusColor = contested ? '#ef4444' : a.color
+
+  const historyRows = history.slice().reverse().slice(0, 4).map(ev => {
+    const ea = ACTORS[ev.actor] ?? ACTORS.UNKNOWN
+    return `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <span style="width:6px;height:6px;border-radius:50%;background:${ea.color};flex-shrink:0"></span>
+      <span style="font-size:0.65rem;color:#94a3b8;flex:1">${ea.shortName}${ev.contested ? ' ⚡' : ''}</span>
+      <span style="font-size:0.62rem;color:#475569">${ev.date}</span>
+    </div>`
+  }).join('')
+
+  const incidentRows = recentIncidents.slice(0, 3).map(e =>
+    `<div style="font-size:0.65rem;color:#94a3b8;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+       <span style="color:#475569">${String(e.date).slice(0,10)}</span>
        <span style="margin-left:6px">${e.eventType.replace(/_/g,' ')}</span>
        ${e.fatalities ? `<span style="color:#ef4444;margin-left:6px">${e.fatalities} KIA</span>` : ''}
      </div>`
   ).join('')
+
   return `
-    <div style="padding:12px 14px;min-width:200px;font-family:'Courier New',monospace">
+    <div style="padding:10px 12px;min-width:210px;max-width:260px;font-family:'Courier New',monospace">
       <div style="font-size:0.85rem;font-weight:700;color:#e2e8f0;margin-bottom:4px">${city.name}</div>
-      <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.68rem;font-weight:700;
-                  background:${a.color}20;color:${a.color};border:1px solid ${a.color}44;margin-bottom:8px">
+      <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;
+                  background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44;margin-bottom:8px">
         ${statusLabel}
       </div>
+      ${history.length > 0 ? `
+        <div style="font-size:0.6rem;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Control History</div>
+        ${historyRows}
+        <div style="margin-top:6px"></div>` : ''}
       ${recentIncidents.length > 0 ? `
-        <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">
-          Recent Incidents
-        </div>
+        <div style="font-size:0.6rem;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Recent Incidents</div>
         ${incidentRows}` : ''}
     </div>`
 }
@@ -85,26 +100,42 @@ function townshipPopupHTML(
   contested: boolean,
   incidentCount30d: number,
   incidentCount90d: number,
+  history: TownControlEvent[],
 ): string {
   const a = ACTORS[actor] ?? ACTORS.UNKNOWN
   const statusLabel = contested ? '⚡ CONTESTED' : `● ${a.shortName} CONTROL`
+  const statusColor = contested ? '#ef4444' : a.color
+
+  const historyRows = history.slice().reverse().slice(0, 4).map(ev => {
+    const ea = ACTORS[ev.actor] ?? ACTORS.UNKNOWN
+    return `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <span style="width:6px;height:6px;border-radius:50%;background:${ea.color};flex-shrink:0"></span>
+      <span style="font-size:0.65rem;color:#94a3b8;flex:1">${ea.shortName}${ev.contested ? ' ⚡' : ''}</span>
+      <span style="font-size:0.62rem;color:#475569">${ev.date}</span>
+    </div>`
+  }).join('')
+
   return `
-    <div style="padding:12px 14px;min-width:210px;font-family:'Courier New',monospace">
-      <div style="font-size:0.7rem;color:#475569;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Township</div>
-      <div style="font-size:0.9rem;font-weight:700;color:#e2e8f0;margin-bottom:2px">${ts.name}</div>
-      <div style="font-size:0.7rem;color:#64748b;margin-bottom:8px">${ts.dist} · ${ts.state}</div>
-      <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.68rem;font-weight:700;
-                  background:${a.color}20;color:${a.color};border:1px solid ${a.color}44;margin-bottom:8px">
+    <div style="padding:10px 12px;min-width:215px;max-width:270px;font-family:'Courier New',monospace">
+      <div style="font-size:0.62rem;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Township</div>
+      <div style="font-size:0.88rem;font-weight:700;color:#e2e8f0;margin-bottom:1px">${ts.name}</div>
+      <div style="font-size:0.65rem;color:#475569;margin-bottom:7px">${ts.dist} · ${ts.state}</div>
+      <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;
+                  background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44;margin-bottom:8px">
         ${statusLabel}
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
-        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px 8px;text-align:center">
-          <div style="font-size:1.1rem;font-weight:700;color:${incidentCount30d > 5 ? '#ef4444' : '#f59e0b'}">${incidentCount30d}</div>
-          <div style="font-size:0.6rem;color:#475569;text-transform:uppercase;letter-spacing:0.05em">30-day incidents</div>
+      ${history.length > 0 ? `
+        <div style="font-size:0.6rem;color:#334155;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Control History</div>
+        ${historyRows}
+        <div style="margin-top:6px"></div>` : ''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:5px 7px;text-align:center">
+          <div style="font-size:1rem;font-weight:700;color:${incidentCount30d > 5 ? '#ef4444' : incidentCount30d > 0 ? '#f59e0b' : '#334155'}">${incidentCount30d}</div>
+          <div style="font-size:0.58rem;color:#334155;text-transform:uppercase;letter-spacing:0.05em">30-day</div>
         </div>
-        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px 8px;text-align:center">
-          <div style="font-size:1.1rem;font-weight:700;color:#64748b">${incidentCount90d}</div>
-          <div style="font-size:0.6rem;color:#475569;text-transform:uppercase;letter-spacing:0.05em">90-day incidents</div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:5px 7px;text-align:center">
+          <div style="font-size:1rem;font-weight:700;color:#475569">${incidentCount90d}</div>
+          <div style="font-size:0.58rem;color:#334155;text-transform:uppercase;letter-spacing:0.05em">90-day</div>
         </div>
       </div>
     </div>`
@@ -175,12 +206,16 @@ export default function OperationsMap({
     if (townshipsLoadedRef.current) {
       for (const ts of townshipIndexRef.current) {
         const townId = townSlug(ts.name)
-        const { actor } = getTownControlAt(townId, date, ctrlEvts)
+        const { actor, contested } = getTownControlAt(townId, date, ctrlEvts)
         const a = ACTORS[actor] ?? ACTORS.UNKNOWN
         const visible = filter.size === 0 || filter.has(actor)
+        let fillColor: string
+        if (!visible)      fillColor = '#1e293b'
+        else if (contested) fillColor = '#dc2626'   // contested = bright red
+        else                fillColor = a.color      // olive for SAC, actor color otherwise
         map.setFeatureState(
           { source: 'townships-source', id: ts.pcode },
-          { color: visible ? a.color : '#1e293b' },
+          { color: fillColor },
         )
       }
 
@@ -434,7 +469,7 @@ export default function OperationsMap({
         type:   'circle',
         source: 'battle-source',
         paint:  {
-          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 4, 22, 8, 38, 12, 55],
+          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 4, 11, 8, 19, 12, 28],
           'circle-color':   ['get', 'color'],
           'circle-opacity': 0.0,
           'circle-blur':    0.7,
@@ -447,7 +482,7 @@ export default function OperationsMap({
         type:   'circle',
         source: 'battle-source',
         paint:  {
-          'circle-radius':         ['interpolate', ['linear'], ['zoom'], 4, 10, 8, 18, 12, 26],
+          'circle-radius':         ['interpolate', ['linear'], ['zoom'], 4, 5, 8, 9, 12, 13],
           'circle-color':          ['get', 'color'],
           'circle-opacity':        0.0,
           'circle-stroke-width':   2,
@@ -526,8 +561,9 @@ export default function OperationsMap({
         type:   'circle',
         source: 'incidents-source',
         minzoom: 6,
+        filter: ['>', ['get', 'recency'], 0.75],  // last ~90 days only
         paint:  {
-          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 6, 8, 12, 20],
+          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 6, 4, 12, 10],
           'circle-color':   '#ef4444',
           'circle-opacity': ['*', ['get', 'recency'], 0.12],
           'circle-blur':    1,
@@ -540,13 +576,14 @@ export default function OperationsMap({
         type:   'circle',
         source: 'incidents-source',
         minzoom: 6,
+        filter: ['>', ['get', 'recency'], 0.75],  // last ~90 days only
         paint:  {
-          'circle-radius':         ['interpolate', ['linear'], ['zoom'], 6, 2.5, 12, 5],
+          'circle-radius':         ['interpolate', ['linear'], ['zoom'], 6, 1.5, 12, 3],
           'circle-color':          '#ef4444',
-          'circle-opacity':        ['*', ['get', 'recency'], 0.7],
+          'circle-opacity':        ['*', ['get', 'recency'], 0.8],
           'circle-stroke-width':   0.5,
           'circle-stroke-color':   '#fca5a5',
-          'circle-stroke-opacity': ['*', ['get', 'recency'], 0.4],
+          'circle-stroke-opacity': ['*', ['get', 'recency'], 0.5],
         },
       })
 
@@ -557,7 +594,7 @@ export default function OperationsMap({
         source: 'towns-source',
         filter: ['==', ['get', 'contested'], true],
         paint:  {
-          'circle-radius':  18,
+          'circle-radius':  9,
           'circle-color':   ['get', 'color'],
           'circle-opacity': 0.2,
           'circle-blur':    1,
@@ -570,7 +607,7 @@ export default function OperationsMap({
         source: 'towns-source',
         type:   'circle',
         paint:  {
-          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 4, 4, 8, 7, 12, 11],
+          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 4, 2, 8, 3.5, 12, 5.5],
           'circle-color':   ['get', 'color'],
           'circle-opacity': ['case', ['get', 'visible'], 0.9, 0.2],
           'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 4, 1, 8, 1.5],
@@ -588,7 +625,7 @@ export default function OperationsMap({
           'text-field':            ['get', 'name'],
           'text-font':             ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
           'text-size':             ['interpolate', ['linear'], ['zoom'], 6, 9, 10, 12],
-          'text-offset':           [0, 1.4],
+          'text-offset':           [0, 1.0],
           'text-anchor':           'top',
           'text-allow-overlap':    false,
           'text-ignore-placement': false,
@@ -616,7 +653,7 @@ export default function OperationsMap({
       function animate(time: number) {
         // Contested town pulse
         const pulse = 0.15 + 0.12 * Math.sin(time / 700)
-        const pRad  = 18  + 5   * Math.sin(time / 700)
+        const pRad  = 9   + 2.5 * Math.sin(time / 700)
 
         // Battle township twinkle (faster, sharper rhythm)
         const t         = time / 900
@@ -688,7 +725,11 @@ export default function OperationsMap({
 
       new mapboxgl.Popup({ offset: 8, maxWidth: '300px', closeButton: true })
         .setLngLat(e.lngLat)
-        .setHTML(townshipPopupHTML(ts, actor, contested, count30, count90))
+        .setHTML(townshipPopupHTML(ts, actor, contested, count30, count90,
+          controlEventsRef.current
+            .filter(ev => townSlug(ts.name) === ev.townId)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        ))
         .addTo(map)
     })
 
@@ -710,7 +751,11 @@ export default function OperationsMap({
 
       new mapboxgl.Popup({ offset: 8, maxWidth: '280px', closeButton: true })
         .setLngLat(e.lngLat)
-        .setHTML(townPopupHTML(city, props.actor, props.contested, recentIncidents))
+        .setHTML(townPopupHTML(city, props.actor, props.contested, recentIncidents,
+          controlEventsRef.current
+            .filter(ev => ev.townId === city.id)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        ))
         .addTo(map)
     })
 
