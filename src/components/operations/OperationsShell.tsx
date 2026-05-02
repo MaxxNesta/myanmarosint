@@ -21,7 +21,7 @@ type Speed = 0.5 | 1 | 2 | 5
 // Default date range: 2021-02-01 (coup) → today
 const DEFAULT_MIN = new Date('2021-02-01')
 const DEFAULT_MAX = new Date()
-const DEFAULT_START = new Date('2023-10-27') // Operation 1027
+const DEFAULT_START = new Date() // start at today
 
 const ALL_ACTOR_IDS = Object.keys(ACTORS) as ActorId[]
 

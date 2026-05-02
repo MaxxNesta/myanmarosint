@@ -20,6 +20,8 @@ interface TownshipEntry {
   name:  string
   state: string
   dist:  string
+  lat:   number
+  lng:   number
 }
 
 const IMPORTANCE_WIDTH: Record<string, number> = {
@@ -144,6 +146,7 @@ export default function OperationsMap({
   const readyRef            = useRef(false)
   const townsLoadedRef      = useRef(false)
   const townshipsLoadedRef  = useRef(false)
+  const lastBattleComputeRef = useRef<number>(0)
 
   // Keep latest props accessible in stable callbacks
   const currentDateRef    = useRef(currentDate)
@@ -179,6 +182,33 @@ export default function OperationsMap({
           { source: 'townships-source', id: ts.pcode },
           { color: visible ? a.color : '#1e293b' },
         )
+      }
+
+      // ── Battle twinkling (throttled — max once per 800ms) ────────────
+      const now = Date.now()
+      if (now - lastBattleComputeRef.current > 800) {
+        lastBattleComputeRef.current = now
+        const battleFeatures: GeoJSON.Feature[] = []
+        for (const ts of townshipIndexRef.current) {
+          const hasBattle = evts.some(ev => {
+            if (ev.lat == null || ev.lng == null) return false
+            const ageDays = (date.getTime() - new Date(ev.date as string).getTime()) / 86400000
+            if (ageDays > 30 || ageDays < 0) return false
+            return Math.hypot(ev.lng - ts.lng, ev.lat - ts.lat) < 0.6
+          })
+          if (hasBattle) {
+            const townId = townSlug(ts.name)
+            const { actor } = getTownControlAt(townId, date, ctrlEvts)
+            const a = ACTORS[actor] ?? ACTORS.UNKNOWN
+            battleFeatures.push({
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [ts.lng, ts.lat] },
+              properties: { color: a.color, name: ts.name },
+            })
+          }
+        }
+        const bSrc = map.getSource('battle-source') as mapboxgl.GeoJSONSource | undefined
+        bSrc?.setData({ type: 'FeatureCollection', features: battleFeatures })
       }
     }
 
@@ -318,14 +348,27 @@ export default function OperationsMap({
     // ── Load township index for feature-state ──────────────────────────
     fetch('/data/myanmar-townships.geojson')
       .then(r => r.json())
-      .then((data: { features: Array<{ properties: Record<string, unknown> }> }) => {
+      .then((data: { features: Array<{ properties: Record<string, unknown>; geometry: GeoJSON.Geometry }> }) => {
         townshipIndexRef.current = data.features
           .map(f => {
             const p = f.properties
             const pcode = String(p.TS_PCODE ?? '')
             const name  = String(p.TS ?? '')
             if (!pcode || !name) return null
-            return { pcode, name, state: String(p.ST ?? ''), dist: String(p.DT ?? '') }
+            // Compute rough centroid from polygon rings
+            let sumLng = 0, sumLat = 0, count = 0
+            const geom = f.geometry
+            const rings: number[][][] = geom.type === 'Polygon'
+              ? [geom.coordinates[0] as number[][]]
+              : geom.type === 'MultiPolygon'
+                ? (geom.coordinates as number[][][][]).map(p => p[0])
+                : []
+            for (const ring of rings) {
+              for (const c of ring) { sumLng += c[0]; sumLat += c[1]; count++ }
+            }
+            const lng = count > 0 ? sumLng / count : 0
+            const lat = count > 0 ? sumLat / count : 0
+            return { pcode, name, state: String(p.ST ?? ''), dist: String(p.DT ?? ''), lng, lat }
           })
           .filter(Boolean) as TownshipEntry[]
 
@@ -352,9 +395,10 @@ export default function OperationsMap({
         data:      EMPTY_FC,
         promoteId: 'TS_PCODE',
       })
-      map.addSource('incidents-source',  { type: 'geojson', data: EMPTY_FC })
-      map.addSource('campaigns-source',  { type: 'geojson', data: EMPTY_FC, lineMetrics: true })
-      map.addSource('towns-source',      { type: 'geojson', data: EMPTY_FC })
+      map.addSource('battle-source',    { type: 'geojson', data: EMPTY_FC })
+      map.addSource('incidents-source', { type: 'geojson', data: EMPTY_FC })
+      map.addSource('campaigns-source', { type: 'geojson', data: EMPTY_FC, lineMetrics: true })
+      map.addSource('towns-source',     { type: 'geojson', data: EMPTY_FC })
 
       // ── 0a. Township fill (actor-colored, semi-transparent) ──────────
       map.addLayer({
@@ -381,6 +425,34 @@ export default function OperationsMap({
           'line-color':   ['coalesce', ['feature-state', 'color'], '#334155'],
           'line-width':   ['interpolate', ['linear'], ['zoom'], 4, 0.3, 8, 0.8, 12, 1.5],
           'line-opacity': 0.40,
+        },
+      })
+
+      // ── 0c. Battle township outer glow ──────────────────────────────
+      map.addLayer({
+        id:     'battle-glow',
+        type:   'circle',
+        source: 'battle-source',
+        paint:  {
+          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 4, 22, 8, 38, 12, 55],
+          'circle-color':   ['get', 'color'],
+          'circle-opacity': 0.0,
+          'circle-blur':    0.7,
+        },
+      })
+
+      // ── 0d. Battle township inner pulse ─────────────────────────────
+      map.addLayer({
+        id:     'battle-pulse',
+        type:   'circle',
+        source: 'battle-source',
+        paint:  {
+          'circle-radius':         ['interpolate', ['linear'], ['zoom'], 4, 10, 8, 18, 12, 26],
+          'circle-color':          ['get', 'color'],
+          'circle-opacity':        0.0,
+          'circle-stroke-width':   2,
+          'circle-stroke-color':   ['get', 'color'],
+          'circle-stroke-opacity': 0.0,
         },
       })
 
@@ -542,11 +614,22 @@ export default function OperationsMap({
 
       // ── Animation loop ───────────────────────────────────────────────
       function animate(time: number) {
+        // Contested town pulse
         const pulse = 0.15 + 0.12 * Math.sin(time / 700)
         const pRad  = 18  + 5   * Math.sin(time / 700)
+
+        // Battle township twinkle (faster, sharper rhythm)
+        const t         = time / 900
+        const glowOp    = 0.08 + 0.10 * (0.5 + 0.5 * Math.sin(t))
+        const innerOp   = 0.25 + 0.30 * (0.5 + 0.5 * Math.sin(t + 1))
+        const strokeOp  = 0.55 + 0.35 * (0.5 + 0.5 * Math.sin(t + 0.5))
+
         try {
-          map.setPaintProperty('towns-pulse', 'circle-opacity', pulse)
-          map.setPaintProperty('towns-pulse', 'circle-radius',  pRad)
+          map.setPaintProperty('towns-pulse',  'circle-opacity', pulse)
+          map.setPaintProperty('towns-pulse',  'circle-radius',  pRad)
+          map.setPaintProperty('battle-glow',  'circle-opacity', glowOp)
+          map.setPaintProperty('battle-pulse', 'circle-opacity', innerOp)
+          map.setPaintProperty('battle-pulse', 'circle-stroke-opacity', strokeOp)
         } catch { /* map removed */ }
         animFrameRef.current = requestAnimationFrame(animate)
       }
@@ -584,7 +667,8 @@ export default function OperationsMap({
       if (!feature) return
 
       const props = feature.properties as { TS: string; ST: string; DT: string; TS_PCODE: string }
-      const ts: TownshipEntry = { pcode: props.TS_PCODE, name: props.TS, state: props.ST, dist: props.DT }
+      const tsEntry = townshipIndexRef.current.find(t => t.pcode === props.TS_PCODE)
+      const ts: TownshipEntry = tsEntry ?? { pcode: props.TS_PCODE, name: props.TS, state: props.ST, dist: props.DT, lat: 0, lng: 0 }
 
       const date = currentDateRef.current
       const { actor, contested } = getTownControlAt(townSlug(ts.name), date, controlEventsRef.current)

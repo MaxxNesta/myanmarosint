@@ -65,6 +65,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   // ── Kachin State ──────────────────────────────────────────────────────────
   { townId: 'sumprabum',    date: '2024-05-05', actor: 'KIA' },
   { townId: 'chiphwe',      date: '2024-09-29', actor: 'KIA' },
+  { townId: 'chipwi',       date: '2024-09-29', actor: 'KIA' }, // MIMU: Chipwi
   { townId: 'sadon',        date: '2024-06-11', actor: 'KIA' },
   { townId: 'myohla',       date: '2024-02-22', actor: 'KIA' },
   { townId: 'kan-paik-ti',  date: '2024-11-20', actor: 'KIA' },
@@ -85,8 +86,11 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'monekoe',      date: '2023-11-07', actor: 'MNDAA' },
   { townId: 'kunlong',      date: '2023-11-12', actor: 'MNDAA' },
   { townId: 'manhsan',      date: '2023-12-15', actor: 'TNLA'  },
+  { townId: 'namhsan',      date: '2023-12-15', actor: 'TNLA'  }, // MIMU: Namhsan
   { townId: 'namkham',      date: '2023-12-18', actor: 'TNLA'  },
+  { townId: 'namhkan',      date: '2023-12-18', actor: 'TNLA'  }, // MIMU: Namhkan
   { townId: 'mantong',      date: '2023-12-22', actor: 'TNLA'  },
+  { townId: 'manton',       date: '2023-12-22', actor: 'TNLA'  }, // MIMU: Manton
   { townId: 'hopang',       date: '2024-01-10', actor: 'UWSA'  }, // 3BA seized 5 Jan, handed to UWSA 10 Jan
   { townId: 'panglong',     date: '2024-01-10', actor: 'UWSA'  }, // same handover
   { townId: 'kongeyan',     date: '2023-11-28', actor: 'MNDAA' },
@@ -102,6 +106,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   // ── Mandalay Region ───────────────────────────────────────────────────────
   { townId: 'tagauging',    date: '2024-08-12', actor: 'PDF_NUG' },
   { townId: 'mogok',        date: '2024-07-24', actor: 'TNLA'    },
+  { townId: 'mogoke',       date: '2024-07-24', actor: 'TNLA'    }, // MIMU: Mogoke
   { townId: 'thabeikkyin',  date: '2024-08-25', actor: 'PDF_NUG' },
   { townId: 'singu',        date: '2024-07-17', actor: 'PDF_NUG' },
 
@@ -113,9 +118,10 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'maungdaw',     date: '2024-12-08', actor: 'AA' },
   { townId: 'gwa',          date: '2024-12-29', actor: 'AA' },
   { townId: 'taungup',      date: '2024-11-24', actor: 'AA' },
+  { townId: 'toungup',      date: '2024-11-24', actor: 'AA' }, // MIMU slug alias
   { townId: 'buthidaung',   date: '2024-05-18', actor: 'AA' },
   { townId: 'kha-maung-seik', date: '2024-12-08', actor: 'AA' },
-  { townId: 'kyauktawn',    date: '2024-02-07', actor: 'AA' },
+  { townId: 'kyauktaw',     date: '2024-02-07', actor: 'AA' }, // MIMU: Kyauktaw
   { townId: 'minbya',       date: '2024-02-06', actor: 'AA' },
   { townId: 'myin-hlut',    date: '2024-12-08', actor: 'AA' },
   { townId: 'rathedaung',   date: '2024-03-17', actor: 'AA' },
@@ -126,7 +132,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'tan-lwe-ywar-ma', date: '2024-11-24', actor: 'AA' },
   { townId: 'taungpyo',     date: '2024-02-06', actor: 'AA' },
   { townId: 'mrauk-u',      date: '2024-02-08', actor: 'AA' },
-  { townId: 'ponnaygun',    date: '2024-03-04', actor: 'AA' },
+  { townId: 'ponnagyun',    date: '2024-03-04', actor: 'AA' }, // MIMU: Ponnagyun
   { townId: 'maei',         date: '2024-02-16', actor: 'AA' },
   { townId: 'kyeintali',    date: '2024-08-14', actor: 'AA' },
 
@@ -146,6 +152,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'kyaukme',      date: '2025-09-30', actor: 'MILITARY' },
   { townId: 'hsipaw',       date: '2025-10-16', actor: 'MILITARY' },
   { townId: 'mogok',        date: '2025-11-30', actor: 'MILITARY' }, // agreed TNLA withdrawal
+  { townId: 'mogoke',       date: '2025-11-30', actor: 'MILITARY' }, // MIMU alias
   { townId: 'mongmit',      date: '2025-11-30', actor: 'MILITARY' }, // agreed TNLA withdrawal
   { townId: 'madaya',       date: '2025-12-31', actor: 'MILITARY' },
   { townId: 'singu',        date: '2025-12-31', actor: 'MILITARY' },
