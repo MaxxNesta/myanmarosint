@@ -17,7 +17,10 @@
       "Bash(node -e \"const t=require\\('./tsconfig.json'\\);console.log\\(t.compilerOptions.target,t.compilerOptions.lib\\)\")",
       "Bash(node -e ' *)",
       "Bash(npm i *)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(curl -s --max-time 15 \"https://geonode.themimu.info/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typename=geonode:mmr_polbnda_adm3_250k_mimu_1&outputFormat=application/json&maxFeatures=1\")",
+      "Bash(node -e \"let d=''; process.stdin.on\\('data',c=>d+=c\\); process.stdin.on\\('end',\\(\\)=>{ const j=JSON.parse\\(d\\); console.log\\(JSON.stringify\\(j.features[0].properties,null,2\\)\\); }\\)\")",
+      "Bash(curl -s --max-time 120 \"https://geonode.themimu.info/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typename=geonode:mmr_polbnda_adm3_250k_mimu_1&outputFormat=application/json\" -o \"c:/Users/MSI/Downloads/myanmarosint/public/data/myanmar-townships.geojson\")"
     ],
     "additionalDirectories": [
       "\\tmp"

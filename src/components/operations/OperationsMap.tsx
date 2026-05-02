@@ -15,6 +15,13 @@ interface Props {
   actorFilter: Set<ActorId>
 }
 
+interface TownshipEntry {
+  pcode: string
+  name:  string
+  state: string
+  dist:  string
+}
+
 const IMPORTANCE_WIDTH: Record<string, number> = {
   CRITICAL: 5, HIGH: 3.5, MEDIUM: 2.5, LOW: 1.5,
 }
@@ -40,7 +47,6 @@ function getTownControlAt(
   return { actor: relevant[0].actor, contested: relevant[0].contested ?? false }
 }
 
-// Popup HTML for a clicked town
 function townPopupHTML(
   city: MyanmarCity,
   actor: ActorId,
@@ -71,7 +77,37 @@ function townPopupHTML(
     </div>`
 }
 
-// Popup HTML for a clicked campaign
+function townshipPopupHTML(
+  ts: TownshipEntry,
+  actor: ActorId,
+  contested: boolean,
+  incidentCount30d: number,
+  incidentCount90d: number,
+): string {
+  const a = ACTORS[actor] ?? ACTORS.UNKNOWN
+  const statusLabel = contested ? '⚡ CONTESTED' : `● ${a.shortName} CONTROL`
+  return `
+    <div style="padding:12px 14px;min-width:210px;font-family:'Courier New',monospace">
+      <div style="font-size:0.7rem;color:#475569;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Township</div>
+      <div style="font-size:0.9rem;font-weight:700;color:#e2e8f0;margin-bottom:2px">${ts.name}</div>
+      <div style="font-size:0.7rem;color:#64748b;margin-bottom:8px">${ts.dist} · ${ts.state}</div>
+      <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.68rem;font-weight:700;
+                  background:${a.color}20;color:${a.color};border:1px solid ${a.color}44;margin-bottom:8px">
+        ${statusLabel}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px 8px;text-align:center">
+          <div style="font-size:1.1rem;font-weight:700;color:${incidentCount30d > 5 ? '#ef4444' : '#f59e0b'}">${incidentCount30d}</div>
+          <div style="font-size:0.6rem;color:#475569;text-transform:uppercase;letter-spacing:0.05em">30-day incidents</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px 8px;text-align:center">
+          <div style="font-size:1.1rem;font-weight:700;color:#64748b">${incidentCount90d}</div>
+          <div style="font-size:0.6rem;color:#475569;text-transform:uppercase;letter-spacing:0.05em">90-day incidents</div>
+        </div>
+      </div>
+    </div>`
+}
+
 function campaignPopupHTML(campaign: Campaign, fromCity: MyanmarCity, toCity: MyanmarCity): string {
   const a = ACTORS[campaign.actor] ?? ACTORS.UNKNOWN
   const statusIcon = campaign.status === 'completed' ? '✓' : campaign.status === 'ongoing' ? '▶' : '✕'
@@ -99,26 +135,27 @@ const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', feature
 export default function OperationsMap({
   currentDate, campaigns, controlEvents, incidents, actorFilter,
 }: Props) {
-  const containerRef      = useRef<HTMLDivElement>(null)
-  const mapRef            = useRef<mapboxgl.Map | null>(null)
-  const townsRef          = useRef<MyanmarCity[]>([])
-  const animFrameRef      = useRef<number>(0)
-  const readyRef          = useRef(false)
-  const townsLoadedRef    = useRef(false)
-  const dashStepRef       = useRef(0)
-  const pulseTimeRef      = useRef(0)
+  const containerRef        = useRef<HTMLDivElement>(null)
+  const mapRef              = useRef<mapboxgl.Map | null>(null)
+  const townsRef            = useRef<MyanmarCity[]>([])
+  const townshipIndexRef    = useRef<TownshipEntry[]>([])
+  const townshipsGeoJSONRef = useRef<GeoJSON.FeatureCollection | null>(null)
+  const animFrameRef        = useRef<number>(0)
+  const readyRef            = useRef(false)
+  const townsLoadedRef      = useRef(false)
+  const townshipsLoadedRef  = useRef(false)
 
   // Keep latest props accessible in stable callbacks
-  const currentDateRef  = useRef(currentDate)
-  const campaignsRef    = useRef(campaigns)
-  const controlEventsRef = useRef(controlEvents)
-  const incidentsRef    = useRef(incidents)
-  const actorFilterRef  = useRef(actorFilter)
-  useEffect(() => { currentDateRef.current  = currentDate  }, [currentDate])
-  useEffect(() => { campaignsRef.current    = campaigns    }, [campaigns])
+  const currentDateRef    = useRef(currentDate)
+  const campaignsRef      = useRef(campaigns)
+  const controlEventsRef  = useRef(controlEvents)
+  const incidentsRef      = useRef(incidents)
+  const actorFilterRef    = useRef(actorFilter)
+  useEffect(() => { currentDateRef.current   = currentDate   }, [currentDate])
+  useEffect(() => { campaignsRef.current     = campaigns     }, [campaigns])
   useEffect(() => { controlEventsRef.current = controlEvents }, [controlEvents])
-  useEffect(() => { incidentsRef.current    = incidents    }, [incidents])
-  useEffect(() => { actorFilterRef.current  = actorFilter  }, [actorFilter])
+  useEffect(() => { incidentsRef.current     = incidents     }, [incidents])
+  useEffect(() => { actorFilterRef.current   = actorFilter   }, [actorFilter])
 
   const updateMap = useCallback(() => {
     const map = mapRef.current
@@ -131,7 +168,21 @@ export default function OperationsMap({
     const evts     = incidentsRef.current
     const filter   = actorFilterRef.current
 
-    // ── Town features ──────────────────────────────────────────────────
+    // ── Township fill colors via feature-state ─────────────────────────
+    if (townshipsLoadedRef.current) {
+      for (const ts of townshipIndexRef.current) {
+        const townId = townSlug(ts.name)
+        const { actor } = getTownControlAt(townId, date, ctrlEvts)
+        const a = ACTORS[actor] ?? ACTORS.UNKNOWN
+        const visible = filter.size === 0 || filter.has(actor)
+        map.setFeatureState(
+          { source: 'townships-source', id: ts.pcode },
+          { color: visible ? a.color : '#1e293b' },
+        )
+      }
+    }
+
+    // ── Town point features ────────────────────────────────────────────
     const townFeatures: GeoJSON.Feature[] = towns.map(town => {
       const { actor, contested } = getTownControlAt(town.id, date, ctrlEvts)
       const a = ACTORS[actor] ?? ACTORS.UNKNOWN
@@ -197,7 +248,7 @@ export default function OperationsMap({
       })
       .map(e => {
         const ageDays = (date.getTime() - new Date(e.date as string).getTime()) / 86400000
-        const recency = Math.max(0, 1 - ageDays / 365) // fade over 1 year
+        const recency = Math.max(0, 1 - ageDays / 365)
         const wKey = e.eventType as string
         const weight = (EVENT_TYPE_WEIGHT[wKey] ?? 1) + Math.min(5, (e.fatalities ?? 0) / 5)
         return {
@@ -223,12 +274,10 @@ export default function OperationsMap({
     iSrc?.setData({ type: 'FeatureCollection', features: incidentFeatures })
   }, [])
 
-  // Re-render whenever any input changes
   useEffect(() => {
     updateMap()
   }, [currentDate, campaigns, controlEvents, incidents, actorFilter, updateMap])
 
-  // Map init — runs once
   useEffect(() => {
     if (!containerRef.current) return
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
@@ -266,17 +315,74 @@ export default function OperationsMap({
       })
       .catch(console.error)
 
-    // ── On map load: add sources + layers ─────────────────────────────
+    // ── Load township index for feature-state ──────────────────────────
+    fetch('/data/myanmar-townships.geojson')
+      .then(r => r.json())
+      .then((data: { features: Array<{ properties: Record<string, unknown> }> }) => {
+        townshipIndexRef.current = data.features
+          .map(f => {
+            const p = f.properties
+            const pcode = String(p.TS_PCODE ?? '')
+            const name  = String(p.TS ?? '')
+            if (!pcode || !name) return null
+            return { pcode, name, state: String(p.ST ?? ''), dist: String(p.DT ?? '') }
+          })
+          .filter(Boolean) as TownshipEntry[]
+
+        townshipsGeoJSONRef.current = data as GeoJSON.FeatureCollection
+
+        // If map is already loaded, set source immediately; otherwise map.on('load') will do it
+        const src = map.getSource('townships-source') as mapboxgl.GeoJSONSource | undefined
+        if (src) {
+          src.setData(data as GeoJSON.FeatureCollection)
+          townshipsLoadedRef.current = true
+          if (readyRef.current) updateMap()
+        }
+      })
+      .catch(console.error)
+
     map.on('load', () => {
-      // Custom dark tint for tactical feel
       if (map.getLayer('land')) {
         map.setPaintProperty('land', 'background-color', '#0a0e14')
       }
 
       // Sources
+      map.addSource('townships-source', {
+        type:      'geojson',
+        data:      EMPTY_FC,
+        promoteId: 'TS_PCODE',
+      })
       map.addSource('incidents-source',  { type: 'geojson', data: EMPTY_FC })
       map.addSource('campaigns-source',  { type: 'geojson', data: EMPTY_FC, lineMetrics: true })
       map.addSource('towns-source',      { type: 'geojson', data: EMPTY_FC })
+
+      // ── 0a. Township fill (actor-colored, semi-transparent) ──────────
+      map.addLayer({
+        id:     'townships-fill',
+        type:   'fill',
+        source: 'townships-source',
+        paint:  {
+          'fill-color':   ['coalesce', ['feature-state', 'color'], '#1e293b'],
+          'fill-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            0.22,
+            0.07,
+          ],
+        },
+      })
+
+      // ── 0b. Township borders ─────────────────────────────────────────
+      map.addLayer({
+        id:     'townships-border',
+        type:   'line',
+        source: 'townships-source',
+        paint:  {
+          'line-color':   ['coalesce', ['feature-state', 'color'], '#334155'],
+          'line-width':   ['interpolate', ['linear'], ['zoom'], 4, 0.3, 8, 0.8, 12, 1.5],
+          'line-opacity': 0.40,
+        },
+      })
 
       // ── 1. Incident heatmap ──────────────────────────────────────────
       map.addLayer({
@@ -291,16 +397,16 @@ export default function OperationsMap({
           'heatmap-opacity':    ['interpolate', ['linear'], ['zoom'], 7, 0.5, 10, 0],
           'heatmap-color': [
             'interpolate', ['linear'], ['heatmap-density'],
-            0,   'rgba(0,0,0,0)',
+            0,    'rgba(0,0,0,0)',
             0.15, 'rgba(220,38,38,0.08)',
             0.4,  'rgba(220,38,38,0.25)',
             0.7,  'rgba(239,68,68,0.50)',
-            1,   'rgba(239,68,68,0.75)',
+            1,    'rgba(239,68,68,0.75)',
           ],
         },
       })
 
-      // ── 2. Campaign glow (blurred thick line behind main line) ───────
+      // ── 2. Campaign glow ─────────────────────────────────────────────
       map.addLayer({
         id:     'campaigns-glow',
         type:   'line',
@@ -327,7 +433,7 @@ export default function OperationsMap({
         },
       })
 
-      // ── 4. Ongoing campaign animated flow overlay ────────────────────
+      // ── 4. Ongoing campaign animated flow ────────────────────────────
       map.addLayer({
         id:     'campaigns-animated',
         type:   'line',
@@ -335,10 +441,10 @@ export default function OperationsMap({
         filter: ['==', ['get', 'ongoing'], true],
         layout: { 'line-cap': 'butt', 'line-join': 'round' },
         paint:  {
-          'line-color':      ['get', 'color'],
-          'line-width':      ['get', 'width'],
-          'line-opacity':    0.9,
-          'line-dasharray':  [0, 4, 3],
+          'line-color':     ['get', 'color'],
+          'line-width':     ['get', 'width'],
+          'line-opacity':   0.9,
+          'line-dasharray': [0, 4, 3],
         },
       })
 
@@ -356,23 +462,23 @@ export default function OperationsMap({
         },
       })
 
-      // ── 7. Incident markers ──────────────────────────────────────────
+      // ── 6. Incident markers ──────────────────────────────────────────
       map.addLayer({
         id:     'incidents-circle',
         type:   'circle',
         source: 'incidents-source',
         minzoom: 6,
         paint:  {
-          'circle-radius':       ['interpolate', ['linear'], ['zoom'], 6, 2.5, 12, 5],
-          'circle-color':        '#ef4444',
-          'circle-opacity':      ['*', ['get', 'recency'], 0.7],
-          'circle-stroke-width': 0.5,
-          'circle-stroke-color': '#fca5a5',
+          'circle-radius':         ['interpolate', ['linear'], ['zoom'], 6, 2.5, 12, 5],
+          'circle-color':          '#ef4444',
+          'circle-opacity':        ['*', ['get', 'recency'], 0.7],
+          'circle-stroke-width':   0.5,
+          'circle-stroke-color':   '#fca5a5',
           'circle-stroke-opacity': ['*', ['get', 'recency'], 0.4],
         },
       })
 
-      // ── 8. Contested town pulse glow ─────────────────────────────────
+      // ── 7. Contested town pulse glow ─────────────────────────────────
       map.addLayer({
         id:     'towns-pulse',
         type:   'circle',
@@ -386,78 +492,134 @@ export default function OperationsMap({
         },
       })
 
-      // ── 9. Town base circle ──────────────────────────────────────────
+      // ── 8. Town base circle ──────────────────────────────────────────
       map.addLayer({
         id:     'towns-circle',
         source: 'towns-source',
         type:   'circle',
         paint:  {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 4, 8, 7, 12, 11],
-          'circle-color':  ['get', 'color'],
-          'circle-opacity': [
-            'case',
-            ['get', 'visible'],
-            0.9,
-            0.2,
-          ],
+          'circle-radius':  ['interpolate', ['linear'], ['zoom'], 4, 4, 8, 7, 12, 11],
+          'circle-color':   ['get', 'color'],
+          'circle-opacity': ['case', ['get', 'visible'], 0.9, 0.2],
           'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 4, 1, 8, 1.5],
           'circle-stroke-color': 'rgba(0,0,0,0.6)',
         },
       })
 
-      // ── 10. Town label ───────────────────────────────────────────────
+      // ── 9. Town label ────────────────────────────────────────────────
       map.addLayer({
         id:     'towns-label',
         type:   'symbol',
         source: 'towns-source',
         minzoom: 6,
         layout: {
-          'text-field':             ['get', 'name'],
-          'text-font':              ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
-          'text-size':              ['interpolate', ['linear'], ['zoom'], 6, 9, 10, 12],
-          'text-offset':            [0, 1.4],
-          'text-anchor':            'top',
-          'text-allow-overlap':     false,
-          'text-ignore-placement':  false,
+          'text-field':            ['get', 'name'],
+          'text-font':             ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
+          'text-size':             ['interpolate', ['linear'], ['zoom'], 6, 9, 10, 12],
+          'text-offset':           [0, 1.4],
+          'text-anchor':           'top',
+          'text-allow-overlap':    false,
+          'text-ignore-placement': false,
         },
         paint: {
-          'text-color':       ['get', 'color'],
-          'text-halo-color':  'rgba(0,0,0,0.9)',
-          'text-halo-width':  1.5,
-          'text-opacity':     ['case', ['get', 'visible'], 0.9, 0.25],
+          'text-color':      ['get', 'color'],
+          'text-halo-color': 'rgba(0,0,0,0.9)',
+          'text-halo-width': 1.5,
+          'text-opacity':    ['case', ['get', 'visible'], 0.9, 0.25],
         },
       })
 
       readyRef.current = true
       if (townsLoadedRef.current) updateMap()
 
-      // ── Animation loop (pulse for contested towns) ──────────────────
+      // If township GeoJSON already fetched before map loaded, set it now
+      if (townshipsGeoJSONRef.current) {
+        const tsSrc = map.getSource('townships-source') as mapboxgl.GeoJSONSource | undefined
+        tsSrc?.setData(townshipsGeoJSONRef.current)
+        townshipsLoadedRef.current = true
+        updateMap()
+      }
+
+      // ── Animation loop ───────────────────────────────────────────────
       function animate(time: number) {
         const pulse = 0.15 + 0.12 * Math.sin(time / 700)
         const pRad  = 18  + 5   * Math.sin(time / 700)
         try {
           map.setPaintProperty('towns-pulse', 'circle-opacity', pulse)
           map.setPaintProperty('towns-pulse', 'circle-radius',  pRad)
-        } catch { /* map may be gone */ }
+        } catch { /* map removed */ }
         animFrameRef.current = requestAnimationFrame(animate)
       }
       animFrameRef.current = requestAnimationFrame(animate)
+    })
+
+    // ── Township hover ────────────────────────────────────────────────
+    let hoveredPcode: string | null = null
+
+    map.on('mousemove', 'townships-fill', e => {
+      if (!e.features?.length) return
+      if (hoveredPcode) {
+        map.setFeatureState({ source: 'townships-source', id: hoveredPcode }, { hover: false })
+      }
+      hoveredPcode = e.features[0].id as string
+      map.setFeatureState({ source: 'townships-source', id: hoveredPcode }, { hover: true })
+      map.getCanvas().style.cursor = 'pointer'
+    })
+
+    map.on('mouseleave', 'townships-fill', () => {
+      if (hoveredPcode) {
+        map.setFeatureState({ source: 'townships-source', id: hoveredPcode }, { hover: false })
+        hoveredPcode = null
+      }
+      map.getCanvas().style.cursor = ''
+    })
+
+    // ── Click: township ───────────────────────────────────────────────
+    map.on('click', 'townships-fill', e => {
+      // Don't fire if a town circle is also under the click
+      const townHits = map.queryRenderedFeatures(e.point, { layers: ['towns-circle'] })
+      if (townHits.length > 0) return
+
+      const feature = e.features?.[0]
+      if (!feature) return
+
+      const props = feature.properties as { TS: string; ST: string; DT: string; TS_PCODE: string }
+      const ts: TownshipEntry = { pcode: props.TS_PCODE, name: props.TS, state: props.ST, dist: props.DT }
+
+      const date = currentDateRef.current
+      const { actor, contested } = getTownControlAt(townSlug(ts.name), date, controlEventsRef.current)
+
+      // Count incidents roughly within the state/region
+      const evts = incidentsRef.current
+      const count30 = evts.filter(ev => {
+        if (ev.lat == null || ev.lng == null) return false
+        const ageDays = (date.getTime() - new Date(ev.date as string).getTime()) / 86400000
+        return ageDays <= 30 && ev.region === ts.state
+      }).length
+      const count90 = evts.filter(ev => {
+        if (ev.lat == null || ev.lng == null) return false
+        const ageDays = (date.getTime() - new Date(ev.date as string).getTime()) / 86400000
+        return ageDays <= 90 && ev.region === ts.state
+      }).length
+
+      new mapboxgl.Popup({ offset: 8, maxWidth: '300px', closeButton: true })
+        .setLngLat(e.lngLat)
+        .setHTML(townshipPopupHTML(ts, actor, contested, count30, count90))
+        .addTo(map)
     })
 
     // ── Click: towns ──────────────────────────────────────────────────
     map.on('click', 'towns-circle', e => {
       const feature = e.features?.[0]
       if (!feature) return
-      const props = feature.properties as {
-        id: string; name: string; actor: ActorId; contested: boolean
-      }
+      const props = feature.properties as { id: string; name: string; actor: ActorId; contested: boolean }
       const city = townsRef.current.find(t => t.id === props.id)
       if (!city) return
 
       const date = currentDateRef.current
       const recentIncidents = incidentsRef.current.filter(evt => {
         if (evt.lat == null || evt.lng == null) return false
-        const dist = Math.hypot((evt.lng ?? 0) - city.lng, (evt.lat ?? 0) - city.lat)
+        const dist    = Math.hypot((evt.lng ?? 0) - city.lng, (evt.lat ?? 0) - city.lat)
         const ageDays = (date.getTime() - new Date(evt.date as string).getTime()) / 86400000
         return dist < 0.5 && ageDays < 90
       })
@@ -486,7 +648,7 @@ export default function OperationsMap({
         .addTo(map)
     })
 
-    // Cursor changes
+    // Cursor for town + campaign layers
     map.on('mouseenter', 'towns-circle',   () => { map.getCanvas().style.cursor = 'pointer' })
     map.on('mouseleave', 'towns-circle',   () => { map.getCanvas().style.cursor = '' })
     map.on('mouseenter', 'campaigns-line', () => { map.getCanvas().style.cursor = 'pointer' })

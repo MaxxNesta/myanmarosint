@@ -20,7 +20,8 @@
     "telegram:import": "tsx --env-file=.env.local src/scripts/telegram-import.ts",
     "extract": "tsx --env-file=.env.local src/scripts/extract-events.ts",
     "db:migrate": "tsx --env-file=.env.local src/scripts/db-migrate.ts",
-    "backfill": "tsx --env-file=.env.local src/scripts/backfill-source-types.ts"
+    "backfill": "tsx --env-file=.env.local src/scripts/backfill-source-types.ts",
+    "delete:source": "tsx --env-file=.env.local src/scripts/delete-source.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

@@ -73,13 +73,6 @@ export const RSS_SOURCES: RssSource[] = [
 // For historical data back to Feb 2021, the Telegram MTProto API is required
 // (api_id + api_hash from my.telegram.org + phone authentication).
 export const TELEGRAM_SOURCES: TelegramSource[] = [
-  // ── Pro-military (junta narrative) ───────────────────────────────────────
-  { username: 'combatnews7723',    name: 'Combat News 7723',     bias: 'PRO_MILITARY',  reliability: 'LOW'    },
-  { username: 'snowqueen023',      name: 'Snow Queen 023',       bias: 'PRO_MILITARY',  reliability: 'LOW'    },
-  { username: 'BABANYUNT6',        name: 'Ba Ba Nyunt',          bias: 'PRO_MILITARY',  reliability: 'LOW'    },
-  { username: 'hminewai',          name: 'Hmi Ne Wai',           bias: 'PRO_MILITARY',  reliability: 'LOW'    },
-  { username: 'unionpoliticsnews', name: 'Union Politics News',  bias: 'PRO_MILITARY',  reliability: 'LOW'    },
-
   // ── Pro-democracy (resistance narrative) ─────────────────────────────────
   { username: 'khitthitnews',      name: 'Khit Thit News TG',   bias: 'PRO_DEMOCRACY', reliability: 'MEDIUM' },
   { username: 'theirrawaddy',      name: 'The Irrawaddy TG',    bias: 'PRO_DEMOCRACY', reliability: 'HIGH'   },
