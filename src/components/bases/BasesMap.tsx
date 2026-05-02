@@ -55,7 +55,7 @@ function buildMarkerEl(base: MilitaryBase): HTMLElement {
   const wrap = document.createElement('div')
   wrap.style.cssText =
     'display:flex;align-items:center;gap:4px;cursor:pointer;' +
-    'transition:transform 0.15s ease;'
+    'transition:transform 0.15s ease;touch-action:manipulation;'
 
   wrap.innerHTML = `
     <div style="position:relative;flex-shrink:0;width:16px;height:16px">
@@ -173,6 +173,7 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       minZoom:   4,
       maxZoom:   20,
       attributionControl: false,
+      clickTolerance: 8,
     })
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
@@ -214,6 +215,12 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
     map.on('draw.create', computeArea)
     map.on('draw.update', computeArea)
     map.on('draw.delete', () => { onAreaSelectedRef.current?.(null) })
+
+    // On mobile, double-tap to finish polygon conflicts with map double-click zoom
+    map.on('draw.modechange', ({ mode }: { mode: string }) => {
+      if (mode.startsWith('draw_')) map.doubleClickZoom.disable()
+      else map.doubleClickZoom.enable()
+    })
 
     function applyMarkerSizes(zoom: number) {
       const t       = Math.max(0, Math.min(1, (zoom - 4) / (20 - 4)))
@@ -289,6 +296,13 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
           .addTo(map)
 
         el.addEventListener('click', () => onSelect(base.id))
+        // On mobile, touchend is more reliable than click on Mapbox overlays
+        el.addEventListener('touchend', (e) => {
+          e.preventDefault()   // prevent synthetic click (avoids double-fire)
+          e.stopPropagation()  // prevent map touch handler from consuming it
+          onSelect(base.id)
+          marker.togglePopup()
+        })
         markersRef.current.set(base.id, marker)
       })
       applyMarkerSizes(map.getZoom())
