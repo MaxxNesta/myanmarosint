@@ -3,17 +3,18 @@ export type BaseStatus  = 'OPERATIONAL' | 'CONTESTED' | 'SEIZED_PDF' | 'SEIZED_E
 export type BaseType    = 'LIB' | 'COMMAND' | 'STRATEGIC' | 'LOGISTICS' | 'BGP'
 
 export interface MilitaryBase {
-  id:         number
-  regimentMm: string
-  regimentEn: string
-  locationMm: string
-  locationEn: string
-  region:     string
-  lat:        number
-  lng:        number
-  type:       BaseType
-  threat:     ThreatLevel
-  status:     BaseStatus
+  id:          number
+  regimentMm:  string
+  regimentEn:  string
+  locationMm:  string
+  locationEn:  string
+  region:      string
+  lat:         number
+  lng:         number
+  type:        BaseType
+  threat:      ThreatLevel
+  status:      BaseStatus
+  mapImageUrl?: string
 }
 
 // Status visual encoding
@@ -43,7 +44,7 @@ export const BASES: MilitaryBase[] = [
   // ── Operational ─────────────────────────────────────────────────────────────
   { id:1,  regimentMm:'ခလရ (၁)',  regimentEn:'LIB 1',  locationMm:'ပဲခူးတိုင်းဒေသကြီး၊ မင်းလှမြို့',              locationEn:'Minhlha, Bago Region',          region:'Bago Region',              lat:17.67, lng:96.15, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },
   { id:2,  regimentMm:'ခလရ (၂)',  regimentEn:'LIB 2',  locationMm:'ကျိုက်ထိုမြို့',                                locationEn:'Kyaikhto, Mon State',           region:'Mon State',                lat:17.47, lng:97.02, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },
-  { id:4,  regimentMm:'ခလရ (၄)',  regimentEn:'LIB 4',  locationMm:'မန္တလေးတိုင်း၊ ပုသိမ်ကြီးမြို့',               locationEn:'Patheingyi, Mandalay Region',   region:'Mandalay Region',          lat:22.0022184, lng:96.1799024, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },
+  { id:4,  regimentMm:'ခလရ (၄)',  regimentEn:'LIB 4',  locationMm:'မန္တလေးတိုင်း၊ ပုသိမ်ကြီးမြို့',               locationEn:'Patheingyi, Mandalay Region',   region:'Mandalay Region',          lat:22.0022184, lng:96.1799024, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL', mapImageUrl:'https://pjfdcyaau4qiurct.public.blob.vercel-storage.com/LIB%204.png' },
   { id:5,  regimentMm:'ခလရ (၅)',  regimentEn:'LIB 5',  locationMm:'ပဲခူးတိုင်း၊ ဖြူးမြို့နယ်',                   locationEn:'Phyu, Bago Region',             region:'Bago Region',              lat:18.49, lng:96.43, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },
   { id:6,  regimentMm:'ခလရ (၆)',  regimentEn:'LIB 6',  locationMm:'ရန်ကုန်၊ ရွှေပြည်သာမြို့နယ်',                  locationEn:'Shwepyithar, Yangon',           region:'Yangon Region',            lat:17.0058120, lng:96.0834157, type:'LIB', threat:'LOW',    status:'OPERATIONAL' },
   { id:8,  regimentMm:'ခလရ (၈)',  regimentEn:'LIB 8',  locationMm:'မွန်ပြည်နယ်၊ ဘီးလင်းမြို့',                   locationEn:'Bilin, Mon State',              region:'Mon State',                lat:17.2115495, lng:97.2216275, type:'LIB', threat:'MEDIUM', status:'OPERATIONAL' },

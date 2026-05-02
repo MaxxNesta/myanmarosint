@@ -368,6 +368,21 @@ export default function BasesShell() {
               >
                 {STATUS_LABELS[selectedBase.status]}
               </div>
+              {selectedBase.mapImageUrl && (
+                <a
+                  href={selectedBase.mapImageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block mt-2"
+                >
+                  <img
+                    src={selectedBase.mapImageUrl}
+                    alt={`${selectedBase.regimentEn} base map`}
+                    className="w-full rounded border border-white/[0.10] object-cover max-h-40 hover:opacity-90 transition-opacity cursor-zoom-in"
+                  />
+                  <div className="text-[8px] font-mono text-slate-600 mt-0.5 text-right">Base layout · click to enlarge</div>
+                </a>
+              )}
             </div>
           )}
         </aside>
