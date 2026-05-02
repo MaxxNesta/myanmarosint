@@ -88,9 +88,9 @@ export default function BasesShell() {
     if (window.innerWidth < 768) setSidebarOpen(false)
   }, [])
 
-  // Auto-open scenario sheet on mobile when analysis arrives
+  // Auto-open scenario panel when analysis arrives
   useEffect(() => {
-    if (analysis && window.innerWidth < 768) setScenarioPanelOpen(true)
+    if (analysis) setScenarioPanelOpen(true)
   }, [analysis])
 
   // Load recent conflict events for the news feed
@@ -482,7 +482,22 @@ export default function BasesShell() {
           )}
         </div>
 
-        {/* ── Right panel: Scenario analysis ───────────────────────────── */}
+        {/* ── Desktop: thin vertical INTEL toggle strip ───────────────── */}
+        <button
+          onClick={() => setScenarioPanelOpen(v => !v)}
+          className={`hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 flex-col items-center justify-center gap-2 w-7 h-28 bg-[#0b0f14]/90 backdrop-blur border border-r-0 border-white/[0.12] rounded-l-xl shadow-xl transition-all duration-300 ease-out ${scenarioPanelOpen ? 'opacity-0 pointer-events-none translate-x-2' : 'opacity-100 translate-x-0'}`}
+        >
+          {analyzing && <span className="w-1.5 h-1.5 rounded-full bg-accent-blue animate-pulse shrink-0" />}
+          {analysis && !analyzing && !scenarioPanelOpen && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />}
+          <span
+            className="text-[9px] font-mono text-slate-400 tracking-widest leading-none"
+            style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+          >
+            INTEL
+          </span>
+        </button>
+
+        {/* ── Scenario analysis overlay (fixed, desktop + mobile) ──────── */}
         <ScenarioPanel
           selection={areaSelection}
           analysis={analysis}
@@ -490,8 +505,8 @@ export default function BasesShell() {
           analyzeError={analyzeError}
           nearbyEvents={nearbyEvents}
           onAnalyze={() => areaSelection && runAnalysis(areaSelection)}
-          mobileOpen={scenarioPanelOpen}
-          onMobileClose={() => setScenarioPanelOpen(false)}
+          open={scenarioPanelOpen}
+          onClose={() => setScenarioPanelOpen(false)}
         />
       </div>
 

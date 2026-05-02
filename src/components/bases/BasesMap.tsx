@@ -167,7 +167,7 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style:     'mapbox://styles/mapbox/navigation-night-v1',
+      style:     'mapbox://styles/mapbox/satellite-streets-v12',
       center:    [96.5, 19.5],
       zoom:      5.2,
       minZoom:   4,
@@ -248,26 +248,36 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
     }
 
     map.on('load', () => {
-      // Add Mapbox terrain for dark green hillshading
+      // Tint satellite imagery darker + greener (military tactical look)
+      if (map.getLayer('satellite')) {
+        map.setPaintProperty('satellite', 'raster-brightness-max', 0.60)
+        map.setPaintProperty('satellite', 'raster-brightness-min', 0.04)
+        map.setPaintProperty('satellite', 'raster-saturation',     -0.20)
+        map.setPaintProperty('satellite', 'raster-contrast',        0.15)
+        map.setPaintProperty('satellite', 'raster-hue-rotate',      30)   // shift toward green
+      }
+
+      // Terrain + dark green hillshade
       map.addSource('mapbox-dem', {
         type: 'raster-dem',
         url:  'mapbox://mapbox.mapbox-terrain-dem-v1',
         tileSize: 512,
         maxzoom: 14,
       })
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.2 })
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.0 })
+      const beforeLayer = map.getLayer('road-label') ? 'road-label' : undefined
       map.addLayer({
         id:     'hillshade',
         type:   'hillshade',
         source: 'mapbox-dem',
         paint: {
-          'hillshade-shadow-color':    '#1a2e1a',
-          'hillshade-highlight-color': '#2d4a2d',
-          'hillshade-accent-color':    '#1f3d1f',
-          'hillshade-illumination-direction': 315,
-          'hillshade-exaggeration': 0.6,
+          'hillshade-shadow-color':            '#0d1f0d',
+          'hillshade-highlight-color':         '#1e3d1e',
+          'hillshade-accent-color':            '#162b16',
+          'hillshade-illumination-direction':  315,
+          'hillshade-exaggeration':            0.55,
         },
-      }, 'road-label')
+      }, beforeLayer)
 
       BASES.forEach(base => {
         const el     = buildMarkerEl(base)

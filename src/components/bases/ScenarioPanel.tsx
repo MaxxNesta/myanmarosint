@@ -75,19 +75,19 @@ function NewsItem({ event }: { event: ConflictEventDTO }) {
 }
 
 interface Props {
-  selection:     AreaSelection | null
-  analysis:      ScenarioAnalysis | null
-  analyzing:     boolean
-  analyzeError:  string | null
-  nearbyEvents:  ConflictEventDTO[]
-  onAnalyze:     () => void
-  mobileOpen:    boolean
-  onMobileClose: () => void
+  selection:    AreaSelection | null
+  analysis:     ScenarioAnalysis | null
+  analyzing:    boolean
+  analyzeError: string | null
+  nearbyEvents: ConflictEventDTO[]
+  onAnalyze:    () => void
+  open:         boolean
+  onClose:      () => void
 }
 
 export default function ScenarioPanel({
   selection, analysis, analyzing, analyzeError,
-  nearbyEvents, onAnalyze, mobileOpen, onMobileClose,
+  nearbyEvents, onAnalyze, open, onClose,
 }: Props) {
   const [tab, setTab] = useState<Tab>('ANALYSIS')
   const riskColor = analysis ? (RISK_COLORS[analysis.riskLevel] ?? '#6b7280') : '#6b7280'
@@ -96,14 +96,23 @@ export default function ScenarioPanel({
     <div className="px-3 py-2 border-b border-white/[0.07] shrink-0">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-mono font-bold tracking-widest text-slate-300">✦ SCENARIO ANALYSIS</span>
-        {analysis && (
-          <span
-            className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded"
-            style={{ background: riskColor + '25', color: riskColor, border: `1px solid ${riskColor}44` }}
+        <div className="flex items-center gap-2">
+          {analysis && (
+            <span
+              className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded"
+              style={{ background: riskColor + '25', color: riskColor, border: `1px solid ${riskColor}44` }}
+            >
+              {analysis.riskLevel} RISK
+            </span>
+          )}
+          <button
+            onClick={onClose}
+            className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-200 hover:bg-white/[0.08] transition-colors text-base leading-none"
+            aria-label="Close"
           >
-            {analysis.riskLevel} RISK
-          </span>
-        )}
+            ×
+          </button>
+        </div>
       </div>
       <div className="flex gap-0.5">
         {(['ANALYSIS', 'THREATS', 'NEWS'] as Tab[]).map(t => (
@@ -261,26 +270,28 @@ export default function ScenarioPanel({
 
   return (
     <>
-      {/* ── Desktop: right column ───────────────────────────────── */}
-      <div className="hidden md:flex flex-col h-full bg-surface-1 border-l border-white/[0.07] w-80 shrink-0">
+      {/* ── Desktop: fixed right overlay ───────────────────────────── */}
+      <div
+        className={`hidden md:flex fixed right-0 top-14 bottom-0 z-40 w-80 flex-col bg-[#0b0f14]/95 backdrop-blur-md border-l border-white/[0.10] shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
+      >
         {panelHeader}
         {panelBody}
       </div>
 
-      {/* ── Mobile: bottom sheet ────────────────────────────────── */}
+      {/* ── Mobile: bottom sheet ────────────────────────────────────── */}
       {/* Backdrop */}
       <div
-        className={`md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        onClick={onMobileClose}
+        className={`md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={onClose}
       />
       {/* Sheet */}
       <div
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-[#0d1117] border-t border-white/[0.10] rounded-t-2xl max-h-[78vh] transition-transform duration-300 ease-out ${mobileOpen ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-[#0d1117] border-t border-white/[0.10] rounded-t-2xl max-h-[78vh] transition-transform duration-300 ease-out ${open ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Pull handle */}
         <button
           className="flex justify-center pt-3 pb-1 shrink-0"
-          onClick={onMobileClose}
+          onClick={onClose}
           aria-label="Close"
         >
           <div className="w-10 h-1 rounded-full bg-white/20" />
