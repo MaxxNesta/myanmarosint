@@ -24,16 +24,16 @@ const STATUS_SHORT: Record<string, string> = {
 
 const SHADOW = '0 1px 4px rgba(0,0,0,1),0 0 12px rgba(0,0,0,0.9)'
 
-// Custom amber draw styles for military look
+// Custom blue draw styles for tactical military look
 const DRAW_STYLES = [
-  { id: 'draw-poly-fill',          type: 'fill',   filter: ['all', ['==', '$type', 'Polygon']],                                                       paint: { 'fill-color': '#f59e0b', 'fill-opacity': 0.12 } },
-  { id: 'draw-poly-fill-active',   type: 'fill',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],                              paint: { 'fill-color': '#f59e0b', 'fill-opacity': 0.20 } },
-  { id: 'draw-poly-stroke',        type: 'line',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'false']],  layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#f59e0b', 'line-width': 2, 'line-dasharray': [3, 2] } },
-  { id: 'draw-poly-stroke-active', type: 'line',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],   layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fbbf24', 'line-width': 2.5 } },
-  { id: 'draw-line-active',        type: 'line',   filter: ['all', ['==', '$type', 'LineString'], ['==', 'active', 'true']], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fbbf24', 'line-width': 2.5, 'line-dasharray': [0.5, 2] } },
-  { id: 'draw-vertex-halo',        type: 'circle', filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],                                paint: { 'circle-radius': 6, 'circle-color': '#fff' } },
-  { id: 'draw-vertex',             type: 'circle', filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],                                paint: { 'circle-radius': 4, 'circle-color': '#f59e0b' } },
-  { id: 'draw-midpoint',           type: 'circle', filter: ['all', ['==', 'meta', 'midpoint'], ['==', '$type', 'Point']],                              paint: { 'circle-radius': 3, 'circle-color': '#fbbf24', 'circle-opacity': 0.8 } },
+  { id: 'draw-poly-fill',          type: 'fill',   filter: ['all', ['==', '$type', 'Polygon']],                                                        paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.15 } },
+  { id: 'draw-poly-fill-active',   type: 'fill',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],                               paint: { 'fill-color': '#60a5fa', 'fill-opacity': 0.22 } },
+  { id: 'draw-poly-stroke',        type: 'line',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'false']], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#60a5fa', 'line-width': 2, 'line-dasharray': [4, 2] } },
+  { id: 'draw-poly-stroke-active', type: 'line',   filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],  layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#93c5fd', 'line-width': 2.5 } },
+  { id: 'draw-line-active',        type: 'line',   filter: ['all', ['==', '$type', 'LineString'], ['==', 'active', 'true']], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#93c5fd', 'line-width': 2.5, 'line-dasharray': [0.5, 2] } },
+  { id: 'draw-vertex-halo',        type: 'circle', filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],                                 paint: { 'circle-radius': 7, 'circle-color': '#1e3a5f' } },
+  { id: 'draw-vertex',             type: 'circle', filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],                                 paint: { 'circle-radius': 4, 'circle-color': '#93c5fd' } },
+  { id: 'draw-midpoint',           type: 'circle', filter: ['all', ['==', 'meta', 'midpoint'], ['==', '$type', 'Point']],                               paint: { 'circle-radius': 3, 'circle-color': '#60a5fa', 'circle-opacity': 0.9 } },
 ]
 
 interface Props {
@@ -167,7 +167,7 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style:     'mapbox://styles/mapbox/satellite-streets-v12',
+      style:     'mapbox://styles/mapbox/navigation-night-v1',
       center:    [96.5, 19.5],
       zoom:      5.2,
       minZoom:   4,
@@ -248,6 +248,27 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
     }
 
     map.on('load', () => {
+      // Add Mapbox terrain for dark green hillshading
+      map.addSource('mapbox-dem', {
+        type: 'raster-dem',
+        url:  'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tileSize: 512,
+        maxzoom: 14,
+      })
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.2 })
+      map.addLayer({
+        id:     'hillshade',
+        type:   'hillshade',
+        source: 'mapbox-dem',
+        paint: {
+          'hillshade-shadow-color':    '#1a2e1a',
+          'hillshade-highlight-color': '#2d4a2d',
+          'hillshade-accent-color':    '#1f3d1f',
+          'hillshade-illumination-direction': 315,
+          'hillshade-exaggeration': 0.6,
+        },
+      }, 'road-label')
+
       BASES.forEach(base => {
         const el     = buildMarkerEl(base)
         const popup  = new mapboxgl.Popup({ offset: 8, maxWidth: '320px', closeButton: true })
