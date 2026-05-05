@@ -8,11 +8,12 @@ import { ACTORS } from '@/lib/operations-data'
 import type { ConflictEventDTO } from '@/lib/types'
 
 interface Props {
-  currentDate: Date
-  campaigns: Campaign[]
-  controlEvents: TownControlEvent[]
-  incidents: ConflictEventDTO[]
-  actorFilter: Set<ActorId>
+  currentDate:      Date
+  campaigns:        Campaign[]
+  controlEvents:    TownControlEvent[]
+  incidents:        ConflictEventDTO[]
+  actorFilter:      Set<ActorId>
+  operationOverlay: GeoJSON.FeatureCollection | null
 }
 
 interface TownshipEntry {
@@ -166,7 +167,7 @@ function campaignPopupHTML(campaign: Campaign, fromCity: MyanmarCity, toCity: My
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 export default function OperationsMap({
-  currentDate, campaigns, controlEvents, incidents, actorFilter,
+  currentDate, campaigns, controlEvents, incidents, actorFilter, operationOverlay,
 }: Props) {
   const containerRef        = useRef<HTMLDivElement>(null)
   const mapRef              = useRef<mapboxgl.Map | null>(null)
@@ -180,16 +181,25 @@ export default function OperationsMap({
   const lastBattleComputeRef = useRef<number>(0)
 
   // Keep latest props accessible in stable callbacks
-  const currentDateRef    = useRef(currentDate)
-  const campaignsRef      = useRef(campaigns)
-  const controlEventsRef  = useRef(controlEvents)
-  const incidentsRef      = useRef(incidents)
-  const actorFilterRef    = useRef(actorFilter)
-  useEffect(() => { currentDateRef.current   = currentDate   }, [currentDate])
-  useEffect(() => { campaignsRef.current     = campaigns     }, [campaigns])
-  useEffect(() => { controlEventsRef.current = controlEvents }, [controlEvents])
-  useEffect(() => { incidentsRef.current     = incidents     }, [incidents])
-  useEffect(() => { actorFilterRef.current   = actorFilter   }, [actorFilter])
+  const currentDateRef       = useRef(currentDate)
+  const campaignsRef         = useRef(campaigns)
+  const controlEventsRef     = useRef(controlEvents)
+  const incidentsRef         = useRef(incidents)
+  const actorFilterRef       = useRef(actorFilter)
+  const operationOverlayRef  = useRef(operationOverlay)
+  useEffect(() => { currentDateRef.current      = currentDate      }, [currentDate])
+  useEffect(() => { campaignsRef.current        = campaigns        }, [campaigns])
+  useEffect(() => { controlEventsRef.current    = controlEvents    }, [controlEvents])
+  useEffect(() => { incidentsRef.current        = incidents        }, [incidents])
+  useEffect(() => { actorFilterRef.current      = actorFilter      }, [actorFilter])
+  useEffect(() => { operationOverlayRef.current = operationOverlay }, [operationOverlay])
+
+  // Update op-overlay source whenever the overlay changes
+  useEffect(() => {
+    if (!readyRef.current) return
+    const src = mapRef.current?.getSource('op-overlay') as mapboxgl.GeoJSONSource | undefined
+    src?.setData(operationOverlay ?? EMPTY_FC)
+  }, [operationOverlay])
 
   const updateMap = useCallback(() => {
     const map = mapRef.current
@@ -434,6 +444,7 @@ export default function OperationsMap({
       map.addSource('incidents-source', { type: 'geojson', data: EMPTY_FC })
       map.addSource('campaigns-source', { type: 'geojson', data: EMPTY_FC, lineMetrics: true })
       map.addSource('towns-source',     { type: 'geojson', data: EMPTY_FC })
+      map.addSource('op-overlay',       { type: 'geojson', data: operationOverlayRef.current ?? EMPTY_FC })
 
       // ── 0a. Township fill (actor-colored, semi-transparent) ──────────
       map.addLayer({
@@ -463,7 +474,30 @@ export default function OperationsMap({
         },
       })
 
-      // ── 0c. Battle township outer glow ──────────────────────────────
+      // ── 0c. Operation overlay — territory polygon ────────────────────
+      map.addLayer({
+        id:     'op-overlay-fill',
+        type:   'fill',
+        source: 'op-overlay',
+        paint:  {
+          'fill-color':   ['get', 'overlayColor'],
+          'fill-opacity': 0.18,
+        },
+      })
+      map.addLayer({
+        id:     'op-overlay-line',
+        type:   'line',
+        source: 'op-overlay',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint:  {
+          'line-color':     ['get', 'overlayColor'],
+          'line-width':     2,
+          'line-opacity':   0.75,
+          'line-dasharray': [4, 2],
+        },
+      })
+
+      // ── 0d. Battle township outer glow ──────────────────────────────
       map.addLayer({
         id:     'battle-glow',
         type:   'circle',

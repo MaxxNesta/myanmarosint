@@ -8,7 +8,7 @@ import type { ConflictEventDTO } from '@/lib/types'
 import { parseNeatogeo } from '@/lib/parse-neatogeo'
 import TimelineControl from './TimelineControl'
 import MomentumPanel from './MomentumPanel'
-import Operation1027Panel from './Operation1027Panel'
+import OperationsPanel, { PHASE_COLORS, PHASE_POLY_NAMES } from './OperationsPanel'
 
 const OperationsMap = dynamic(() => import('./OperationsMap'), {
   ssr: false,
@@ -37,6 +37,8 @@ export default function OperationsShell() {
   const [incidentsLoading, setLoading]      = useState(true)
   const [actorFilter,      setActorFilter]  = useState<Set<ActorId>>(new Set())
   const [legendOpen,       setLegendOpen]   = useState(false)
+  const [activePhase,      setActivePhase]  = useState<string | null>(null)
+  const [rawNeatogeo,      setRawNeatogeo]  = useState<{ features: unknown[] } | null>(null)
 
   const campaigns:    Campaign[]         = CAMPAIGNS
   const controlEvents: TownControlEvent[] = TOWN_CONTROL_EVENTS
@@ -48,6 +50,7 @@ export default function OperationsShell() {
       fetch('/data/state-regions.geojson').then(r => r.json()),
     ])
       .then(([geojson, stateGeoJSON]) => {
+        setRawNeatogeo(geojson)
         const evts: ConflictEventDTO[] = parseNeatogeo(geojson, stateGeoJSON.features)
         setIncidents(evts)
         if (evts.length > 0) {
@@ -87,6 +90,43 @@ export default function OperationsShell() {
     const hotZones   = new Set(recent.map(e => e.region)).size
     return { total, recent: recent.length, fatalities, hotZones }
   }, [incidents, currentDate])
+
+  const operationOverlay = useMemo((): GeoJSON.FeatureCollection | null => {
+    if (!activePhase || !rawNeatogeo) return null
+    const names = PHASE_POLY_NAMES[activePhase] ?? []
+    const color = PHASE_COLORS[activePhase]
+    const features = (rawNeatogeo.features as Array<{
+      type: string
+      properties: { name?: string }
+      geometry: { type: string; coordinates: unknown }
+    }>).filter(f =>
+      f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+    ).filter(f =>
+      names.some(n => (f.properties.name ?? '').includes(n))
+    ).map(f => {
+      // Strip degenerate [0,0] vertices from polygon rings
+      function cleanRings(rings: number[][][]): number[][][] {
+        return rings.map(ring =>
+          ring.filter(([lng, lat]) => !(lng === 0 && lat === 0))
+        ).filter(ring => ring.length >= 4)
+      }
+      let geometry: GeoJSON.Geometry
+      if (f.geometry.type === 'Polygon') {
+        geometry = { type: 'Polygon', coordinates: cleanRings(f.geometry.coordinates as number[][][]) }
+      } else {
+        geometry = {
+          type: 'MultiPolygon',
+          coordinates: (f.geometry.coordinates as number[][][][]).map(poly => cleanRings(poly)),
+        }
+      }
+      return {
+        type: 'Feature' as const,
+        geometry,
+        properties: { overlayColor: color, name: f.properties.name ?? '' },
+      }
+    })
+    return { type: 'FeatureCollection', features }
+  }, [activePhase, rawNeatogeo])
 
   const toggleActor = useCallback((id: ActorId) => {
     setActorFilter(prev => {
@@ -149,6 +189,7 @@ export default function OperationsShell() {
           controlEvents={controlEvents}
           incidents={incidents}
           actorFilter={actorFilter}
+          operationOverlay={operationOverlay}
         />
 
         {/* ── Momentum Panel (top-left) ────────────────────────────── */}
@@ -202,8 +243,12 @@ export default function OperationsShell() {
           )}
         </div>
 
-        {/* ── Operation 1027 Panel (right) ────────────────────────── */}
-        <Operation1027Panel currentDate={currentDate} />
+        {/* ── Operations Panel (right) ────────────────────────────── */}
+        <OperationsPanel
+          currentDate={currentDate}
+          activePhase={activePhase}
+          onPhaseChange={setActivePhase}
+        />
 
         {/* ── Date overlay (top-right) ─────────────────────────────── */}
         <div className="absolute top-3 right-12 z-10 pointer-events-none">
