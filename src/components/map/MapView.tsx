@@ -180,9 +180,13 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
   const containerRef        = useRef<HTMLDivElement>(null)
   const mapRef              = useRef<mapboxgl.Map | null>(null)
   const conflictEventsRef   = useRef<ConflictEventDTO[]>(conflictEvents)
+  const eventsRef           = useRef<ProcessedEventDTO[]>(events)
+  // Set to true inside map.on('load') — more reliable than isStyleLoaded() which
+  // returns false whenever tiles are still loading (i.e. almost always while dragging)
+  const mapReadyRef         = useRef(false)
 
-  // Keep ref current so the load callback can read the latest data
   useEffect(() => { conflictEventsRef.current = conflictEvents }, [conflictEvents])
+  useEffect(() => { eventsRef.current         = events         }, [events])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -319,6 +323,8 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
       })
       map.on('mouseenter', 'conflict-circles', () => { map.getCanvas().style.cursor = 'crosshair' })
       map.on('mouseleave', 'conflict-circles', () => { map.getCanvas().style.cursor = '' })
+
+      mapReadyRef.current = true
     })
 
     mapRef.current = map
@@ -332,32 +338,30 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
 
   // ── Update ProcessedEvent GeoJSON ─────────────────────
   useEffect(() => {
-    const map = mapRef.current
-    if (!map?.isStyleLoaded()) return
-    const src = map.getSource('events') as mapboxgl.GeoJSONSource | undefined
+    if (!mapReadyRef.current) return
+    const src = mapRef.current?.getSource('events') as mapboxgl.GeoJSONSource | undefined
     src?.setData(toGeoJSON(events))
   }, [events])
 
   // ── Update ConflictEvent GeoJSON ──────────────────────
   useEffect(() => {
-    const map = mapRef.current
-    if (!map?.isStyleLoaded()) return
-    const src = map.getSource('conflict-events') as mapboxgl.GeoJSONSource | undefined
+    if (!mapReadyRef.current) return
+    const src = mapRef.current?.getSource('conflict-events') as mapboxgl.GeoJSONSource | undefined
     src?.setData(conflictToGeoJSON(conflictEvents))
   }, [conflictEvents])
 
   // ── Toggle heatmap ────────────────────────────────────
   useEffect(() => {
-    const map = mapRef.current
-    if (!map?.isStyleLoaded()) return
+    if (!mapReadyRef.current) return
+    const map = mapRef.current!
     const vis = showHeatmap ? 'visible' : 'none'
     if (map.getLayer('risk-heatmap')) map.setLayoutProperty('risk-heatmap', 'visibility', vis)
   }, [showHeatmap])
 
   // ── Toggle conflict-events layer ──────────────────────
   useEffect(() => {
-    const map = mapRef.current
-    if (!map?.isStyleLoaded()) return
+    if (!mapReadyRef.current) return
+    const map = mapRef.current!
     const vis = showConflict ? 'visible' : 'none'
     if (map.getLayer('conflict-circles')) map.setLayoutProperty('conflict-circles', 'visibility', vis)
     if (map.getLayer('conflict-pulse'))   map.setLayoutProperty('conflict-pulse',   'visibility', vis)
