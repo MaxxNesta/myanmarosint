@@ -357,7 +357,7 @@ export default function OperationsMap({
       attributionControl: false,
     })
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right')
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
 
     // ── Load cities ────────────────────────────────────────────────────

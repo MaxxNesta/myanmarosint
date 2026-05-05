@@ -26,7 +26,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   // ── Sagaing Region ────────────────────────────────────────────────────────
   { townId: 'shwepiyaye',  date: '2023-11-22', actor: 'PDF_NUG' },
   { townId: 'khampat',     date: '2023-11-07', actor: 'PDF_NUG' },
-  { townId: 'maw-luu',     date: '2023-12-13', actor: 'PDF_NUG' }, // ABSDF + allied resistance
+  { townId: 'maw-lu',     date: '2023-12-13', actor: 'PDF_NUG' }, // ABSDF + allied resistance
   { townId: 'pinlebu',     date: '2024-10-08', actor: 'PDF_NUG' },
   { townId: 'myothit',     date: '2024-05-11', actor: 'PDF_NUG' },
 
@@ -164,5 +164,5 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'kawlin',       date: '2026-01-31', actor: 'MILITARY' },
   { townId: 'falam',        date: '2026-04-25', actor: 'MILITARY' },
   { townId: 'indaw',        date: '2026-04-30', actor: 'MILITARY' },
-  { townId: 'maw-luu',     date: '2026-05-05', actor: 'MILITARY' }, // SAC recapture
+  { townId: 'maw-lu',     date: '2026-05-05', actor: 'MILITARY' }, // SAC recapture
 ]
