@@ -8,6 +8,7 @@ import type { ConflictEventDTO } from '@/lib/types'
 import { parseNeatogeo } from '@/lib/parse-neatogeo'
 import TimelineControl from './TimelineControl'
 import MomentumPanel from './MomentumPanel'
+import Operation1027Panel from './Operation1027Panel'
 
 const OperationsMap = dynamic(() => import('./OperationsMap'), {
   ssr: false,
@@ -200,6 +201,9 @@ export default function OperationsShell() {
             </div>
           )}
         </div>
+
+        {/* ── Operation 1027 Panel (right) ────────────────────────── */}
+        <Operation1027Panel currentDate={currentDate} />
 
         {/* ── Date overlay (top-right) ─────────────────────────────── */}
         <div className="absolute top-3 right-12 z-10 pointer-events-none">
