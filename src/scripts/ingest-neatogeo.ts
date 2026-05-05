@@ -6,6 +6,12 @@ import { extractSource, inferRegion, parseName } from '../lib/parse-neatogeo'
 
 const prisma = makePrisma()
 
+// Load actual state/region polygon boundaries for accurate region lookup
+const stateGeoJSON = JSON.parse(
+  fs.readFileSync(path.join(process.cwd(), 'map data/dist/geojson/state-regions.geojson'), 'utf8')
+)
+const stateFeatures = stateGeoJSON.features
+
 type EventType = 'CLASH' | 'AIRSTRIKE' | 'ARTILLERY_SHELLING' | 'AMBUSH' |
   'SIEGE_SEIZED' | 'RECAPTURED' | 'WITHDRAWAL' | 'CEASEFIRE' |
   'ARMED_MOBILIZATION' | 'CIVILIAN_HARM' | 'DISPLACEMENT' |
@@ -66,7 +72,7 @@ async function main() {
     records.push({
       eventType:          inferEventType(actorRaw, location),
       date,
-      region:             inferRegion(lat, lng),
+      region:             inferRegion(lat, lng, stateFeatures),
       adminArea:          null as string | null,
       location:           location || actorRaw,
       lat,

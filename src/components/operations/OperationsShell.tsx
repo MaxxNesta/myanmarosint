@@ -42,10 +42,12 @@ export default function OperationsShell() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/data/neatogeo-myanmar.geojson')
-      .then(r => r.json())
-      .then(geojson => {
-        const evts: ConflictEventDTO[] = parseNeatogeo(geojson)
+    Promise.all([
+      fetch('/data/neatogeo-myanmar.geojson').then(r => r.json()),
+      fetch('/data/state-regions.geojson').then(r => r.json()),
+    ])
+      .then(([geojson, stateGeoJSON]) => {
+        const evts: ConflictEventDTO[] = parseNeatogeo(geojson, stateGeoJSON.features)
         setIncidents(evts)
         if (evts.length > 0) {
           const dates = evts.map(e => new Date(e.date as string).getTime()).filter(n => !isNaN(n))

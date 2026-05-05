@@ -1,4 +1,17 @@
 import type { ConflictEventDTO, ConflictEventType } from './types'
+import { point, booleanPointInPolygon } from '@turf/turf'
+
+interface StateFeature {
+  type: 'Feature'
+  properties: { ST: string; ST_RG: string }
+  geometry: { type: string; coordinates: unknown }
+}
+
+function normalizeStateName(st: string, stRg: string): string {
+  const base = st.replace(/ \(.*\)$/, '').trim()
+  if (base === 'Nay Pyi Taw') return 'Nay Pyi Taw'
+  return `${base} ${stRg}`
+}
 
 interface NeatogeoFeature {
   type: 'Feature'
@@ -60,10 +73,21 @@ export function extractSource(description: string): { sourceName: string; source
   return { sourceName, sourceUrl: primary }
 }
 
-// ── Region inference (bounding box) ─────────────────────────────────────────
-export function inferRegion(lat: number, lng: number): string {
+// ── Region inference ─────────────────────────────────────────────────────────
+// Pass stateFeatures (from state-regions.geojson) for exact polygon lookup;
+// falls back to bounding boxes when not provided.
+export function inferRegion(lat: number, lng: number, stateFeatures?: StateFeature[]): string {
+  if (stateFeatures) {
+    const pt = point([lng, lat])
+    for (const feat of stateFeatures) {
+      if (booleanPointInPolygon(pt, feat as Parameters<typeof booleanPointInPolygon>[1])) {
+        return normalizeStateName(feat.properties.ST, feat.properties.ST_RG)
+      }
+    }
+  }
+  // Bounding-box fallback
   if (lat > 23 && lng > 95.5 && lng < 98.5)                   return 'Kachin State'
-  if (lat > 20 && lat <= 26 && lng >= 92 && lng < 94.5)        return 'Chin State'
+  if (lat > 20 && lat <= 26 && lng >= 93.5 && lng < 94.5)      return 'Chin State'
   if (lat > 21 && lat <= 26 && lng >= 94.5 && lng < 96.5)      return 'Sagaing Region'
   if (lat > 19 && lat <= 22 && lng >= 95 && lng < 97)          return 'Mandalay Region'
   if (lat > 18 && lat <= 21 && lng >= 93.5 && lng < 95.5)      return 'Magway Region'
@@ -135,7 +159,10 @@ function inferEventType(actorRaw: string, location: string): ConflictEventType {
 }
 
 // ── Main parser ──────────────────────────────────────────────────────────────
-export function parseNeatogeo(geojson: { features: NeatogeoFeature[] }): ConflictEventDTO[] {
+export function parseNeatogeo(
+  geojson: { features: NeatogeoFeature[] },
+  stateFeatures?: StateFeature[],
+): ConflictEventDTO[] {
   const results: ConflictEventDTO[] = []
 
   for (let i = 0; i < geojson.features.length; i++) {
@@ -156,7 +183,7 @@ export function parseNeatogeo(geojson: { features: NeatogeoFeature[] }): Conflic
       id:            `neatogeo-${i}`,
       eventType:     inferEventType(actorRaw, location),
       date,
-      region:        inferRegion(lat, lng),
+      region:        inferRegion(lat, lng, stateFeatures),
       adminArea:     null,
       location:      location || actorRaw,
       lat,
