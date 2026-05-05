@@ -26,18 +26,24 @@ const PHASE1: PhaseEntry[] = [
 
 const PHASE2: PhaseEntry[] = [
   { townId: 'nawnghkio',   town: 'Nawnghkio',  date: '2024-06-26', actor: 'TNLA'    },
+  { townId: 'lailempi',    town: 'Lailempi',   date: '2024-07-11', actor: 'AA'      }, // AA — Chin/Rakhine border
   { townId: 'singu',       town: 'Singu',       date: '2024-07-17', actor: 'PDF_NUG' },
+  { townId: 'thandwe',     town: 'Thandwe',     date: '2024-07-16', actor: 'AA'      }, // AA — Rakhine
+  { townId: 'mongmit',     town: 'Mongmit',     date: '2024-07-16', actor: 'TNLA'    },
   { townId: 'mogok',       town: 'Mogok',       date: '2024-07-24', actor: 'TNLA'    },
   { townId: 'lashio',      town: 'Lashio',      date: '2024-07-25', actor: 'MNDAA'   },
   { townId: 'kyaukme',     town: 'Kyaukme',     date: '2024-08-06', actor: 'TNLA'    },
   { townId: 'nyaphu',      town: 'Nyaphu',      date: '2024-08-12', actor: 'UNKNOWN' },
   { townId: 'tagauging',   town: 'Tagaung',     date: '2024-08-12', actor: 'PDF_NUG' },
+  { townId: 'kyeintali',   town: 'Kyeintali',   date: '2024-08-14', actor: 'AA'      }, // AA — Rakhine
   { townId: 'thabeikkyin', town: 'Thabeikkyin', date: '2024-08-25', actor: 'PDF_NUG' },
+  { townId: 'hsipaw',      town: 'Hsipaw',      date: '2024-09-15', actor: 'TNLA'    },
 ]
 
 export const PHASE_COLORS: Record<string, string> = {
-  '1027-1': '#f97316',
-  '1027-2': '#06b6d4',
+  '1027-1':   '#f97316',
+  '1027-2':   '#06b6d4',
+  'combined': '#a78bfa',
 }
 
 export const PHASE_POLY_NAMES: Record<string, string[]> = {
@@ -66,12 +72,6 @@ function fmtDate(iso: string) {
   })
 }
 
-interface Props {
-  currentDate:   Date
-  activePhase:   string | null
-  onPhaseChange: (phase: string | null) => void
-}
-
 interface PhaseData {
   key:     string
   roman:   string
@@ -84,7 +84,7 @@ interface PhaseData {
 
 const PHASES: PhaseData[] = [
   {
-    key: '1027-1', roman: 'I',  label: 'PHASE I',
+    key: '1027-1', roman: 'I', label: 'PHASE I',
     sub: 'Oct 2023 – Jan 2024',
     entries: PHASE1,
     color: PHASE_COLORS['1027-1'],
@@ -99,118 +99,44 @@ const PHASES: PhaseData[] = [
   },
 ]
 
-function PhaseSection({
-  phase, isActive, currentDate, onToggle,
-}: {
-  phase: PhaseData
-  isActive: boolean
-  currentDate: Date
-  onToggle: () => void
-}) {
-  const rows = useMemo(() => phase.entries.map(e => {
-    const captured  = new Date(e.date + 'T00:00:00Z') <= currentDate
-    const ctrl      = captured ? getCurrentControl(e.townId, currentDate) : null
-    const ctrlActor = ctrl ? ACTORS[ctrl.actor] ?? ACTORS.UNKNOWN : null
-    const capActor  = ACTORS[e.actor] ?? ACTORS.UNKNOWN
-    return { ...e, captured, ctrl, ctrlActor, capActor }
-  }), [phase.entries, currentDate])
+interface Props {
+  currentDate:   Date
+  activePhase:   string | null
+  onPhaseChange: (phase: string | null) => void
+}
 
-  const taken = rows.filter(r => r.captured).length
-  const pct   = rows.length > 0 ? (taken / rows.length) * 100 : 0
+function TownRow({ entry, currentDate }: { entry: PhaseEntry; currentDate: Date }) {
+  const captureDate = new Date(entry.date + 'T00:00:00Z')
+  const captured    = captureDate <= currentDate
+  const ctrl        = captured ? getCurrentControl(entry.townId, currentDate) : null
+  const ctrlActor   = ctrl ? ACTORS[ctrl.actor] ?? ACTORS.UNKNOWN : null
+  const capActor    = ACTORS[entry.actor] ?? ACTORS.UNKNOWN
 
   return (
-    <div
-      className="border-b border-white/[0.06] transition-colors"
-      style={{ borderLeft: `3px solid ${isActive ? phase.color : 'transparent'}` }}
-    >
-      {/* Phase header row */}
-      <div className={`px-3 pt-3 pb-2 ${isActive ? 'bg-white/[0.02]' : ''}`}>
-        <div className="flex items-start gap-2.5 mb-2.5">
-          {/* Phase roman numeral badge */}
-          <div
-            className="w-8 h-8 rounded flex items-center justify-center shrink-0 text-[11px] font-mono font-black"
-            style={{
-              background: `${phase.color}15`,
-              border:     `1px solid ${phase.color}35`,
-              color:      phase.color,
-              boxShadow:  isActive ? `0 0 12px ${phase.color}20` : 'none',
-            }}
-          >
-            {phase.roman}
-          </div>
-          <div className="flex-1 min-w-0 pt-0.5">
-            <div className="text-[9px] font-mono font-bold text-slate-200 tracking-widest">
-              {phase.label}
-            </div>
-            <div className="text-[7px] font-mono text-slate-500 mt-0.5">{phase.sub}</div>
-            <div className="text-[6.5px] font-mono text-slate-700 mt-0.5 truncate">{phase.actors}</div>
-          </div>
-          {/* Map toggle */}
-          <button
-            onClick={onToggle}
-            className="shrink-0 mt-0.5 px-2 py-1 rounded text-[7px] font-mono font-bold tracking-wider border transition-all"
-            style={isActive ? {
-              color:      phase.color,
-              borderColor:`${phase.color}50`,
-              background: `${phase.color}12`,
-              boxShadow:  `0 0 8px ${phase.color}18`,
-            } : {
-              color:       '#475569',
-              borderColor: 'rgba(255,255,255,0.08)',
-              background:  'transparent',
-            }}
-          >
-            {isActive ? '▶ MAP' : 'SHOW'}
-          </button>
-        </div>
-
-        {/* Progress bar */}
-        <div className="mb-0.5 flex items-center justify-between">
-          <span className="text-[6.5px] font-mono text-slate-700 uppercase tracking-widest">Objective</span>
-          <span className="text-[7px] font-mono font-bold" style={{ color: taken > 0 ? phase.color : '#334155' }}>
-            {taken} / {rows.length}
+    <div className="flex items-center gap-2 px-3.5 py-1.5 border-b border-white/[0.03]">
+      <span
+        className="w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ background: capActor.color, opacity: captured ? 1 : 0.3 }}
+      />
+      <span
+        className="text-[8.5px] font-mono flex-1 truncate"
+        style={{ color: captured ? '#e2e8f0' : '#475569' }}
+      >
+        {entry.town}
+      </span>
+      <span className="text-[6.5px] font-mono text-slate-700 shrink-0">{fmtDate(entry.date)}</span>
+      <div className="shrink-0 text-right" style={{ minWidth: '3.5rem' }}>
+        {!captured ? (
+          <span className="text-[6.5px] font-mono text-slate-700">upcoming</span>
+        ) : ctrl?.contested ? (
+          <span className="text-[6.5px] font-mono text-red-400">⚡ contested</span>
+        ) : ctrl?.actor === 'MILITARY' ? (
+          <span className="text-[6.5px] font-mono text-slate-600">↩ SAC</span>
+        ) : (
+          <span className="text-[6.5px] font-mono" style={{ color: ctrlActor?.color }}>
+            {ctrlActor?.shortName}
           </span>
-        </div>
-        <div className="h-0.5 bg-white/[0.05] rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${pct}%`, background: phase.color, opacity: 0.65 }}
-          />
-        </div>
-      </div>
-
-      {/* Town list */}
-      <div className="border-t border-white/[0.04] max-h-44 overflow-y-auto">
-        {rows.map((row, i) => (
-          <div
-            key={row.townId}
-            className={`
-              flex items-center gap-2 px-3 py-1.5 transition-opacity
-              ${i < rows.length - 1 ? 'border-b border-white/[0.03]' : ''}
-              ${row.captured ? '' : 'opacity-25'}
-            `}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full shrink-0"
-              style={{ background: row.capActor.color }}
-            />
-            <span className="text-[8.5px] font-mono text-slate-200 flex-1 truncate">{row.town}</span>
-            <span className="text-[6.5px] font-mono text-slate-600 shrink-0">{fmtDate(row.date)}</span>
-            <div className="shrink-0 text-right" style={{ minWidth: '4rem' }}>
-              {!row.captured ? (
-                <span className="text-[6.5px] font-mono text-slate-700">pending</span>
-              ) : row.ctrl?.contested ? (
-                <span className="text-[6.5px] font-mono text-red-400">⚡ contested</span>
-              ) : row.ctrl?.actor === 'MILITARY' ? (
-                <span className="text-[6.5px] font-mono text-slate-500">↩ SAC</span>
-              ) : (
-                <span className="text-[6.5px] font-mono" style={{ color: row.ctrlActor?.color }}>
-                  {row.ctrlActor?.shortName}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
+        )}
       </div>
     </div>
   )
@@ -226,142 +152,249 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
   )
   const totalEntries = PHASES.reduce((s, p) => s + p.entries.length, 0)
 
+  function handlePhaseToggle(key: string) {
+    onPhaseChange(activePhase === key ? null : key)
+  }
+
+  const isPhaseOnMap = (key: string) =>
+    activePhase === key || activePhase === 'combined'
+
   return (
-    <div className="absolute top-14 right-0 z-20 flex flex-col items-end">
+    <div className="absolute top-14 right-0 z-20 flex items-start">
 
-      {/* ── Trigger card ─────────────────────────────────────────────── */}
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-stretch overflow-hidden shadow-xl transition-all"
-        style={{
-          background:  '#0b0f14',
-          border:      `1px solid ${open ? 'rgba(245,158,11,0.25)' : 'rgba(255,255,255,0.09)'}`,
-          borderRight: 'none',
-          borderRadius: '6px 0 0 6px',
-        }}
-      >
-        {/* Amber left accent stripe */}
-        <div
-          className="w-1 shrink-0"
-          style={{ background: open ? '#f59e0b' : '#1e293b' }}
-        />
-
-        <div className="flex items-center gap-3 px-3 py-2.5">
-          {/* Phase status dots */}
-          <div className="flex flex-col gap-1.5">
-            {PHASES.map(p => (
-              <span
-                key={p.key}
-                className="w-2 h-2 rounded-full transition-all"
-                style={{
-                  background: p.color,
-                  opacity:    activePhase === p.key ? 1 : activePhase === null ? 0.35 : 0.12,
-                  boxShadow:  activePhase === p.key ? `0 0 6px ${p.color}` : 'none',
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Title block */}
-          <div className="text-left">
-            <div
-              className="text-[9px] font-mono font-black tracking-[0.18em]"
-              style={{ color: open ? '#fbbf24' : '#94a3b8' }}
-            >
-              OPERATION
-            </div>
-            <div
-              className="text-[13px] font-mono font-black leading-none tracking-wider"
-              style={{ color: open ? '#f59e0b' : '#64748b' }}
-            >
-              1027
-            </div>
-            <div className="text-[6px] font-mono text-slate-700 tracking-widest mt-0.5">
-              {totalTaken}/{totalEntries} OBJ
-            </div>
-          </div>
-
-          {/* Expand arrow */}
-          <div className="flex flex-col items-center justify-center self-stretch pl-1 border-l border-white/[0.06]">
-            <span
-              className="text-[8px] font-mono"
-              style={{ color: open ? '#f59e0b' : '#334155' }}
-            >
-              {open ? '▶' : '◀'}
-            </span>
-          </div>
-        </div>
-      </button>
-
-      {/* ── Panel ────────────────────────────────────────────────────── */}
+      {/* ── Panel content ─────────────────────────────────────────────── */}
       {open && (
         <div
-          className="shadow-2xl w-72 overflow-hidden"
+          className="overflow-hidden shadow-2xl"
           style={{
-            background:   'rgba(11,15,20,0.98)',
+            width: 288,
+            background:     'rgba(11,15,20,0.98)',
             backdropFilter: 'blur(12px)',
-            border:       '1px solid rgba(255,255,255,0.09)',
-            borderRight:  'none',
-            borderTop:    'none',
-            borderRadius: '0 0 0 8px',
+            border:         '1px solid rgba(255,255,255,0.09)',
+            borderRight:    'none',
+            borderRadius:   '0 0 0 8px',
           }}
         >
-          {/* Operation masthead */}
+          {/* ── Operation masthead ──────────────────────────────────── */}
           <div
             className="px-4 py-3"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', borderLeft: '3px solid #f59e0b' }}
+            style={{
+              borderBottom: '1px solid rgba(255,255,255,0.07)',
+              borderLeft:   '3px solid #f59e0b',
+            }}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-[6.5px] font-mono text-slate-600 uppercase tracking-[0.18em] mb-1">
-                  Three Brotherhood Alliance
-                </div>
-                <div className="text-[15px] font-mono font-black text-amber-400 leading-none tracking-wider">
-                  OPERATION 1027
-                </div>
-                <div className="text-[7px] font-mono text-slate-500 mt-1.5 leading-relaxed">
-                  Shan (North) · Mandalay · Sagaing<br />
-                  Oct 2023 – Sep 2024
-                </div>
-              </div>
-              {/* Mini phase legend */}
-              <div className="flex flex-col gap-1.5 pt-0.5">
-                {PHASES.map(p => (
-                  <div key={p.key} className="flex items-center gap-1.5">
-                    <span
-                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ background: p.color }}
-                    />
-                    <span className="text-[6.5px] font-mono text-slate-600">{p.label}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="text-[6.5px] font-mono text-slate-600 uppercase tracking-[0.18em] mb-1">
+              Three Brotherhood Alliance
+            </div>
+            <div className="text-[15px] font-mono font-black text-amber-400 leading-none tracking-wider">
+              OPERATION 1027
+            </div>
+            <div className="text-[7px] font-mono text-slate-500 mt-1 leading-relaxed">
+              Shan (N) · Mandalay · Rakhine · Oct 2023 – Sep 2024
+            </div>
+
+            {/* ── Map overlay selector ────────────────────────────── */}
+            <div
+              className="flex items-center gap-1.5 mt-2.5 pt-2.5"
+              style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <span className="text-[6px] font-mono text-slate-700 uppercase tracking-widest mr-1">
+                Show on map
+              </span>
+              {PHASES.map(p => (
+                <button
+                  key={p.key}
+                  onClick={() => handlePhaseToggle(p.key)}
+                  className="px-2 py-0.5 rounded text-[7px] font-mono font-bold tracking-wider border transition-all"
+                  style={isPhaseOnMap(p.key) ? {
+                    color:       p.color,
+                    borderColor: `${p.color}50`,
+                    background:  `${p.color}15`,
+                    boxShadow:   `0 0 6px ${p.color}20`,
+                  } : {
+                    color:       '#475569',
+                    borderColor: 'rgba(255,255,255,0.07)',
+                    background:  'transparent',
+                  }}
+                >
+                  {p.roman}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePhaseToggle('combined')}
+                className="px-2 py-0.5 rounded text-[7px] font-mono font-bold tracking-wider border transition-all"
+                style={activePhase === 'combined' ? {
+                  color:       PHASE_COLORS['combined'],
+                  borderColor: `${PHASE_COLORS['combined']}50`,
+                  background:  `${PHASE_COLORS['combined']}12`,
+                  boxShadow:   `0 0 6px ${PHASE_COLORS['combined']}18`,
+                } : {
+                  color:       '#475569',
+                  borderColor: 'rgba(255,255,255,0.07)',
+                  background:  'transparent',
+                }}
+              >
+                I+II
+              </button>
             </div>
           </div>
 
-          {/* Phase sections */}
-          {PHASES.map(p => (
-            <PhaseSection
-              key={p.key}
-              phase={p}
-              isActive={activePhase === p.key}
-              currentDate={currentDate}
-              onToggle={() => onPhaseChange(activePhase === p.key ? null : p.key)}
-            />
-          ))}
+          {/* ── Phase sections ──────────────────────────────────────── */}
+          {PHASES.map(p => {
+            const taken = p.entries.filter(e => new Date(e.date + 'T00:00:00Z') <= currentDate).length
+            const pct   = (taken / p.entries.length) * 100
+            const onMap = isPhaseOnMap(p.key)
+
+            return (
+              <div
+                key={p.key}
+                style={{
+                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  borderLeft:   `3px solid ${onMap ? p.color : 'transparent'}`,
+                  transition:   'border-color 0.2s',
+                }}
+              >
+                {/* Phase header */}
+                <div className={`px-3.5 pt-2.5 pb-2 ${onMap ? 'bg-white/[0.015]' : ''}`}>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div
+                      className="w-7 h-7 rounded flex items-center justify-center shrink-0 text-[11px] font-mono font-black"
+                      style={{
+                        background: `${p.color}15`,
+                        border:     `1px solid ${p.color}35`,
+                        color:      p.color,
+                        boxShadow:  onMap ? `0 0 10px ${p.color}20` : 'none',
+                      }}
+                    >
+                      {p.roman}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[9px] font-mono font-bold text-slate-200 tracking-wider">{p.label}</div>
+                      <div className="text-[6.5px] font-mono text-slate-500">{p.sub}</div>
+                      <div className="text-[6px] font-mono text-slate-700 truncate mt-0.5">{p.actors}</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span
+                        className="text-[8px] font-mono font-bold"
+                        style={{ color: taken > 0 ? p.color : '#334155' }}
+                      >
+                        {taken}/{p.entries.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="h-0.5 bg-white/[0.05] rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%`, background: p.color, opacity: 0.6 }}
+                    />
+                  </div>
+                </div>
+
+                {/* Town list — always fully visible */}
+                <div
+                  className="max-h-48 overflow-y-auto"
+                  style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+                >
+                  {p.entries.map(e => (
+                    <TownRow key={e.townId} entry={e} currentDate={currentDate} />
+                  ))}
+                </div>
+              </div>
+            )
+          })}
 
           {/* Footer */}
-          <div className="px-4 py-2 flex items-center justify-between"
-               style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          <div
+            className="px-4 py-2 flex items-center justify-between"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+          >
             <span className="text-[6px] font-mono text-slate-700 uppercase tracking-widest">
-              Control reflects timeline date
+              Status reflects timeline
             </span>
-            <span className="text-[6px] font-mono text-slate-700">
-              polygon = territory
+            <span className="text-[6px] font-mono" style={{ color: PHASE_COLORS['combined'], opacity: 0.5 }}>
+              {totalTaken}/{totalEntries} total
             </span>
           </div>
         </div>
       )}
+
+      {/* ── Vertical tab strip ────────────────────────────────────────── */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex flex-col items-center pt-3 pb-4 gap-3 transition-all cursor-pointer"
+        style={{
+          width:        36,
+          minHeight:    200,
+          background:   open ? 'rgba(15,21,32,0.98)' : 'rgba(11,15,20,0.96)',
+          border:       `1px solid ${open ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.08)'}`,
+          borderRight:  'none',
+          borderRadius: '8px 0 0 8px',
+          backdropFilter: 'blur(8px)',
+          boxShadow:    '0 4px 24px rgba(0,0,0,0.4)',
+        }}
+      >
+        {/* Phase indicator dots */}
+        <div className="flex flex-col gap-2 pt-1">
+          {PHASES.map(p => (
+            <span
+              key={p.key}
+              className="w-2 h-2 rounded-full transition-all duration-300"
+              style={{
+                background: p.color,
+                opacity:    isPhaseOnMap(p.key) ? 1 : 0.22,
+                boxShadow:  isPhaseOnMap(p.key) ? `0 0 6px ${p.color}` : 'none',
+              }}
+            />
+          ))}
+          {/* Combined dot */}
+          <span
+            className="w-2 h-2 rounded-full transition-all duration-300"
+            style={{
+              background: PHASE_COLORS['combined'],
+              opacity:    activePhase === 'combined' ? 1 : 0.12,
+              boxShadow:  activePhase === 'combined' ? `0 0 6px ${PHASE_COLORS['combined']}` : 'none',
+            }}
+          />
+        </div>
+
+        {/* Divider */}
+        <div style={{ width: 16, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+
+        {/* Vertical label */}
+        <div className="flex-1 flex items-center justify-center">
+          <span
+            className="text-[7.5px] font-mono font-black tracking-[0.22em] whitespace-nowrap select-none"
+            style={{
+              writingMode: 'vertical-lr',
+              color:       open ? '#fbbf24' : '#475569',
+              transition:  'color 0.2s',
+            }}
+          >
+            OPERATION 1027
+          </span>
+        </div>
+
+        {/* Obj count */}
+        <div className="flex flex-col items-center gap-0.5">
+          <span
+            className="text-[7px] font-mono font-bold"
+            style={{ color: totalTaken > 0 ? '#64748b' : '#334155' }}
+          >
+            {totalTaken}
+          </span>
+          <span className="text-[5.5px] font-mono text-slate-700 leading-none">OBJ</span>
+        </div>
+
+        {/* Expand arrow */}
+        <div
+          className="text-[8px] font-mono transition-all duration-200"
+          style={{ color: open ? '#f59e0b' : '#334155' }}
+        >
+          {open ? '▶' : '◀'}
+        </div>
+      </button>
     </div>
   )
 }

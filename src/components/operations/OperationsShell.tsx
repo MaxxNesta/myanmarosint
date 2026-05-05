@@ -93,38 +93,40 @@ export default function OperationsShell() {
 
   const operationOverlay = useMemo((): GeoJSON.FeatureCollection | null => {
     if (!activePhase || !rawNeatogeo) return null
-    const names = PHASE_POLY_NAMES[activePhase] ?? []
-    const color = PHASE_COLORS[activePhase]
-    const features = (rawNeatogeo.features as Array<{
+    const geo = rawNeatogeo
+
+    function cleanRings(rings: number[][][]): number[][][] {
+      return rings
+        .map(ring => ring.filter(([lng, lat]) => !(lng === 0 && lat === 0)))
+        .filter(ring => ring.length >= 4)
+    }
+
+    type RawFeature = {
       type: string
       properties: { name?: string }
       geometry: { type: string; coordinates: unknown }
-    }>).filter(f =>
-      f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
-    ).filter(f =>
-      names.some(n => (f.properties.name ?? '').includes(n))
-    ).map(f => {
-      // Strip degenerate [0,0] vertices from polygon rings
-      function cleanRings(rings: number[][][]): number[][][] {
-        return rings.map(ring =>
-          ring.filter(([lng, lat]) => !(lng === 0 && lat === 0))
-        ).filter(ring => ring.length >= 4)
-      }
-      let geometry: GeoJSON.Geometry
-      if (f.geometry.type === 'Polygon') {
-        geometry = { type: 'Polygon', coordinates: cleanRings(f.geometry.coordinates as number[][][]) }
-      } else {
-        geometry = {
-          type: 'MultiPolygon',
-          coordinates: (f.geometry.coordinates as number[][][][]).map(poly => cleanRings(poly)),
-        }
-      }
-      return {
-        type: 'Feature' as const,
-        geometry,
-        properties: { overlayColor: color, name: f.properties.name ?? '' },
-      }
-    })
+    }
+
+    function extractFeatures(phaseKey: string): GeoJSON.Feature[] {
+      const names = PHASE_POLY_NAMES[phaseKey] ?? []
+      const color = PHASE_COLORS[phaseKey]
+      return (geo.features as RawFeature[])
+        .filter(f => f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+        .filter(f => names.some(n => (f.properties.name ?? '').includes(n)))
+        .map(f => {
+          const geometry: GeoJSON.Geometry = f.geometry.type === 'Polygon'
+            ? { type: 'Polygon', coordinates: cleanRings(f.geometry.coordinates as number[][][]) }
+            : { type: 'MultiPolygon', coordinates: (f.geometry.coordinates as number[][][][]).map(cleanRings) }
+          return {
+            type: 'Feature' as const,
+            geometry,
+            properties: { overlayColor: color, name: f.properties.name ?? '' },
+          }
+        })
+    }
+
+    const phaseKeys = activePhase === 'combined' ? ['1027-1', '1027-2'] : [activePhase]
+    const features  = phaseKeys.flatMap(extractFeatures)
     return { type: 'FeatureCollection', features }
   }, [activePhase, rawNeatogeo])
 
