@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { ACTORS, CAMPAIGNS, TOWN_CONTROL_EVENTS } from '@/lib/operations-data'
 import type { ActorId, Campaign, TownControlEvent } from '@/lib/operations-types'
 import type { ConflictEventDTO } from '@/lib/types'
+import { parseNeatogeo } from '@/lib/parse-neatogeo'
 import TimelineControl from './TimelineControl'
 import MomentumPanel from './MomentumPanel'
 
@@ -41,10 +42,10 @@ export default function OperationsShell() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/api/conflict-events?limit=5000&days=1825')
+    fetch('/data/neatogeo-myanmar.geojson')
       .then(r => r.json())
-      .then(d => {
-        const evts: ConflictEventDTO[] = d.events ?? []
+      .then(geojson => {
+        const evts: ConflictEventDTO[] = parseNeatogeo(geojson)
         setIncidents(evts)
         if (evts.length > 0) {
           const dates = evts.map(e => new Date(e.date as string).getTime()).filter(n => !isNaN(n))
