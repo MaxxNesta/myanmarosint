@@ -6,47 +6,97 @@ interface NeatogeoFeature {
   geometry: { type: string; coordinates: number[] }
 }
 
-// Rough bounding-box lookup for Myanmar states/regions
-function inferRegion(lat: number, lng: number): string {
-  if (lat > 23 && lng > 95.5 && lng < 98.5)                            return 'Kachin State'
-  if (lat > 20 && lat <= 26 && lng >= 92 && lng < 94.5)                return 'Chin State'
-  if (lat > 21 && lat <= 26 && lng >= 94.5 && lng < 96.5)              return 'Sagaing Region'
-  if (lat > 19 && lat <= 22 && lng >= 95 && lng < 97)                  return 'Mandalay Region'
-  if (lat > 18 && lat <= 21 && lng >= 93.5 && lng < 95.5)              return 'Magway Region'
-  if (lat > 16 && lat <= 18 && lng >= 95.5 && lng < 96.5)              return 'Yangon Region'
-  if (lat > 17 && lat <= 19 && lng >= 95 && lng < 97)                  return 'Bago Region'
-  if (lat > 15.5 && lat <= 17.5 && lng >= 94 && lng < 96.5)            return 'Ayeyarwady Region'
-  if (lat > 17 && lat <= 21.5 && lng >= 92 && lng < 95)                return 'Rakhine State'
-  if (lat > 18.5 && lat <= 19.5 && lng >= 96.5 && lng < 97.5)         return 'Kayah State'
-  if (lat > 15.5 && lat <= 18.5 && lng >= 97 && lng < 99)             return 'Kayin State'
-  if (lat > 15 && lat <= 17.5 && lng >= 96.5 && lng < 98)             return 'Mon State'
-  if (lat <= 16 && lng >= 97.5)                                         return 'Tanintharyi Region'
-  if (lat > 18 && lng >= 96.5)                                          return 'Shan State'
+// ── Domain → readable source name ───────────────────────────────────────────
+const DOMAIN_SOURCE: Record<string, string> = {
+  'narinjara.com':              'Narinjara',
+  'burmese.narinjara.com':      'Narinjara',
+  'myanmar-now.org':            'Myanmar Now',
+  'yktnews.com':                'YKT News',
+  'bnionline.net':              'BNI Online',
+  'kachinnews.com':             'Kachin News',
+  'burmese.kachinnews.com':     'Kachin News',
+  'irrawaddy.com':              'The Irrawaddy',
+  'burma.irrawaddy.com':        'The Irrawaddy',
+  'burmese.dvb.no':             'DVB',
+  'dvb.no':                     'DVB',
+  'eng.mizzima.com':            'Mizzima',
+  'mizzima.com':                'Mizzima',
+  'shannews.org':               'Shan News',
+  'burmese.shannews.org':       'Shan News',
+  'shwepheemyay.org':           'Shwe Phee Myay',
+  'khrg.org':                   'KHRG',
+  'kicnews.org':                'KIC News',
+  'rfa.org':                    'RFA',
+  'specialadvisorycouncil.org': 'SAC-M',
+  'pct.com.mm':                 'PCT Myanmar',
+  'tntynews.com':               'Tanintharyi News',
+  'mohingamatters.com':         'Mohinga Matters',
+  'x.com':                      'Twitter/X',
+  'twitter.com':                'Twitter/X',
+  't.me':                       'Telegram',
+}
+
+const SOCIAL = new Set(['x.com', 'twitter.com', 't.me', 'facebook.com'])
+
+export function extractSource(description: string): { sourceName: string; sourceUrl: string } {
+  const urls = (description.match(/https?:\/\/[^\s<>"']+/g) ?? [])
+    .map(u => u.replace(/[?&]_x_tr[^&\s]*/g, '').replace(/-com\.translate\.goog/, '.com'))
+
+  if (urls.length === 0) return { sourceName: 'Geoconfirmed', sourceUrl: '' }
+
+  // Prefer first non-social URL, fall back to first URL
+  const primary = urls.find(u => {
+    try { return !SOCIAL.has(new URL(u).hostname.replace(/^www\./, '')) }
+    catch { return false }
+  }) ?? urls[0]
+
+  let sourceName = 'Geoconfirmed'
+  try {
+    const host = new URL(primary).hostname.replace(/^www\./, '')
+    sourceName = DOMAIN_SOURCE[host]
+      ?? host.replace(/^burmese\./, '').replace(/\.(com|org|net|no|mm)$/, '')
+  } catch { /* keep default */ }
+
+  return { sourceName, sourceUrl: primary }
+}
+
+// ── Region inference (bounding box) ─────────────────────────────────────────
+export function inferRegion(lat: number, lng: number): string {
+  if (lat > 23 && lng > 95.5 && lng < 98.5)                   return 'Kachin State'
+  if (lat > 20 && lat <= 26 && lng >= 92 && lng < 94.5)        return 'Chin State'
+  if (lat > 21 && lat <= 26 && lng >= 94.5 && lng < 96.5)      return 'Sagaing Region'
+  if (lat > 19 && lat <= 22 && lng >= 95 && lng < 97)          return 'Mandalay Region'
+  if (lat > 18 && lat <= 21 && lng >= 93.5 && lng < 95.5)      return 'Magway Region'
+  if (lat > 16 && lat <= 18 && lng >= 95.5 && lng < 96.5)      return 'Yangon Region'
+  if (lat > 17 && lat <= 19 && lng >= 95 && lng < 97)          return 'Bago Region'
+  if (lat > 15.5 && lat <= 17.5 && lng >= 94 && lng < 96.5)    return 'Ayeyarwady Region'
+  if (lat > 17 && lat <= 21.5 && lng >= 92 && lng < 95)        return 'Rakhine State'
+  if (lat > 18.5 && lat <= 19.5 && lng >= 96.5 && lng < 97.5)  return 'Kayah State'
+  if (lat > 15.5 && lat <= 18.5 && lng >= 97 && lng < 99)      return 'Kayin State'
+  if (lat > 15 && lat <= 17.5 && lng >= 96.5 && lng < 98)      return 'Mon State'
+  if (lat <= 16 && lng >= 97.5)                                 return 'Tanintharyi Region'
+  if (lat > 18 && lng >= 96.5)                                  return 'Shan State'
   return 'Myanmar'
 }
 
-// Finds the first date-like pattern anywhere in a string
-function extractDateFromString(s: string): string | null {
-  // YYYY/MM/DD or YYYY-MM-DD (allow 1-2 digit day)
+// ── Date extraction ──────────────────────────────────────────────────────────
+export function extractDateISO(s: string): string | null {
   const full = s.match(/(\d{4})[\/\-](\d{2})[\/\-](\d{1,2})/)
   if (full) return `${full[1]}-${full[2]}-${full[3].padStart(2, '0')}`
-  // YYYY/MM or YYYY-MM (may be followed by non-digit junk like "..", "??")
   const partial = s.match(/(\d{4})[\/\-](\d{2})/)
   if (partial) return `${partial[1]}-${partial[2]}-01`
-  // Bare YYYY
   const year = s.match(/\b(\d{4})\b/)
   if (year && parseInt(year[1]) >= 2020 && parseInt(year[1]) <= 2026) return `${year[1]}-06-01`
   return null
 }
 
-// Split name into { actorRaw, date, location } regardless of separator style
-function parseName(name: string): { actorRaw: string; date: string; location: string } | null {
+// ── Name parsing ─────────────────────────────────────────────────────────────
+export function parseName(name: string): { actorRaw: string; date: string; location: string } | null {
   if (!name) return null
 
-  // Try ' - ' split first and look for a date in any segment
   const parts = name.split(' - ')
   for (let i = 0; i < parts.length; i++) {
-    const d = extractDateFromString(parts[i].trim())
+    const d = extractDateISO(parts[i].trim())
     if (d) {
       return {
         actorRaw: parts.slice(0, i).join(' - ').trim() || 'Unknown',
@@ -56,22 +106,23 @@ function parseName(name: string): { actorRaw: string; date: string; location: st
     }
   }
 
-  // No date in any ' - ' segment — try finding a date anywhere in the full string
-  // (handles "MNDAA- 2024/08/01 - Loc" or "PDF 2024/06/08 Loc")
-  const dateMatch = name.match(/(\d{4}[\/\-]\d{2}(?:[\/\-]\d{1,2})?)/)
-  if (dateMatch) {
-    const d = extractDateFromString(dateMatch[0])
+  const m = name.match(/(\d{4}[\/\-]\d{2}(?:[\/\-]\d{1,2})?)/)
+  if (m) {
+    const d = extractDateISO(m[0])
     if (d) {
-      const idx      = dateMatch.index!
-      const actorRaw = name.slice(0, idx).replace(/[\s\-]+$/, '').trim() || 'Unknown'
-      const location = name.slice(idx + dateMatch[0].length).replace(/^[\s\-]+/, '').trim()
-      return { actorRaw, date: d, location }
+      const idx = m.index!
+      return {
+        actorRaw: name.slice(0, idx).replace(/[\s\-]+$/, '').trim() || 'Unknown',
+        date:     d,
+        location: name.slice(idx + m[0].length).replace(/^[\s\-]+/, '').trim(),
+      }
     }
   }
 
-  return null // no date anywhere → skip (static position markers)
+  return null
 }
 
+// ── Event type inference ─────────────────────────────────────────────────────
 function inferEventType(actorRaw: string, location: string): ConflictEventType {
   const s = (actorRaw + ' ' + location).toLowerCase()
   if (s.includes('airstrike') || s.includes('air strike')) return 'AIRSTRIKE'
@@ -83,6 +134,7 @@ function inferEventType(actorRaw: string, location: string): ConflictEventType {
   return 'CLASH'
 }
 
+// ── Main parser ──────────────────────────────────────────────────────────────
 export function parseNeatogeo(geojson: { features: NeatogeoFeature[] }): ConflictEventDTO[] {
   const results: ConflictEventDTO[] = []
 
@@ -98,9 +150,7 @@ export function parseNeatogeo(geojson: { features: NeatogeoFeature[] }): Conflic
 
     const { actorRaw, date, location } = parsed
     const actorParts = actorRaw.split(/[\/\+]/).map(s => s.trim()).filter(Boolean)
-
-    const desc     = feat.properties.description || ''
-    const urlMatch = desc.match(/https?:\/\/[^\s<>"]+/)
+    const { sourceName, sourceUrl } = extractSource(feat.properties.description || '')
 
     results.push({
       id:            `neatogeo-${i}`,
@@ -118,8 +168,8 @@ export function parseNeatogeo(geojson: { features: NeatogeoFeature[] }): Conflic
       fatalities:    0,
       fatalitiesMin: 0,
       fatalitiesMax: 0,
-      sourceUrl:     urlMatch ? urlMatch[0] : '',
-      sourceName:    'neatogeo',
+      sourceUrl,
+      sourceName,
       biasFlag:      'neutral',
       confidence:    0.85,
     })
