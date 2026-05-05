@@ -26,7 +26,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   // ── Sagaing Region ────────────────────────────────────────────────────────
   { townId: 'shwepiyaye',  date: '2023-11-22', actor: 'PDF_NUG' },
   { townId: 'khampat',     date: '2023-11-07', actor: 'PDF_NUG' },
-  { townId: 'maw-luu',     date: '2023-12-13', actor: 'KIA'     },
+  { townId: 'maw-luu',     date: '2023-12-13', actor: 'PDF_NUG' }, // ABSDF + allied resistance
   { townId: 'pinlebu',     date: '2024-10-08', actor: 'PDF_NUG' },
   { townId: 'myothit',     date: '2024-05-11', actor: 'PDF_NUG' },
 
@@ -142,7 +142,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'falam',        date: '2024-07-01', actor: 'CNF'     }, // Chin Brotherhood advance
   { townId: 'hpasawng',     date: '2024-03-01', actor: 'KNPP'    }, // Karenni Kayah push
   { townId: 'tigyaing',     date: '2024-06-01', actor: 'PDF_NUG' }, // Sagaing PDF
-  { townId: 'indaw',        date: '2024-06-01', actor: 'PDF_NUG' }, // Sagaing PDF
+  { townId: 'indaw',        date: '2025-04-08', actor: 'PDF_NUG' }, // Sagaing PDF
   { townId: 'madaya',       date: '2024-11-01', actor: 'PDF_NUG' }, // Mandalay PDF advance
   { townId: 'kawlin',       date: '2023-12-01', actor: 'PDF_NUG' }, // Sagaing PDF
 
@@ -164,4 +164,5 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'kawlin',       date: '2026-01-31', actor: 'MILITARY' },
   { townId: 'falam',        date: '2026-04-25', actor: 'MILITARY' },
   { townId: 'indaw',        date: '2026-04-30', actor: 'MILITARY' },
+  { townId: 'maw-luu',     date: '2026-05-05', actor: 'MILITARY' }, // SAC recapture
 ]
