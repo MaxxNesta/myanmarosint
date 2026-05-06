@@ -5,32 +5,33 @@ import { ACTORS, TOWN_CONTROL_EVENTS } from '@/lib/operations-data'
 import type { ActorId } from '@/lib/operations-types'
 
 // ── Phase town data ───────────────────────────────────────────────────────────
-interface PhaseEntry { townId: string; town: string; date: string; actor: ActorId }
+// flyId: slug from myanmar-cities.json when it differs from townId used for control-event lookup
+interface PhaseEntry { townId: string; town: string; date: string; actor: ActorId; flyId?: string }
 
 const PHASE1: PhaseEntry[] = [
   { townId: 'chinshwehaw', town: 'Chinshwehaw', date: '2023-10-27', actor: 'MNDAA' },
-  { townId: 'hpawngsheng', town: 'Hpawngsheng', date: '2023-11-02', actor: 'MNDAA' },
-  { townId: 'kyukoke',     town: 'Kyukoke',     date: '2023-11-02', actor: 'MNDAA' },
+  { townId: 'hpawngsheng', town: 'Hpawngsheng', date: '2023-11-02', actor: 'MNDAA', flyId: 'pang-hseng-kyu-koke' },
+  { townId: 'kyukoke',     town: 'Kyukoke',     date: '2023-11-02', actor: 'MNDAA', flyId: 'pang-hseng-kyu-koke' },
   { townId: 'theinni',     town: 'Theinni',     date: '2023-11-02', actor: 'MNDAA' },
   { townId: 'monekoe',     town: 'Mong Ko',     date: '2023-11-07', actor: 'MNDAA' },
   { townId: 'kunlong',     town: 'Kunlong',     date: '2023-11-12', actor: 'MNDAA' },
-  { townId: 'kongeyan',    town: 'Kongeyan',    date: '2023-11-28', actor: 'MNDAA' },
+  { townId: 'kongeyan',    town: 'Konkyan',     date: '2023-11-28', actor: 'MNDAA', flyId: 'konkyan' },
   { townId: 'monglon',     town: 'Monglon',     date: '2023-12-05', actor: 'TNLA'  },
-  { townId: 'manhsan',     town: 'Namhsan',     date: '2023-12-15', actor: 'TNLA'  },
-  { townId: 'namkham',     town: 'Namkham',     date: '2023-12-18', actor: 'TNLA'  },
-  { townId: 'mantong',     town: 'Mantong',     date: '2023-12-22', actor: 'TNLA'  },
+  { townId: 'manhsan',     town: 'Namhsan',     date: '2023-12-15', actor: 'TNLA',  flyId: 'namhsan' },
+  { townId: 'namkham',     town: 'Namhkan',     date: '2023-12-18', actor: 'TNLA',  flyId: 'namhkan' },
+  { townId: 'mantong',     town: 'Manton',      date: '2023-12-22', actor: 'TNLA',  flyId: 'manton'  },
   { townId: 'kutkai',      town: 'Kutkai',      date: '2024-01-07', actor: 'MNDAA' },
   { townId: 'hopang',      town: 'Hopang',      date: '2024-01-10', actor: 'UWSA'  },
-  { townId: 'mahein',      town: 'Mahein',      date: '2024-01-21', actor: 'KIA'   },
+  { townId: 'mahein',      town: 'Mabein',      date: '2024-01-21', actor: 'KIA',   flyId: 'mabein'  },
 ]
 
 const PHASE2: PhaseEntry[] = [
-  { townId: 'nawnghkio',   town: 'Nawnghkio',  date: '2024-06-26', actor: 'TNLA'    },
-  { townId: 'lailempi',    town: 'Lailempi',   date: '2024-07-11', actor: 'AA'      },
+  { townId: 'nawnghkio',   town: 'Nawnghkio',   date: '2024-06-26', actor: 'TNLA'    },
+  { townId: 'lailempi',    town: 'Lailempi',    date: '2024-07-11', actor: 'AA'      },
   { townId: 'thandwe',     town: 'Thandwe',     date: '2024-07-16', actor: 'AA'      },
   { townId: 'mongmit',     town: 'Mongmit',     date: '2024-07-16', actor: 'TNLA'    },
   { townId: 'singu',       town: 'Singu',       date: '2024-07-17', actor: 'PDF_NUG' },
-  { townId: 'mogok',       town: 'Mogok',       date: '2024-07-24', actor: 'TNLA'    },
+  { townId: 'mogok',       town: 'Mogok',       date: '2024-07-24', actor: 'TNLA',    flyId: 'mogoke' },
   { townId: 'lashio',      town: 'Lashio',      date: '2024-07-25', actor: 'MNDAA'   },
   { townId: 'kyaukme',     town: 'Kyaukme',     date: '2024-08-06', actor: 'TNLA'    },
   { townId: 'nyaphu',      town: 'Nyaphu',      date: '2024-08-12', actor: 'UNKNOWN' },
@@ -123,7 +124,7 @@ function TownRow({ entry, effectiveDate, onTownClick }: {
 
   return (
     <button
-      onClick={() => onTownClick(entry.townId)}
+      onClick={() => onTownClick(entry.flyId ?? entry.townId)}
       className="w-full flex items-center gap-2 px-3.5 py-1.5 border-b border-white/[0.03] text-left hover:bg-white/[0.04] transition-colors cursor-pointer"
     >
       <span

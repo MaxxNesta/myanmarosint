@@ -94,9 +94,11 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'hopang',       date: '2024-01-10', actor: 'UWSA'  }, // 3BA seized 5 Jan, handed to UWSA 10 Jan
   { townId: 'panglong',     date: '2024-01-10', actor: 'UWSA'  }, // same handover
   { townId: 'kongeyan',     date: '2023-11-28', actor: 'MNDAA' },
+  { townId: 'konkyan',      date: '2023-11-28', actor: 'MNDAA' }, // MIMU: Konkyan
   { townId: 'monglon',      date: '2023-12-05', actor: 'TNLA'  },
   { townId: 'kutkai',       date: '2024-01-07', actor: 'MNDAA' },
   { townId: 'mahein',       date: '2024-01-21', actor: 'KIA'   },
+  { townId: 'mabein',       date: '2024-01-21', actor: 'KIA'   }, // MIMU: Mabein
   { townId: 'nawnghkio',    date: '2024-06-26', actor: 'TNLA'  },
   { townId: 'mongmit',      date: '2024-07-16', actor: 'TNLA'  },
   { townId: 'lashio',       date: '2024-07-25', actor: 'MNDAA' },
