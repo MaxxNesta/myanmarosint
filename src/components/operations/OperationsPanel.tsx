@@ -12,7 +12,7 @@ const PHASE1: PhaseEntry[] = [
   { townId: 'chinshwehaw', town: 'Chinshwehaw', date: '2023-10-27', actor: 'MNDAA' },
   { townId: 'hpawngsheng', town: 'Hpawngsheng', date: '2023-11-02', actor: 'MNDAA', flyId: 'pang-hseng-kyu-koke' },
   { townId: 'kyukoke',     town: 'Kyukoke',     date: '2023-11-02', actor: 'MNDAA', flyId: 'pang-hseng-kyu-koke' },
-  { townId: 'hseinni',     town: 'Hseinni',     date: '2023-11-02', actor: 'MNDAA' },
+  { townId: 'hseinni',     town: 'Hseni',       date: '2023-11-02', actor: 'MNDAA' },
   { townId: 'monekoe',     town: 'Mong Ko',     date: '2023-11-07', actor: 'MNDAA' },
   { townId: 'kunlong',     town: 'Kunlong',     date: '2023-11-12', actor: 'MNDAA' },
   { townId: 'kongeyan',    town: 'Konkyan',     date: '2023-11-28', actor: 'MNDAA', flyId: 'konkyan' },
@@ -158,11 +158,6 @@ function TownRow({ entry, effectiveDate, onTownClick }: {
 export default function OperationsPanel({ currentDate, activePhase, onPhaseChange, onTownClick }: Props) {
   const [open, setOpen] = useState(false)
 
-  const totalTaken = useMemo(() =>
-    PHASES.reduce((sum, p) =>
-      sum + p.entries.filter(e => new Date(e.date + 'T00:00:00Z') <= currentDate).length, 0),
-    [currentDate],
-  )
   const totalEntries = PHASES.reduce((s, p) => s + p.entries.length, 0)
 
   function handlePhaseToggle(key: string) {
@@ -254,8 +249,8 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
 
           {/* ── Phase sections ──────────────────────────────────────── */}
           {PHASES.map(p => {
-            // Cap status at phase end so post-phase SAC recaptures don't override Op 1027 record
-            const effectiveDate = currentDate > p.phaseEnd ? p.phaseEnd : currentDate
+            // Always show the completed operation record frozen at phase end
+            const effectiveDate = p.phaseEnd
             const taken = p.entries.filter(e => new Date(e.date + 'T00:00:00Z') <= effectiveDate).length
             const pct   = (taken / p.entries.length) * 100
             const onMap = isPhaseOnMap(p.key)
@@ -326,10 +321,10 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
             style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
           >
             <span className="text-[6px] font-mono text-slate-700 uppercase tracking-widest">
-              Status reflects timeline
+              Historical record · Op 1027
             </span>
             <span className="text-[6px] font-mono" style={{ color: PHASE_COLORS['combined'], opacity: 0.5 }}>
-              {totalTaken}/{totalEntries} total
+              {totalEntries}/{totalEntries} total
             </span>
           </div>
         </div>
@@ -397,9 +392,9 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
         <div className="flex flex-col items-center gap-0.5">
           <span
             className="text-[7px] font-mono font-bold"
-            style={{ color: totalTaken > 0 ? '#94a3b8' : '#475569' }}
+            style={{ color: totalEntries > 0 ? '#94a3b8' : '#475569' }}
           >
-            {totalTaken}
+            {totalEntries}
           </span>
           <span className="text-[5.5px] font-mono text-slate-500 leading-none">OBJ</span>
         </div>
