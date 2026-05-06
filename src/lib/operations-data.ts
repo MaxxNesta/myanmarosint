@@ -110,6 +110,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   // ── Mandalay Region ───────────────────────────────────────────────────────
   { townId: 'tagauging',    date: '2024-08-12', actor: 'PDF_NUG' },
   { townId: 'takaung',      date: '2024-08-12', actor: 'PDF_NUG' }, // MIMU: Takaung
+  { townId: 'takaung',      date: '2026-03-12', actor: 'MILITARY' }, // SAC recapture Mar 2026
   { townId: 'mogok',        date: '2024-07-24', actor: 'TNLA'    },
   { townId: 'mogoke',       date: '2024-07-24', actor: 'TNLA'    }, // MIMU: Mogoke
   { townId: 'thabeikkyin',  date: '2024-08-25', actor: 'PDF_NUG' },
