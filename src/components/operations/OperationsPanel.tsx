@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { ACTORS, TOWN_CONTROL_EVENTS } from '@/lib/operations-data'
 import type { ActorId } from '@/lib/operations-types'
 
@@ -12,7 +12,7 @@ const PHASE1: PhaseEntry[] = [
   { townId: 'chinshwehaw', town: 'Chinshwehaw', date: '2023-10-27', actor: 'MNDAA' },
   { townId: 'hpawngsheng', town: 'Hpawngsheng', date: '2023-11-02', actor: 'MNDAA', flyId: 'pang-hseng-kyu-koke' },
   { townId: 'kyukoke',     town: 'Kyukoke',     date: '2023-11-02', actor: 'MNDAA', flyId: 'pang-hseng-kyu-koke' },
-  { townId: 'hseinni',     town: 'Hseni',       date: '2023-11-02', actor: 'MNDAA' },
+  { townId: 'hseinni',     town: 'Hseni',       date: '2023-11-02', actor: 'MNDAA', flyId: 'hseni' },
   { townId: 'monekoe',     town: 'Mong Ko',     date: '2023-11-07', actor: 'MNDAA' },
   { townId: 'kunlong',     town: 'Kunlong',     date: '2023-11-12', actor: 'MNDAA' },
   { townId: 'kongeyan',    town: 'Konkyan',     date: '2023-11-28', actor: 'MNDAA', flyId: 'konkyan' },
@@ -173,14 +173,16 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
       {/* ── Panel content ─────────────────────────────────────────────── */}
       {open && (
         <div
-          className="overflow-hidden shadow-2xl"
+          className="flex flex-col shadow-2xl"
           style={{
-            width: 288,
+            width:          288,
+            maxHeight:      'calc(100vh - 220px)',
             background:     'rgba(11,15,20,0.98)',
             backdropFilter: 'blur(12px)',
             border:         '1px solid rgba(255,255,255,0.09)',
             borderRight:    'none',
             borderRadius:   '0 0 0 8px',
+            overflowY:      'auto',
           }}
         >
           {/* ── Operation masthead ──────────────────────────────────── */}
