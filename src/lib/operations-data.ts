@@ -83,6 +83,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'hpawngsheng',  date: '2023-11-02', actor: 'MNDAA' },
   { townId: 'kyukoke',      date: '2023-11-02', actor: 'MNDAA' },
   { townId: 'theinni',      date: '2023-11-02', actor: 'MNDAA' },
+  { townId: 'hseinni',      date: '2023-11-02', actor: 'MNDAA' }, // MIMU: Hseinni
   { townId: 'monekoe',      date: '2023-11-07', actor: 'MNDAA' },
   { townId: 'kunlong',      date: '2023-11-12', actor: 'MNDAA' },
   { townId: 'manhsan',      date: '2023-12-15', actor: 'TNLA'  },
@@ -108,6 +109,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
 
   // ── Mandalay Region ───────────────────────────────────────────────────────
   { townId: 'tagauging',    date: '2024-08-12', actor: 'PDF_NUG' },
+  { townId: 'takaung',      date: '2024-08-12', actor: 'PDF_NUG' }, // MIMU: Takaung
   { townId: 'mogok',        date: '2024-07-24', actor: 'TNLA'    },
   { townId: 'mogoke',       date: '2024-07-24', actor: 'TNLA'    }, // MIMU: Mogoke
   { townId: 'thabeikkyin',  date: '2024-08-25', actor: 'PDF_NUG' },
