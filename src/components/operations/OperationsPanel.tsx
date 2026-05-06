@@ -54,7 +54,8 @@ export const PHASE_POLY_NAMES: Record<string, string[]> = {
     'Shan State - Muse',
   ],
   '1027-2': [
-    'Shan State - Lashio',
+    'Op. 1027 Part 2',
+    "TNLA - Ta'ang National Liberation Army",
     'PDF - Mandalay',
     'PDF - Sagaing, Tagaung Taung',
   ],
