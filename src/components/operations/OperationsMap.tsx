@@ -14,6 +14,7 @@ interface Props {
   incidents:        ConflictEventDTO[]
   actorFilter:      Set<ActorId>
   operationOverlay: GeoJSON.FeatureCollection | null
+  flyToTown:        string | null
 }
 
 interface TownshipEntry {
@@ -167,7 +168,7 @@ function campaignPopupHTML(campaign: Campaign, fromCity: MyanmarCity, toCity: My
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 export default function OperationsMap({
-  currentDate, campaigns, controlEvents, incidents, actorFilter, operationOverlay,
+  currentDate, campaigns, controlEvents, incidents, actorFilter, operationOverlay, flyToTown,
 }: Props) {
   const containerRef        = useRef<HTMLDivElement>(null)
   const mapRef              = useRef<mapboxgl.Map | null>(null)
@@ -193,6 +194,14 @@ export default function OperationsMap({
   useEffect(() => { incidentsRef.current        = incidents        }, [incidents])
   useEffect(() => { actorFilterRef.current      = actorFilter      }, [actorFilter])
   useEffect(() => { operationOverlayRef.current = operationOverlay }, [operationOverlay])
+
+  // Fly to a town by id when requested from the operations panel
+  useEffect(() => {
+    if (!flyToTown || !readyRef.current) return
+    const town = townsRef.current.find(t => t.id === flyToTown)
+    if (!town) return
+    mapRef.current?.flyTo({ center: [town.lng, town.lat], zoom: 11, duration: 1200, essential: true })
+  }, [flyToTown])
 
   // Update op-overlay source whenever the overlay changes
   useEffect(() => {

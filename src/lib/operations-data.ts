@@ -101,6 +101,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'mongmit',      date: '2024-07-16', actor: 'TNLA'  },
   { townId: 'lashio',       date: '2024-07-25', actor: 'MNDAA' },
   { townId: 'kyaukme',      date: '2024-08-06', actor: 'TNLA'  },
+  { townId: 'naungcho',     date: '2024-08-19', actor: 'TNLA'  },
   { townId: 'nyaphu',       date: '2024-08-12', actor: 'UNKNOWN'},
 
   // ── Mandalay Region ───────────────────────────────────────────────────────

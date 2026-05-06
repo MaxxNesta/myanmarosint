@@ -39,6 +39,7 @@ export default function OperationsShell() {
   const [legendOpen,       setLegendOpen]   = useState(false)
   const [activePhase,      setActivePhase]  = useState<string | null>(null)
   const [rawNeatogeo,      setRawNeatogeo]  = useState<{ features: unknown[] } | null>(null)
+  const [flyToTown,        setFlyToTown]    = useState<string | null>(null)
 
   const campaigns:    Campaign[]         = CAMPAIGNS
   const controlEvents: TownControlEvent[] = TOWN_CONTROL_EVENTS
@@ -192,6 +193,7 @@ export default function OperationsShell() {
           incidents={incidents}
           actorFilter={actorFilter}
           operationOverlay={operationOverlay}
+          flyToTown={flyToTown}
         />
 
         {/* ── Momentum Panel (top-left) ────────────────────────────── */}
@@ -250,6 +252,7 @@ export default function OperationsShell() {
           currentDate={currentDate}
           activePhase={activePhase}
           onPhaseChange={setActivePhase}
+          onTownClick={setFlyToTown}
         />
 
         {/* ── Date overlay (top-right) ─────────────────────────────── */}

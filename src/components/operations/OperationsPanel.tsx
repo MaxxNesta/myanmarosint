@@ -26,23 +26,24 @@ const PHASE1: PhaseEntry[] = [
 
 const PHASE2: PhaseEntry[] = [
   { townId: 'nawnghkio',   town: 'Nawnghkio',  date: '2024-06-26', actor: 'TNLA'    },
-  { townId: 'lailempi',    town: 'Lailempi',   date: '2024-07-11', actor: 'AA'      }, // AA — Chin/Rakhine border
-  { townId: 'singu',       town: 'Singu',       date: '2024-07-17', actor: 'PDF_NUG' },
-  { townId: 'thandwe',     town: 'Thandwe',     date: '2024-07-16', actor: 'AA'      }, // AA — Rakhine
+  { townId: 'lailempi',    town: 'Lailempi',   date: '2024-07-11', actor: 'AA'      },
+  { townId: 'thandwe',     town: 'Thandwe',     date: '2024-07-16', actor: 'AA'      },
   { townId: 'mongmit',     town: 'Mongmit',     date: '2024-07-16', actor: 'TNLA'    },
+  { townId: 'singu',       town: 'Singu',       date: '2024-07-17', actor: 'PDF_NUG' },
   { townId: 'mogok',       town: 'Mogok',       date: '2024-07-24', actor: 'TNLA'    },
   { townId: 'lashio',      town: 'Lashio',      date: '2024-07-25', actor: 'MNDAA'   },
   { townId: 'kyaukme',     town: 'Kyaukme',     date: '2024-08-06', actor: 'TNLA'    },
   { townId: 'nyaphu',      town: 'Nyaphu',      date: '2024-08-12', actor: 'UNKNOWN' },
   { townId: 'tagauging',   town: 'Tagaung',     date: '2024-08-12', actor: 'PDF_NUG' },
-  { townId: 'kyeintali',   town: 'Kyeintali',   date: '2024-08-14', actor: 'AA'      }, // AA — Rakhine
+  { townId: 'kyeintali',   town: 'Kyeintali',   date: '2024-08-14', actor: 'AA'      },
+  { townId: 'naungcho',    town: 'Naungcho',    date: '2024-08-19', actor: 'TNLA'    },
   { townId: 'thabeikkyin', town: 'Thabeikkyin', date: '2024-08-25', actor: 'PDF_NUG' },
   { townId: 'hsipaw',      town: 'Hsipaw',      date: '2024-09-15', actor: 'TNLA'    },
 ]
 
 export const PHASE_COLORS: Record<string, string> = {
   '1027-1':   '#f97316',
-  '1027-2':   '#06b6d4',
+  '1027-2':   '#ef4444',
   'combined': '#a78bfa',
 }
 
@@ -73,13 +74,14 @@ function fmtDate(iso: string) {
 }
 
 interface PhaseData {
-  key:     string
-  roman:   string
-  label:   string
-  sub:     string
-  entries: PhaseEntry[]
-  color:   string
-  actors:  string
+  key:        string
+  roman:      string
+  label:      string
+  sub:        string
+  entries:    PhaseEntry[]
+  color:      string
+  actors:     string
+  phaseEnd:   Date
 }
 
 const PHASES: PhaseData[] = [
@@ -89,6 +91,7 @@ const PHASES: PhaseData[] = [
     entries: PHASE1,
     color: PHASE_COLORS['1027-1'],
     actors: 'MNDAA · TNLA · UWSA · KIA',
+    phaseEnd: new Date('2024-01-31T23:59:59Z'),
   },
   {
     key: '1027-2', roman: 'II', label: 'PHASE II',
@@ -96,6 +99,7 @@ const PHASES: PhaseData[] = [
     entries: PHASE2,
     color: PHASE_COLORS['1027-2'],
     actors: 'MNDAA · TNLA · AA · PDF/NUG',
+    phaseEnd: new Date('2024-09-30T23:59:59Z'),
   },
 ]
 
@@ -103,17 +107,24 @@ interface Props {
   currentDate:   Date
   activePhase:   string | null
   onPhaseChange: (phase: string | null) => void
+  onTownClick:   (townId: string) => void
 }
 
-function TownRow({ entry, currentDate }: { entry: PhaseEntry; currentDate: Date }) {
+function TownRow({ entry, effectiveDate, onTownClick }: {
+  entry:       PhaseEntry
+  effectiveDate: Date
+  onTownClick: (townId: string) => void
+}) {
   const captureDate = new Date(entry.date + 'T00:00:00Z')
-  const captured    = captureDate <= currentDate
-  const ctrl        = captured ? getCurrentControl(entry.townId, currentDate) : null
+  const captured    = captureDate <= effectiveDate
+  const ctrl        = captured ? getCurrentControl(entry.townId, effectiveDate) : null
   const ctrlActor   = ctrl ? ACTORS[ctrl.actor] ?? ACTORS.UNKNOWN : null
   const capActor    = ACTORS[entry.actor] ?? ACTORS.UNKNOWN
 
   return (
-    <div className="flex items-center gap-2 px-3.5 py-1.5 border-b border-white/[0.03]">
+    <button
+      onClick={() => onTownClick(entry.townId)}
+      className="w-full flex items-center gap-2 px-3.5 py-1.5 border-b border-white/[0.03] text-left hover:bg-white/[0.04] transition-colors cursor-pointer"
       <span
         className="w-1.5 h-1.5 rounded-full shrink-0"
         style={{ background: capActor.color, opacity: captured ? 1 : 0.3 }}
@@ -138,11 +149,11 @@ function TownRow({ entry, currentDate }: { entry: PhaseEntry; currentDate: Date 
           </span>
         )}
       </div>
-    </div>
+    </button>
   )
 }
 
-export default function OperationsPanel({ currentDate, activePhase, onPhaseChange }: Props) {
+export default function OperationsPanel({ currentDate, activePhase, onPhaseChange, onTownClick }: Props) {
   const [open, setOpen] = useState(false)
 
   const totalTaken = useMemo(() =>
@@ -160,7 +171,7 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
     activePhase === key || activePhase === 'combined'
 
   return (
-    <div className="absolute top-14 right-0 z-20 flex items-start">
+    <div className="absolute top-[108px] right-0 z-20 flex items-start">
 
       {/* ── Panel content ─────────────────────────────────────────────── */}
       {open && (
@@ -241,7 +252,9 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
 
           {/* ── Phase sections ──────────────────────────────────────── */}
           {PHASES.map(p => {
-            const taken = p.entries.filter(e => new Date(e.date + 'T00:00:00Z') <= currentDate).length
+            // Cap status at phase end so post-phase SAC recaptures don't override Op 1027 record
+            const effectiveDate = currentDate > p.phaseEnd ? p.phaseEnd : currentDate
+            const taken = p.entries.filter(e => new Date(e.date + 'T00:00:00Z') <= effectiveDate).length
             const pct   = (taken / p.entries.length) * 100
             const onMap = isPhaseOnMap(p.key)
 
@@ -298,7 +311,7 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
                   style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
                 >
                   {p.entries.map(e => (
-                    <TownRow key={e.townId} entry={e} currentDate={currentDate} />
+                    <TownRow key={e.townId} entry={e} effectiveDate={effectiveDate} onTownClick={onTownClick} />
                   ))}
                 </div>
               </div>
@@ -327,12 +340,14 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
         style={{
           width:        36,
           minHeight:    200,
-          background:   open ? 'rgba(15,21,32,0.98)' : 'rgba(11,15,20,0.96)',
-          border:       `1px solid ${open ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.08)'}`,
+          background:   open ? 'rgba(30,41,59,0.97)' : 'rgba(15,23,42,0.93)',
+          border:       `1px solid ${open ? 'rgba(245,158,11,0.35)' : 'rgba(255,255,255,0.22)'}`,
           borderRight:  'none',
           borderRadius: '8px 0 0 8px',
-          backdropFilter: 'blur(8px)',
-          boxShadow:    '0 4px 24px rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(10px)',
+          boxShadow:    open
+            ? '0 4px 24px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.04)'
+            : '0 4px 20px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.04)',
         }}
       >
         {/* Phase indicator dots */}
@@ -343,7 +358,7 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
               className="w-2 h-2 rounded-full transition-all duration-300"
               style={{
                 background: p.color,
-                opacity:    isPhaseOnMap(p.key) ? 1 : 0.22,
+                opacity:    isPhaseOnMap(p.key) ? 1 : 0.5,
                 boxShadow:  isPhaseOnMap(p.key) ? `0 0 6px ${p.color}` : 'none',
               }}
             />
@@ -353,14 +368,14 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
             className="w-2 h-2 rounded-full transition-all duration-300"
             style={{
               background: PHASE_COLORS['combined'],
-              opacity:    activePhase === 'combined' ? 1 : 0.12,
+              opacity:    activePhase === 'combined' ? 1 : 0.35,
               boxShadow:  activePhase === 'combined' ? `0 0 6px ${PHASE_COLORS['combined']}` : 'none',
             }}
           />
         </div>
 
         {/* Divider */}
-        <div style={{ width: 16, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+        <div style={{ width: 18, height: 1, background: 'rgba(255,255,255,0.15)' }} />
 
         {/* Vertical label */}
         <div className="flex-1 flex items-center justify-center">
@@ -368,7 +383,7 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
             className="text-[7.5px] font-mono font-black tracking-[0.22em] whitespace-nowrap select-none"
             style={{
               writingMode: 'vertical-lr',
-              color:       open ? '#fbbf24' : '#475569',
+              color:       open ? '#fbbf24' : '#cbd5e1',
               transition:  'color 0.2s',
             }}
           >
@@ -380,17 +395,17 @@ export default function OperationsPanel({ currentDate, activePhase, onPhaseChang
         <div className="flex flex-col items-center gap-0.5">
           <span
             className="text-[7px] font-mono font-bold"
-            style={{ color: totalTaken > 0 ? '#64748b' : '#334155' }}
+            style={{ color: totalTaken > 0 ? '#94a3b8' : '#475569' }}
           >
             {totalTaken}
           </span>
-          <span className="text-[5.5px] font-mono text-slate-700 leading-none">OBJ</span>
+          <span className="text-[5.5px] font-mono text-slate-500 leading-none">OBJ</span>
         </div>
 
         {/* Expand arrow */}
         <div
           className="text-[8px] font-mono transition-all duration-200"
-          style={{ color: open ? '#f59e0b' : '#334155' }}
+          style={{ color: open ? '#f59e0b' : '#94a3b8' }}
         >
           {open ? '▶' : '◀'}
         </div>
