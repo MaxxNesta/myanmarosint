@@ -125,6 +125,7 @@ function TownRow({ entry, effectiveDate, onTownClick }: {
     <button
       onClick={() => onTownClick(entry.townId)}
       className="w-full flex items-center gap-2 px-3.5 py-1.5 border-b border-white/[0.03] text-left hover:bg-white/[0.04] transition-colors cursor-pointer"
+    >
       <span
         className="w-1.5 h-1.5 rounded-full shrink-0"
         style={{ background: capActor.color, opacity: captured ? 1 : 0.3 }}
