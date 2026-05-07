@@ -156,8 +156,7 @@ function conflictPopupHTML(p: Record<string, unknown>): string {
 }
 
 // Mapbox match expression colors for all ConflictEventType values
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CONFLICT_COLOR_EXPR = [
+const CONFLICT_COLOR_EXPR: any = [
   'match', ['get', 'eventType'],
   'CLASH',                 '#ef4444',
   'AIRSTRIKE',             '#f97316',
@@ -173,8 +172,7 @@ const CONFLICT_COLOR_EXPR = [
   'HUMANITARIAN_CRISIS',   '#06b6d4',
   'POLITICAL_DEVELOPMENT', '#8b5cf6',
   '#94a3b8',
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-] as any
+]
 
 export default function MapView({ events, conflictEvents, showHeatmap, showConflict, sidebarOpen }: Props) {
   const containerRef        = useRef<HTMLDivElement>(null)
@@ -350,7 +348,7 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
     src?.setData(conflictToGeoJSON(conflictEvents))
   }, [conflictEvents])
 
-  // ── Toggle heatmap ────────────────────────────────────
+  // ── Toggle heatmap ────────────────────────────��───────
   useEffect(() => {
     if (!mapReadyRef.current) return
     const map = mapRef.current!

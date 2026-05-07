@@ -37,6 +37,7 @@
     "@turf/length": "^7.3.5",
     "@turf/turf": "^7.3.5",
     "@types/ws": "^8.18.1",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "jspdf": "^4.2.1",
