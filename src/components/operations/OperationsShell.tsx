@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
+import { jsPDF } from 'jspdf'
 import { ACTORS, CAMPAIGNS, TOWN_CONTROL_EVENTS } from '@/lib/operations-data'
 import type { ActorId, Campaign, TownControlEvent } from '@/lib/operations-types'
 import type { ConflictEventDTO } from '@/lib/types'
@@ -40,6 +41,74 @@ export default function OperationsShell() {
   const [activePhase,      setActivePhase]  = useState<string | null>(null)
   const [rawNeatogeo,      setRawNeatogeo]  = useState<{ features: unknown[] } | null>(null)
   const [flyToTown,        setFlyToTown]    = useState<string | null>(null)
+  const [exportOpen,       setExportOpen]   = useState(false)
+
+  const canvasRef = useRef<(() => HTMLCanvasElement | null) | null>(null)
+
+  const exportPNG = useCallback(() => {
+    const canvas = canvasRef.current?.()
+    if (!canvas) return
+    const link = document.createElement('a')
+    link.download = `myanmar-ops-${currentDate.toISOString().slice(0, 10)}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    setExportOpen(false)
+  }, [currentDate])
+
+  const exportPDF = useCallback(() => {
+    const canvas = canvasRef.current?.()
+    if (!canvas) return
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+    const W = 297, H = 210
+    const mapH = H * 0.72
+
+    // Header bar
+    pdf.setFillColor(10, 14, 20)
+    pdf.rect(0, 0, W, H, 'F')
+    pdf.setFillColor(15, 23, 42)
+    pdf.rect(0, 0, W, 14, 'F')
+
+    pdf.setTextColor(239, 68, 68)
+    pdf.setFontSize(9)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('MYANMAR CONFLICT OPERATIONS REPORT', 10, 9)
+
+    pdf.setTextColor(100, 116, 139)
+    pdf.setFontSize(7)
+    pdf.setFont('helvetica', 'normal')
+    pdf.text(`DATE: ${currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}`, W - 10, 9, { align: 'right' })
+    pdf.text('CLASSIFICATION: OSINT / UNCLASSIFIED', W / 2, 9, { align: 'center' })
+
+    // Map image
+    pdf.addImage(imgData, 'PNG', 0, 14, W, mapH)
+
+    // Stats bar
+    const sy = 14 + mapH + 2
+    const stats = [
+      { label: 'TOTAL EVENTS', value: incidents.filter(e => new Date(e.date as string) <= currentDate).length.toLocaleString() },
+      { label: '30-DAY EVENTS', value: incidents.filter(e => { const d = new Date(e.date as string); return d <= currentDate && (currentDate.getTime() - d.getTime()) < 30 * 86400000 }).length.toString() },
+      { label: '30-DAY KIA', value: incidents.filter(e => { const d = new Date(e.date as string); return d <= currentDate && (currentDate.getTime() - d.getTime()) < 30 * 86400000 }).reduce((s, e) => s + (e.fatalities ?? 0), 0).toString() },
+      { label: 'SOURCE', value: 'ACLED / NEATOGEO OSINT' },
+    ]
+    const colW = W / stats.length
+    stats.forEach(({ label, value }, i) => {
+      const x = i * colW + 4
+      pdf.setFillColor(15, 23, 42)
+      pdf.rect(i * colW, sy - 1, colW - 1, H - sy + 1, 'F')
+      pdf.setTextColor(100, 116, 139)
+      pdf.setFontSize(5.5)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(label, x, sy + 4)
+      pdf.setTextColor(226, 232, 240)
+      pdf.setFontSize(9)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text(value, x, sy + 10)
+    })
+
+    pdf.save(`myanmar-ops-${currentDate.toISOString().slice(0, 10)}.pdf`)
+    setExportOpen(false)
+  }, [currentDate, incidents])
 
   const campaigns:    Campaign[]         = CAMPAIGNS
   const controlEvents: TownControlEvent[] = TOWN_CONTROL_EVENTS
@@ -189,6 +258,32 @@ export default function OperationsShell() {
         {incidentsLoading && (
           <div className="w-3 h-3 border border-blue-500/30 border-t-blue-500 rounded-full animate-spin shrink-0 ml-auto" />
         )}
+
+        {/* Export button */}
+        <div className="relative ml-auto shrink-0">
+          <button
+            onClick={() => setExportOpen(v => !v)}
+            className="flex items-center gap-1.5 px-2 py-1 text-[9px] font-mono text-slate-400 hover:text-slate-200 border border-white/[0.08] hover:border-white/20 rounded transition-colors bg-white/[0.03]"
+          >
+            ↓ EXPORT
+          </button>
+          {exportOpen && (
+            <div className="absolute right-0 top-full mt-1 z-50 bg-[#0b0f14] border border-white/[0.10] rounded shadow-xl overflow-hidden">
+              <button
+                onClick={exportPNG}
+                className="flex items-center gap-2 w-full px-3 py-2 text-[10px] font-mono text-slate-300 hover:bg-white/[0.06] whitespace-nowrap"
+              >
+                🖼 PNG — Map snapshot
+              </button>
+              <button
+                onClick={exportPDF}
+                className="flex items-center gap-2 w-full px-3 py-2 text-[10px] font-mono text-slate-300 hover:bg-white/[0.06] whitespace-nowrap border-t border-white/[0.06]"
+              >
+                📄 PDF — Full report
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Map area ─────────────────────────────────────────────────── */}
@@ -201,6 +296,7 @@ export default function OperationsShell() {
           actorFilter={actorFilter}
           operationOverlay={operationOverlay}
           flyToTown={flyToTown}
+          canvasRef={canvasRef}
         />
 
         {/* ── Momentum Panel (top-left) ────────────────────────────── */}

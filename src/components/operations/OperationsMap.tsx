@@ -1,8 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
+import type React from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
+import turfCircle from '@turf/circle'
+import turfLength from '@turf/length'
+import turfArea from '@turf/area'
 import type { Campaign, TownControlEvent, ActorId, MyanmarCity } from '@/lib/operations-types'
 import { ACTORS } from '@/lib/operations-data'
 import type { ConflictEventDTO } from '@/lib/types'
@@ -15,6 +21,7 @@ interface Props {
   actorFilter:      Set<ActorId>
   operationOverlay: GeoJSON.FeatureCollection | null
   flyToTown:        string | null
+  canvasRef?:       React.MutableRefObject<(() => HTMLCanvasElement | null) | null>
 }
 
 interface TownshipEntry {
@@ -103,10 +110,15 @@ function townshipPopupHTML(
   incidentCount30d: number,
   incidentCount90d: number,
   history: TownControlEvent[],
+  activeConflict = false,
 ): string {
   const a = ACTORS[actor] ?? ACTORS.UNKNOWN
-  const statusLabel = contested ? '⚡ CONTESTED' : `● ${a.shortName} CONTROL`
-  const statusColor = contested ? '#ef4444' : a.color
+  const statusLabel = contested
+    ? '⚡ CONTESTED'
+    : activeConflict
+      ? `⚔ ACTIVE FIGHTING · ${a.shortName}`
+      : `● ${a.shortName} CONTROL`
+  const statusColor = contested ? '#ef4444' : activeConflict ? '#c2410c' : a.color
 
   const historyRows = history.slice().reverse().slice(0, 4).map(ev => {
     const ea = ACTORS[ev.actor] ?? ACTORS.UNKNOWN
@@ -167,9 +179,52 @@ function campaignPopupHTML(campaign: Campaign, fromCity: MyanmarCity, toCity: My
 
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 
+const MAP_STYLES = {
+  dark:      'mapbox://styles/mapbox/dark-v11',
+  light:     'mapbox://styles/mapbox/light-v11',
+  satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+} as const
+type MapStyleKey = keyof typeof MAP_STYLES
+
 export default function OperationsMap({
-  currentDate, campaigns, controlEvents, incidents, actorFilter, operationOverlay, flyToTown,
+  currentDate, campaigns, controlEvents, incidents, actorFilter, operationOverlay, flyToTown, canvasRef,
 }: Props) {
+  const [mapStyle, setMapStyle] = useState<MapStyleKey>('dark')
+  const mapStyleRef   = useRef<MapStyleKey>('dark')
+  const initLayersRef = useRef<(() => void) | null>(null)
+  const isFirstStyle  = useRef(true)
+  useEffect(() => { mapStyleRef.current = mapStyle }, [mapStyle])
+
+  type DrawMode = 'none' | 'point' | 'line_string' | 'polygon' | 'circle' | 'pen'
+  const [drawMode,    setDrawMode]    = useState<DrawMode>('none')
+  const [measurement, setMeasurement] = useState<string | null>(null)
+  const [drawOpen,    setDrawOpen]    = useState(false)
+  const drawRef        = useRef<MapboxDraw | null>(null)
+  const drawModeRef    = useRef<DrawMode>('none')
+  const circleCenterRef  = useRef<[number, number] | null>(null)
+  const circleActiveRef  = useRef(false)
+  const penPointsRef     = useRef<[number, number][]>([])
+  const penActiveRef     = useRef(false)
+  useEffect(() => { drawModeRef.current = drawMode }, [drawMode])
+
+  const updateMeasurement = useCallback(() => {
+    const draw = drawRef.current
+    if (!draw) return
+    const sel = draw.getSelected()
+    if (!sel.features.length) { setMeasurement(null); return }
+    const f = sel.features[0]
+    if (f.geometry.type === 'LineString') {
+      const km = turfLength(f as GeoJSON.Feature<GeoJSON.LineString>, { units: 'kilometers' })
+      setMeasurement(`Distance: ${km.toFixed(2)} km`)
+    } else if (f.geometry.type === 'Polygon') {
+      const sqkm = turfArea(f as GeoJSON.Feature<GeoJSON.Polygon>) / 1_000_000
+      setMeasurement(`Area: ${sqkm.toFixed(2)} km²`)
+    } else if (f.geometry.type === 'Point') {
+      const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
+      setMeasurement(`${lat.toFixed(4)}°N  ${lng.toFixed(4)}°E`)
+    }
+  }, [])
+
   const containerRef        = useRef<HTMLDivElement>(null)
   const mapRef              = useRef<mapboxgl.Map | null>(null)
   const townsRef            = useRef<MyanmarCity[]>([])
@@ -179,7 +234,8 @@ export default function OperationsMap({
   const readyRef            = useRef(false)
   const townsLoadedRef      = useRef(false)
   const townshipsLoadedRef  = useRef(false)
-  const lastBattleComputeRef = useRef<number>(0)
+  const lastBattleComputeRef    = useRef<number>(0)
+  const conflictTownshipsRef    = useRef<Set<string>>(new Set())
 
   // Keep latest props accessible in stable callbacks
   const currentDateRef       = useRef(currentDate)
@@ -228,20 +284,23 @@ export default function OperationsMap({
         const { actor, contested } = getTownControlAt(townId, date, ctrlEvts)
         const a = ACTORS[actor] ?? ACTORS.UNKNOWN
         const visible = filter.size === 0 || filter.has(actor)
+        const hasConflict = conflictTownshipsRef.current.has(ts.pcode)
         let fillColor: string
-        if (!visible)      fillColor = '#1e293b'
-        else if (contested) fillColor = '#dc2626'   // contested = bright red
-        else                fillColor = a.color      // olive for SAC, actor color otherwise
+        if (!visible)        fillColor = '#1e293b'
+        else if (contested)  fillColor = '#dc2626'         // formal contested control
+        else if (hasConflict) fillColor = '#c2410c'        // active fighting, no capture yet
+        else                 fillColor = a.color
         map.setFeatureState(
           { source: 'townships-source', id: ts.pcode },
-          { color: fillColor },
+          { color: fillColor, conflict: hasConflict },
         )
       }
 
-      // ── Battle twinkling (throttled — max once per 800ms) ────────────
+      // ── Battle twinkling + active-conflict detection (throttled) ────────
       const now = Date.now()
       if (now - lastBattleComputeRef.current > 800) {
         lastBattleComputeRef.current = now
+        const newConflictSet = new Set<string>()
         const battleFeatures: GeoJSON.Feature[] = []
         for (const ts of townshipIndexRef.current) {
           const hasBattle = evts.some(ev => {
@@ -251,6 +310,7 @@ export default function OperationsMap({
             return Math.hypot(ev.lng - ts.lng, ev.lat - ts.lat) < 0.6
           })
           if (hasBattle) {
+            newConflictSet.add(ts.pcode)
             const townId = townSlug(ts.name)
             const { actor } = getTownControlAt(townId, date, ctrlEvts)
             const a = ACTORS[actor] ?? ACTORS.UNKNOWN
@@ -263,6 +323,7 @@ export default function OperationsMap({
         }
         const bSrc = map.getSource('battle-source') as mapboxgl.GeoJSONSource | undefined
         bSrc?.setData({ type: 'FeatureCollection', features: battleFeatures })
+        conflictTownshipsRef.current = newConflictSet
       }
     }
 
@@ -438,8 +499,8 @@ export default function OperationsMap({
       })
       .catch(console.error)
 
-    map.on('load', () => {
-      if (map.getLayer('land')) {
+    function initLayers() {
+      if (mapStyleRef.current === 'dark' && map.getLayer('land')) {
         map.setPaintProperty('land', 'background-color', '#0a0e14')
       }
 
@@ -681,6 +742,30 @@ export default function OperationsMap({
         },
       })
 
+      // ── Pen preview (draw tool) ──────────────────────────────────────
+      map.addSource('pen-preview-source', { type: 'geojson', data: EMPTY_FC })
+      map.addLayer({
+        id: 'pen-preview-line', type: 'line', source: 'pen-preview-source',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': '#e879f9', 'line-width': 2.5, 'line-opacity': 0.9 },
+      })
+      map.addLayer({
+        id: 'pen-preview-fill', type: 'fill', source: 'pen-preview-source',
+        filter: ['==', '$type', 'Polygon'],
+        paint: { 'fill-color': '#e879f9', 'fill-opacity': 0.10 },
+      })
+
+      // ── Circle preview (draw tool) ───────────────────────────────────
+      map.addSource('circle-preview-source', { type: 'geojson', data: EMPTY_FC })
+      map.addLayer({
+        id: 'circle-preview-fill', type: 'fill', source: 'circle-preview-source',
+        paint: { 'fill-color': '#06b6d4', 'fill-opacity': 0.15 },
+      })
+      map.addLayer({
+        id: 'circle-preview-line', type: 'line', source: 'circle-preview-source',
+        paint: { 'line-color': '#06b6d4', 'line-width': 1.5, 'line-dasharray': [3, 2] },
+      })
+
       readyRef.current = true
       if (townsLoadedRef.current) updateMap()
 
@@ -714,7 +799,10 @@ export default function OperationsMap({
         animFrameRef.current = requestAnimationFrame(animate)
       }
       animFrameRef.current = requestAnimationFrame(animate)
-    })
+    }
+
+    initLayersRef.current = initLayers
+    map.on('load', initLayers)
 
     // ── Township hover ────────────────────────────────────────────────
     let hoveredPcode: string | null = null
@@ -771,7 +859,8 @@ export default function OperationsMap({
         .setHTML(townshipPopupHTML(ts, actor, contested, count30, count90,
           controlEventsRef.current
             .filter(ev => townSlug(ts.name) === ev.townId)
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+          conflictTownshipsRef.current.has(ts.pcode),
         ))
         .addTo(map)
     })
@@ -827,18 +916,226 @@ export default function OperationsMap({
     map.on('mouseleave', 'campaigns-line', () => { map.getCanvas().style.cursor = '' })
 
     mapRef.current = map
+    if (canvasRef) canvasRef.current = () => mapRef.current?.getCanvas() ?? null
+
+    // ── MapboxDraw ──────────────────────────────────────────────────────
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {},
+      styles: [
+        { id: 'gl-draw-polygon-fill',          type: 'fill',   filter: ['all', ['==', '$type', 'Polygon'],    ['!=', 'mode', 'static']], paint: { 'fill-color': '#f97316', 'fill-opacity': 0.15 } },
+        { id: 'gl-draw-polygon-stroke',        type: 'line',   filter: ['all', ['==', '$type', 'Polygon'],    ['!=', 'mode', 'static']], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#f97316', 'line-width': 2 } },
+        { id: 'gl-draw-line',                  type: 'line',   filter: ['all', ['==', '$type', 'LineString'], ['!=', 'mode', 'static']], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#22c55e', 'line-width': 2.5, 'line-dasharray': [0.5, 2] } },
+        { id: 'gl-draw-point-outer',           type: 'circle', filter: ['all', ['==', '$type', 'Point'],      ['!=', 'mode', 'static']], paint: { 'circle-radius': 7, 'circle-color': '#f59e0b' } },
+        { id: 'gl-draw-point-inner',           type: 'circle', filter: ['all', ['==', '$type', 'Point'],      ['!=', 'mode', 'static']], paint: { 'circle-radius': 4, 'circle-color': '#fff' } },
+        { id: 'gl-draw-polygon-fill-static',   type: 'fill',   filter: ['all', ['==', '$type', 'Polygon'],    ['==', 'mode', 'static']], paint: { 'fill-color': '#f97316', 'fill-opacity': 0.10 } },
+        { id: 'gl-draw-polygon-stroke-static', type: 'line',   filter: ['all', ['==', '$type', 'Polygon'],    ['==', 'mode', 'static']], paint: { 'line-color': '#f97316', 'line-width': 1.5 } },
+        { id: 'gl-draw-line-static',           type: 'line',   filter: ['all', ['==', '$type', 'LineString'], ['==', 'mode', 'static']], paint: { 'line-color': '#22c55e', 'line-width': 2 } },
+        { id: 'gl-draw-point-static',          type: 'circle', filter: ['all', ['==', '$type', 'Point'],      ['==', 'mode', 'static']], paint: { 'circle-radius': 5, 'circle-color': '#f59e0b' } },
+        // vertex + midpoint handles
+        { id: 'gl-draw-vertex-outer',  type: 'circle', filter: ['all', ['==', 'meta', 'vertex'],   ['==', '$type', 'Point']], paint: { 'circle-radius': 6, 'circle-color': '#fff', 'circle-stroke-width': 2, 'circle-stroke-color': '#f97316' } },
+        { id: 'gl-draw-midpoint',      type: 'circle', filter: ['all', ['==', 'meta', 'midpoint'], ['==', '$type', 'Point']], paint: { 'circle-radius': 3, 'circle-color': '#f97316' } },
+      ],
+    })
+    map.addControl(draw)
+    drawRef.current = draw
+
+    // Draw events → measurements
+    const onDrawEvent = () => updateMeasurement()
+    map.on('draw.create',          onDrawEvent)
+    map.on('draw.update',          onDrawEvent)
+    map.on('draw.selectionchange', onDrawEvent)
+    map.on('draw.delete',          () => setMeasurement(null))
+
+    // Circle mode: click-drag to set center + radius
+    let circleMouseDown = false
+    map.on('mousedown', (e: mapboxgl.MapMouseEvent) => {
+      if (drawModeRef.current !== 'circle') return
+      e.preventDefault()
+      circleCenterRef.current = [e.lngLat.lng, e.lngLat.lat]
+      circleMouseDown = true
+      circleActiveRef.current = true
+      map.dragPan.disable()
+    })
+    map.on('mousemove', (e: mapboxgl.MapMouseEvent) => {
+      if (!circleMouseDown || !circleCenterRef.current) return
+      const [cx, cy] = circleCenterRef.current
+      const radiusKm = Math.max(0.1, Math.sqrt(
+        Math.pow((e.lngLat.lng - cx) * Math.cos(cy * Math.PI / 180) * 111.32, 2) +
+        Math.pow((e.lngLat.lat - cy) * 110.574, 2)
+      ))
+      const preview = turfCircle([cx, cy], radiusKm, { steps: 64, units: 'kilometers' })
+      const src = map.getSource('circle-preview-source') as mapboxgl.GeoJSONSource | undefined
+      src?.setData(preview)
+      setMeasurement(`Radius: ${radiusKm.toFixed(1)} km  ·  Area: ${(Math.PI * radiusKm * radiusKm).toFixed(1)} km²`)
+    })
+    map.on('mouseup', (e: mapboxgl.MapMouseEvent) => {
+      if (!circleMouseDown || !circleCenterRef.current) return
+      const [cx, cy] = circleCenterRef.current
+      const radiusKm = Math.max(0.1, Math.sqrt(
+        Math.pow((e.lngLat.lng - cx) * Math.cos(cy * Math.PI / 180) * 111.32, 2) +
+        Math.pow((e.lngLat.lat - cy) * 110.574, 2)
+      ))
+      const circle = turfCircle([cx, cy], radiusKm, { steps: 64, units: 'kilometers' })
+      draw.add(circle)
+      const src = map.getSource('circle-preview-source') as mapboxgl.GeoJSONSource | undefined
+      src?.setData(EMPTY_FC)
+      circleMouseDown = false
+      circleActiveRef.current = false
+      circleCenterRef.current = null
+      map.dragPan.enable()
+    })
+
+    // Pen freehand drawing
+    map.on('mousedown', (e: mapboxgl.MapMouseEvent) => {
+      if (drawModeRef.current !== 'pen') return
+      e.preventDefault()
+      penPointsRef.current = [[e.lngLat.lng, e.lngLat.lat]]
+      penActiveRef.current = true
+      map.dragPan.disable()
+    })
+    map.on('mousemove', (e: mapboxgl.MapMouseEvent) => {
+      if (!penActiveRef.current) return
+      penPointsRef.current.push([e.lngLat.lng, e.lngLat.lat])
+      const pts = penPointsRef.current
+      const penSrc = map.getSource('pen-preview-source') as mapboxgl.GeoJSONSource | undefined
+      if (pts.length >= 2) {
+        penSrc?.setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: pts }, properties: {} })
+      }
+    })
+    map.on('mouseup', () => {
+      if (!penActiveRef.current) return
+      penActiveRef.current = false
+      map.dragPan.enable()
+      const pts = penPointsRef.current
+      const penSrc = map.getSource('pen-preview-source') as mapboxgl.GeoJSONSource | undefined
+      penSrc?.setData(EMPTY_FC)
+      penPointsRef.current = []
+      if (pts.length < 3) return
+      // Close and add as polygon if the path is long enough, else as linestring
+      const closed = [...pts, pts[0]]
+      draw.add({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [closed] },
+        properties: {},
+      })
+      const areaSqkm = turfArea({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [closed] }, properties: {} }) / 1_000_000
+      setMeasurement(`Freehand area: ${areaSqkm.toFixed(2)} km²`)
+    })
 
     return () => {
       readyRef.current = false
       cancelAnimationFrame(animFrameRef.current)
       map.remove()
       mapRef.current = null
+      if (canvasRef) canvasRef.current = null
     }
   }, [updateMap])
+
+  useEffect(() => {
+    if (isFirstStyle.current) { isFirstStyle.current = false; return }
+    const map = mapRef.current
+    if (!map) return
+    readyRef.current = false
+    cancelAnimationFrame(animFrameRef.current)
+    map.setStyle(MAP_STYLES[mapStyle])
+    map.once('style.load', () => { initLayersRef.current?.() })
+  }, [mapStyle])
+
+  useEffect(() => {
+    const draw = drawRef.current
+    const map  = mapRef.current
+    if (!draw || !map) return
+    map.getCanvas().style.cursor = drawMode === 'none' ? '' : 'crosshair'
+    if (drawMode === 'none' || drawMode === 'circle' || drawMode === 'pen') {
+      draw.changeMode('simple_select')
+    } else {
+      draw.changeMode(`draw_${drawMode}` as Parameters<typeof draw.changeMode>[0])
+    }
+  }, [drawMode])
+
+  const deleteAllDrawings = useCallback(() => {
+    drawRef.current?.deleteAll()
+    const src = mapRef.current?.getSource('circle-preview-source') as mapboxgl.GeoJSONSource | undefined
+    src?.setData(EMPTY_FC)
+    setMeasurement(null)
+    setDrawMode('none')
+  }, [])
+
+  const DRAW_TOOLS: { mode: DrawMode | 'trash'; icon: string; label: string }[] = [
+    { mode: 'none',        icon: '↖',  label: 'Select'       },
+    { mode: 'point',       icon: '⊙',  label: 'Point'        },
+    { mode: 'line_string', icon: '╱',  label: 'Line'         },
+    { mode: 'polygon',     icon: '⬡',  label: 'Polygon'      },
+    { mode: 'circle',      icon: '◯',  label: 'Circle'       },
+    { mode: 'pen',         icon: '✍',  label: 'Freehand pen' },
+    { mode: 'trash',       icon: '✕',  label: 'Clear all'    },
+  ]
 
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
+
+      {/* ── Draw toolbar (left side) ─────────────────────────────────── */}
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-0.5">
+        {/* Toggle button */}
+        <button
+          onClick={() => setDrawOpen(v => !v)}
+          title="Drawing tools"
+          className={`w-8 h-8 flex items-center justify-center rounded border text-[11px] transition-colors mb-1 ${
+            drawOpen
+              ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+              : 'bg-black/70 border-white/[0.10] text-slate-400 hover:text-slate-200 backdrop-blur'
+          }`}
+        >
+          ✏
+        </button>
+
+        {drawOpen && (
+          <>
+            {DRAW_TOOLS.map(({ mode, icon, label }) => (
+              <button
+                key={mode}
+                onClick={() => mode === 'trash' ? deleteAllDrawings() : setDrawMode(mode as DrawMode)}
+                title={label}
+                className={`w-8 h-8 flex items-center justify-center rounded border text-[13px] transition-colors ${
+                  mode !== 'trash' && drawMode === (mode as DrawMode)
+                    ? 'bg-cyan-500/25 border-cyan-400/60 text-cyan-300'
+                    : mode === 'trash'
+                      ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
+                      : 'bg-black/70 border-white/[0.08] text-slate-400 hover:text-slate-200 backdrop-blur'
+                }`}
+              >
+                {icon}
+              </button>
+            ))}
+          </>
+        )}
+      </div>
+
+      {/* ── Measurement readout ──────────────────────────────────────── */}
+      {measurement && (
+        <div className="absolute left-14 bottom-14 z-20 px-2.5 py-1.5 bg-black/80 backdrop-blur border border-cyan-500/30 rounded text-[10px] font-mono text-cyan-300 pointer-events-none">
+          {measurement}
+        </div>
+      )}
+
+      {/* ── Style toggle (bottom-right) ──────────────────────────────── */}
+      <div className="absolute bottom-8 right-2 z-10 flex flex-col gap-1">
+        {(['dark', 'light', 'satellite'] as const).map(s => (
+          <button
+            key={s}
+            onClick={() => setMapStyle(s)}
+            className={`px-2 py-1 text-[9px] font-mono rounded border transition-colors ${
+              mapStyle === s
+                ? 'bg-white/15 border-white/30 text-white'
+                : 'bg-black/70 border-white/[0.08] text-slate-500 hover:text-slate-300 backdrop-blur'
+            }`}
+          >
+            {s === 'dark' ? '🌑 Dark' : s === 'light' ? '☀ Light' : '🛰 Sat'}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
