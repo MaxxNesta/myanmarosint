@@ -1,0 +1,992 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tatmadaw — Myanmar Armed Forces Information Portal</title>
+  <meta name="description" content="Comprehensive information on the Myanmar Armed Forces (Tatmadaw) — Army, Navy, Air Force formations, equipment, and interactive map.">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- PRELOADER -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div id="preloader">
+  <div class="preloader-inner">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Flag_of_the_Armed_Forces_%28Tatmadaw%29_of_Myanmar.svg"
+         alt="Tatmadaw" referrerpolicy="no-referrer"
+         style="width:80px;height:80px;object-fit:contain;margin-bottom:1rem;display:block;margin-left:auto;margin-right:auto"
+         onerror="this.style.display='none';document.getElementById('preloader-fallback').style.display='block'">
+    <span id="preloader-fallback" class="preloader-star" style="display:none">✦</span>
+    <div class="preloader-title">TATMADAW</div>
+    <div style="font-size:0.7rem;color:#4a5a72;letter-spacing:0.2em;margin-top:0.3rem">မြန်မာ့တပ်မတော်</div>
+    <div class="preloader-bar"><div class="preloader-fill"></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- NAVBAR -->
+<!-- ══════════════════════════════════════════════════════ -->
+<nav id="navbar">
+  <a class="nav-brand" href="#hero">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Flag_of_the_Armed_Forces_%28Tatmadaw%29_of_Myanmar.svg"
+         class="nav-emblem" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+    <div class="nav-brand-text">
+      <div class="nav-brand-title">TATMADAW</div>
+      <div class="nav-brand-sub">MYANMAR ARMED FORCES</div>
+    </div>
+  </a>
+  <div id="nav-links" class="nav-links">
+    <a href="#overview"     data-sec="overview">OVERVIEW</a>
+    <a href="#army"         data-sec="army">ARMY</a>
+    <a href="#navy"         data-sec="navy">NAVY</a>
+    <a href="#airforce"     data-sec="airforce">AIR FORCE</a>
+    <a href="equipment.html" data-sec="equipment">EQUIPMENT</a>
+    <a href="kapasa.html"   data-sec="kapasa">KAPASA</a>
+    <a href="#charts"       data-sec="charts">ANALYTICS</a>
+    <a href="#admin"        data-sec="admin">COMMAND</a>
+  </div>
+  <div class="nav-right">
+    <a href="../eaos/index.html" class="nav-btn nav-btn--eaos" data-sec="eaos">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      EAOs
+    </a>
+    <a href="#" class="nav-btn nav-btn--warmap" onclick="window.location.href=location.protocol==='file:'?'https://myanmarosint.vercel.app':'/';return false">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l5 2 4-2 5 2v9l-5-2-4 2-5-2V3z"/></svg>
+      WAR MAP
+    </a>
+    <div class="nav-clock-wrap">
+      <div id="nav-clock" class="nav-clock-time">--:--:--</div>
+      <div class="nav-clock-tz">UTC+6:30</div>
+    </div>
+  </div>
+  <button id="nav-toggle" class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- HERO DASHBOARD v2 -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="dsb-shell">
+
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <div class="dsb-main">
+
+      <!-- ─── LEFT COLUMN: FORCE OVERVIEW + OPERATIONAL STATUS ─── -->
+      <div class="dsb-col dsb-col--left">
+
+        <!-- FORCE OVERVIEW -->
+        <div class="dsb2-card">
+          <div class="dsb2-card-hdr">FORCE OVERVIEW</div>
+          <div class="fo2-row fo2-row--army">
+            <div class="fo2-icon-wrap">
+              <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_Sleeve_of_Myanmar_Army.svg" alt="Myanmar Army" referrerpolicy="no-referrer" style="width:30px;height:30px;object-fit:contain" onerror="this.style.display='none'">
+            </div>
+            <div class="fo2-body">
+              <div class="fo2-tag">ARMY</div>
+              <div class="fo2-num fo2-num--army">325,000</div>
+              <div class="fo2-det">14 RMCs · 10 LIDs · 20 MOCs</div>
+            </div>
+          </div>
+          <div class="fo2-row fo2-row--navy">
+            <div class="fo2-icon-wrap">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Arm_Badge_or_Shoulder_Sleeve_of_Myanmar_Navy.svg" alt="Myanmar Navy" referrerpolicy="no-referrer" style="width:30px;height:30px;object-fit:contain" onerror="this.style.display='none'">
+            </div>
+            <div class="fo2-body">
+              <div class="fo2-tag">NAVY</div>
+              <div class="fo2-num fo2-num--navy">16,000</div>
+              <div class="fo2-det">3 NOCs · 2 SUBs · 6 FRIGATES</div>
+            </div>
+          </div>
+          <div class="fo2-row fo2-row--air">
+            <div class="fo2-icon-wrap">
+              <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Emblem_of_the_Myanmar_Air_Force.svg" alt="Myanmar Air Force" referrerpolicy="no-referrer" style="width:30px;height:30px;object-fit:contain" onerror="this.style.display='none'">
+            </div>
+            <div class="fo2-body">
+              <div class="fo2-tag">AIR FORCE</div>
+              <div class="fo2-num fo2-num--air">15,000</div>
+              <div class="fo2-det">3 AOCs · 8 AIR BASES · 20+ AIRCRAFT</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPERATIONAL STATUS -->
+        <div class="dsb2-card">
+          <div class="dsb2-card-hdr">OPERATIONAL STATUS<span class="opstat-badge">NORMAL &#9654;</span></div>
+          <div class="opstat-grid">
+            <div class="opstat-item">
+              <div class="opstat-label">REGIONAL MILITARY COMMANDS</div><div class="opstat-num">14</div>
+            </div>
+            <div class="opstat-item">
+              <div class="opstat-label">OPERATIONS COMMANDS</div><div class="opstat-num">15+</div>
+            </div>
+            <div class="opstat-item">
+              <div class="opstat-label">SECTORS</div><div class="opstat-num">24</div>
+            </div>
+            <div class="opstat-item">
+              <div class="opstat-label">TOTAL UNITS</div><div class="opstat-num">500+</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ─── CENTER: OPERATIONAL THEATER (full height) ─── -->
+      <div class="dsb2-card dsb2-card--map">
+        <div class="dsb2-card-hdr">OPERATIONAL THEATER</div>
+        <div class="opthtr-wrap">
+          <div class="opthtr-map" id="mmr-map-container">
+            <div id="myanmar-map" style="width:100%;height:100%;position:absolute;inset:0;z-index:0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── RIGHT COLUMN ─── -->
+      <div class="dsb-col dsb-col--right">
+
+        <!-- MAP LAYERS -->
+        <div class="dsb2-card">
+          <div class="dsb2-card-hdr">MAP LAYERS</div>
+          <div class="maplyr-list">
+            <button class="map-ctrl maplyr-btn active" data-layer="army">
+              REGIONAL MILITARY COMMANDS
+              <span class="maplyr-pip"></span>
+            </button>
+            <button class="map-ctrl maplyr-btn active navy-ctrl" data-layer="navy">
+              NAVAL BASES
+              <span class="maplyr-pip"></span>
+            </button>
+            <button class="map-ctrl maplyr-btn active air-ctrl" data-layer="airForce">
+              AIR BASES
+              <span class="maplyr-pip"></span>
+            </button>
+            <button class="map-ctrl maplyr-btn active lid-ctrl" data-layer="lids">
+              LID LOCATIONS
+              <span class="maplyr-pip"></span>
+            </button>
+            <button class="map-ctrl maplyr-btn active conflict-ctrl" data-layer="conflicts">
+              CONFLICT ZONES
+              <span class="maplyr-pip"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- FORCE READINESS -->
+        <div class="dsb2-card">
+          <div class="dsb2-card-hdr">FORCE READINESS</div>
+          <div class="fready-wrap">
+            <div class="fready-donut">
+              <svg viewBox="0 0 120 120" class="fready-svg">
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#1c2e1e" stroke-width="10"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#4ade80" stroke-width="10" stroke-dasharray="197 289" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#f59e0b" stroke-width="10" stroke-dasharray="69 289" stroke-dashoffset="-197" transform="rotate(-90 60 60)"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#dc2626" stroke-width="10" stroke-dasharray="23 289" stroke-dashoffset="-266" transform="rotate(-90 60 60)"/>
+                <text x="60" y="56" text-anchor="middle" fill="#E8EDF2" font-size="20" font-weight="700" font-family="Fira Code, Courier New, monospace">68%</text>
+                <text x="60" y="70" text-anchor="middle" fill="#637383" font-size="7" font-family="Courier New, monospace" letter-spacing="2">READY</text>
+              </svg>
+            </div>
+            <div class="fready-legend">
+              <div class="fready-leg"><span class="fleg-dot" style="background:#4ade80"></span><span class="fleg-lbl">HIGH</span><span class="fleg-pct">68%</span></div>
+              <div class="fready-leg"><span class="fleg-dot" style="background:#f59e0b"></span><span class="fleg-lbl">MEDIUM</span><span class="fleg-pct">24%</span></div>
+              <div class="fready-leg"><span class="fleg-dot" style="background:#dc2626"></span><span class="fleg-lbl">LOW</span><span class="fleg-pct">8%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTELLIGENCE SUMMARY -->
+        <div class="dsb2-card">
+          <div class="dsb2-card-hdr">INTELLIGENCE SUMMARY</div>
+          <div class="intelsum-grid">
+            <div class="intelsum-box intelsum-box--threat">
+              <div class="intelsum-lbl">THREAT LEVEL</div><div class="intelsum-val intelsum-val--threat">ELEVATED</div>
+            </div>
+            <div class="intelsum-box intelsum-box--intel">
+              <div class="intelsum-lbl">INTEL FEED</div><div class="intelsum-val intelsum-val--active">ACTIVE</div>
+            </div>
+            <div class="intelsum-box intelsum-box--surv">
+              <div class="intelsum-lbl">SURVEILLANCE</div><div class="intelsum-val intelsum-val--monitoring">MONITORING</div>
+            </div>
+            <div class="intelsum-box intelsum-box--comm">
+              <div class="intelsum-lbl">COMM SYSTEMS</div><div class="intelsum-val intelsum-val--active">SECURE</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div class="dsb-footbar">
+    <div class="dsb-foot-left">
+    </div>
+    <div class="dsb-foot-center">
+      <span class="dsb-foot-sync-dot"></span>
+      DATA SYNC <span class="dsb-foot-sync-val">ACTIVE</span>
+      &nbsp;·&nbsp;
+      LAST SYNC <span id="dsb-time" class="dsb-foot-time">--:--:--</span>
+    </div>
+    <div class="dsb-foot-right">POWERED BY TATMADAW C4I SYSTEM</div>
+  </div>
+
+  <div class="dashboard" style="display:none">
+  </div>
+
+</section>
+
+<script>
+(function(){
+  function tick(){
+    var now=new Date();
+    var d=new Date(now.getTime()+(6.5*3600000));
+    var pad=function(n){return String(n).padStart(2,'0');};
+    var t=pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())+':'+pad(d.getUTCSeconds());
+    var el=document.getElementById('dsb-time');
+    if(el) el.textContent=t+' UTC+6:30';
+    var nc=document.getElementById('nav-clock');
+    if(nc) nc.textContent=t;
+  }
+  tick(); setInterval(tick,1000);
+})();
+</script>
+
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- OVERVIEW -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="overview">
+  <div class="ovw-wrap reveal">
+
+      <!-- section header bar -->
+      <div class="ovw-sec-hdr">
+        <span class="ovw-sec-badge">OVERVIEW</span>
+        <span class="ovw-sec-title">MYANMAR ARMED FORCES — TATMADAW</span>
+        <span class="ovw-sec-sub">တပ်မတော် · Three service branches under unified command</span>
+      </div>
+
+      <!-- branch panels -->
+      <div class="ovw-branches">
+
+        <a class="ovw-branch ovw-branch--army" href="#army">
+          <div class="ovw-card-head">
+            <div class="ovw-insignia-wrap">
+              <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_Sleeve_of_Myanmar_Army.svg" class="ovw-insignia-img" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+            </div>
+            <div>
+              <div class="ovw-branch-name">TATMADAW KYI</div>
+              <div class="ovw-branch-type">ARMY</div>
+              <div class="ovw-branch-burmese">တပ်မတော် (ကြည်း)</div>
+            </div>
+          </div>
+          <div class="ovw-pers-row">
+            <span class="ovw-pers-lbl">PERSONNEL</span>
+            <span class="ovw-pers-val">~325,000</span>
+          </div>
+          <div class="ovw-stats-grid">
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">COMMANDS</span>
+              <span class="ovw-stat-val">14 Regional</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">LIDs</span>
+              <span class="ovw-stat-val">10</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">MOCs</span>
+              <span class="ovw-stat-val">20</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">FOUNDED</span>
+              <span class="ovw-stat-val">1945</span>
+            </div>
+          </div>
+          <div class="ovw-branch-dots">
+            <span class="ovw-dot">14 Regional Military Commands</span>
+            <span class="ovw-dot">10 Light Infantry Divisions</span>
+            <span class="ovw-dot">20 Military Operations Commands</span>
+          </div>
+          <div class="ovw-branch-cta">VIEW ARMY OVERVIEW <span>›</span></div>
+        </a>
+
+        <a class="ovw-branch ovw-branch--navy" href="#navy">
+          <div class="ovw-card-head">
+            <div class="ovw-insignia-wrap">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Arm_Badge_or_Shoulder_Sleeve_of_Myanmar_Navy.svg" class="ovw-insignia-img" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+            </div>
+            <div>
+              <div class="ovw-branch-name">TATMADAW YAY</div>
+              <div class="ovw-branch-type">NAVY</div>
+              <div class="ovw-branch-burmese">တပ်မတော် (ရေ)</div>
+            </div>
+          </div>
+          <div class="ovw-pers-row">
+            <span class="ovw-pers-lbl">PERSONNEL</span>
+            <span class="ovw-pers-val">~16,000</span>
+          </div>
+          <div class="ovw-stats-grid">
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">COMMANDS</span>
+              <span class="ovw-stat-val">3 Naval Ops</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">VESSELS</span>
+              <span class="ovw-stat-val">40+</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">FRIGATES</span>
+              <span class="ovw-stat-val">6</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">SUBMARINES</span>
+              <span class="ovw-stat-val">2</span>
+            </div>
+          </div>
+          <div class="ovw-branch-dots">
+            <span class="ovw-dot">3 Naval Operations Commands</span>
+            <span class="ovw-dot">2 Submarines</span>
+            <span class="ovw-dot">6 Frigates</span>
+            <span class="ovw-dot">3 Corvettes</span>
+            <span class="ovw-dot">9 Sub Chasers</span>
+            <span class="ovw-dot">20+ Patrol Vessels</span>
+          </div>
+          <div class="ovw-branch-cta">VIEW NAVY OVERVIEW <span>›</span></div>
+        </a>
+
+        <a class="ovw-branch ovw-branch--air" href="#airforce">
+          <div class="ovw-card-head">
+            <div class="ovw-insignia-wrap">
+              <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Emblem_of_the_Myanmar_Air_Force.svg" class="ovw-insignia-img" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+            </div>
+            <div>
+              <div class="ovw-branch-name">TATMADAW LAY</div>
+              <div class="ovw-branch-type">AIR FORCE</div>
+              <div class="ovw-branch-burmese">တပ်မတော် (လေ)</div>
+            </div>
+          </div>
+          <div class="ovw-pers-row">
+            <span class="ovw-pers-lbl">PERSONNEL</span>
+            <span class="ovw-pers-val">~15,000</span>
+          </div>
+          <div class="ovw-stats-grid">
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">COMMANDS</span>
+              <span class="ovw-stat-val">3 Air Ops</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">AIR BASES</span>
+              <span class="ovw-stat-val">8</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">FIGHTERS</span>
+              <span class="ovw-stat-val">Su-30SME</span>
+            </div>
+            <div class="ovw-stat-item">
+              <span class="ovw-stat-lbl">FLEET</span>
+              <span class="ovw-stat-val">150+ Aircraft</span>
+            </div>
+          </div>
+          <div class="ovw-branch-dots">
+            <span class="ovw-dot">3 Air Operations Commands</span>
+            <span class="ovw-dot">Su-30SME</span>
+            <span class="ovw-dot">MiG-29</span>
+            <span class="ovw-dot">K-8 Karakorum</span>
+            <span class="ovw-dot">8 Air Bases</span>
+          </div>
+          <div class="ovw-branch-cta">VIEW AIR FORCE OVERVIEW <span>›</span></div>
+        </a>
+
+      </div>
+
+      <!-- key facts bar -->
+      <div class="ovw-facts">
+        <div class="ovw-facts-label">
+          KEY FACTS
+        </div>
+        <div class="ovw-facts-items">
+          <div class="ovw-fact-item">
+            <span class="ovw-fact-key">FULL NAME</span>
+            <span class="ovw-fact-val">Defence Services of the Republic of the Union of Myanmar</span>
+          </div>
+          <div class="ovw-fact-item">
+            <span class="ovw-fact-key">HEADQUARTERS</span>
+            <span class="ovw-fact-val">Naypyidaw (capital) · Yangon (legacy)</span>
+          </div>
+          <div class="ovw-fact-item">
+            <span class="ovw-fact-key">FOUNDED</span>
+            <span class="ovw-fact-val">27 March 1945 — Resistance Day</span>
+          </div>
+          <div class="ovw-fact-item">
+            <span class="ovw-fact-key">DEFENSE BUDGET</span>
+            <span class="ovw-fact-val">Approx. USD 2.0–2.5 billion (est.)</span>
+          </div>
+          <div class="ovw-fact-item">
+            <span class="ovw-fact-key">MAJOR SUPPLIERS</span>
+            <span class="ovw-fact-val">China · Russia · Ukraine · India (historical)</span>
+          </div>
+          <div class="ovw-fact-item">
+            <span class="ovw-fact-key">CURRENT STATUS</span>
+            <span class="ovw-fact-val">Under international sanctions · Ongoing internal conflicts</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ARMY -->
+
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="army">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge army">ARMY</span>
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_Sleeve_of_Myanmar_Army.svg"
+           alt="Myanmar Army" referrerpolicy="no-referrer"
+           style="width:64px;height:64px;object-fit:contain;display:block;margin:0.5rem auto 0.75rem;filter:drop-shadow(0 0 10px rgba(106,184,130,0.4))"
+           onerror="this.style.display='none'">
+      <h2 class="section-title">Tatmadaw Kyi — Myanmar Army</h2>
+      <p class="section-subtitle">တပ်မတော် (ကြည်း) · Founded 1945 · ~325,000 personnel · 14 Regional Military Commands</p>
+    </div>
+
+    <div class="tab-container">
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="tab-bso">စစ်ဆင်ရေးအထူးအဖွဲ့(ကစထ)</button>
+        <button class="tab-btn" data-tab="tab-commands">တိုင်းစစ်ဌာနချုပ်များ</button>
+        <button class="tab-btn" data-tab="tab-lids">ခြေမြန်တပ်မများ(တမခ)</button>
+        <button class="tab-btn" data-tab="tab-oocs">စစ်ဆင်ရေးကွပ်ကဲမှုဌာနချုပ်များ(စကခ)</button>
+        <button class="tab-btn" data-tab="tab-rchqs">ဒေသကွပ်ကဲမှုစစ်ဌာနချုပ်များ(ဒကစ)</button>
+        <button class="tab-btn" data-tab="tab-artillery">အမြောက်စခန်းကွပ်ကဲမှုဌာနချုပ်များ(မစခ)</button>
+        <button class="tab-btn" data-tab="tab-armored">သံချပ်ကာစစ်ဆင်ရေးကွပ်ကဲမှုဌာနချုပ်များ(သစခ)</button>
+        <button class="tab-btn" data-tab="tab-army-info">ဖွဲ့စည်းပုံ</button>
+      </div>
+
+      <!-- Regional Commands -->
+      <div class="tab-content" id="tab-commands">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+          <strong style="color:var(--gold2)">တိုင်းစစ်ဌာနချုပ် (Regional Military Command — RMC):</strong> တိုင်းစစ်ဌာနချုပ် (အင်္ဂလိပ်: Regional Military Command) ဆိုသည်မှာ မြန်မာ့တပ်မတော်၊ တပ်မ​တော်(ကြည်း)၏ စစ်ဘက်ဆိုင်ရာ ဒေသအာဏာပိုင်အဖွဲ့ ဖြစ်သည်။ ပြည်ထောင်စုသမ္မတမြန်မာနိုင်ငံတော်နယ်နိမိတ်ကို စစ်တိုင်းနယ်မြေ (၁၄) ခုအဖြစ် တိုင်းစစ်ဌာနချုပ်နယ်မြေ (၁၄) ခုဖြင့်ပိုင်းခြားထားပြီး တိုင်းစစ်ဌာနချုပ်၏ အဓိကလုပ်ငန်းတာဝန်မှာ ၎င်း၏အခြေစိုက်နယ်မြေဧရိယာနှင့် ထိုနယ်မြေနှင့်နယ်နိမိတ်ချင်းထိစပ်နေသော နေရာဒေသများ၏ ကာကွယ်ရေး၊ လုံခြုံရေးနှင့် စစ်ဆင်ရေးဆိုင်ရာကိစ္စရပ်များအား အဓိကတာဝန်ယူဆောင်ရွက်ရသည်။
+        </div>
+        <div id="commands-grid" class="commands-grid"></div>
+      </div>
+
+      <!-- Bureau of Special Operations -->
+      <div class="tab-content active" id="tab-bso">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+          <strong style="color:var(--gold2)">ကာကွယ်ရေးဌာန စစ်ဆင်ရေးအထူးအဖွဲ့ (Bureau of Special Operations — BSO):</strong> ကာကွယ်ရေးဌာန စစ်ဆင်ရေးအထူးအဖွဲ့ (ကစထ) သည် မြန်မာ့တပ်မတော် (ကြည်း) ၏ အမြင့်ဆုံး ကွင်းဆင်းဆောင်ရွက်ရေးတပ်ဖွဲ့ဖြစ်ပြီး အနောက်နိုင်ငံ စစ်တပ်ဆိုင်ရာ Field Army နှင့် ညီမျှသည်။ ကစထတစ်ခုစီတွင် တိုင်းစစ်ဌာနချုပ် နှစ်ခု သို့မဟုတ် ထိုထက်ပိုသော တိုင်းစစ်ဌာနချုပ်များ ပါဝင်ပြီး ဒုတိယဗိုလ်ချုပ်မှူးကြီးအဆင့်ရှိ စစ်ဗိုလ်ချုပ်ကြီးတစ်ဦးနှင့် ဝန်ထမ်းအရာရှိ ခြောက်ဦးတို့မှ ကွပ်ကဲသည်။
+        </div>
+        <div class="bso-summary-bar">
+          <span class="bso-summary-item"><span class="bso-summary-num">5</span><span class="bso-summary-lbl">BUREAUS</span></span>
+          <span class="bso-summary-sep"></span>
+          <span class="bso-summary-item"><span class="bso-summary-num">14</span><span class="bso-summary-lbl">RMCs</span></span>
+          <span class="bso-summary-sep"></span>
+          <span class="bso-summary-item"><span class="bso-summary-num">Lt. Gen.</span><span class="bso-summary-lbl">COMMANDING RANK</span></span>
+        </div>
+        <div class="bso-table-wrap">
+          <table class="bso-table">
+            <thead>
+              <tr>
+                <th>Bureau of Special Operations</th>
+                <th>Regional Military Commands (RMC)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="bso-num-cell">BSO 1</td>
+                <td>
+                  <div class="bso-rmc-list">
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Shoulder_sleeve_insignia_of_North_West_Command.svg" alt="Northwestern Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Northwestern Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_sleeve_insignia_of_Northern_Command_of_Myanmar_Army.svg" alt="Northern Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Northern Command
+                    </span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="bso-num-cell">BSO 2</td>
+                <td>
+                  <div class="bso-rmc-list">
+                    <span class="bso-rmc">
+                      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_sleeve_insignia_of_Northern_East_Command_of_Myanmar_Army.svg" alt="Northeastern Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Northeastern Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c0/Shoulder_sleeve_insignia_of_Eastern_Command.svg" alt="Eastern Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Eastern Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Shoulder_sleeve_insignia_of_Triangle_Region_Command.svg" alt="Triangle Region Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Triangle Region Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Shoulder_sleeve_insignia_of_Central_East_Command.svg" alt="Eastern Central Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Eastern Central Command
+                    </span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="bso-num-cell">BSO 3</td>
+                <td>
+                  <div class="bso-rmc-list">
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Shoulder_Sleeve_Insignia_of_Southern_West_Command_of_Myanmar_Army.svg" alt="Southwestern Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Southwestern Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/1/13/Shoulder_sleeve_insignia_of_Western_Command.svg" alt="Western Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Western Command
+                    </span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="bso-num-cell">BSO 4</td>
+                <td>
+                  <div class="bso-rmc-list">
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/5/56/Shoulder_sleeve_insignia_of_Coastal_Region_Command.svg" alt="Coastal Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Coastal Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/Shoulder_sleeve_insignia_of_South_East_Command_%28right_side%29.svg" alt="Southeastern Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Southeastern Command
+                    </span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="bso-num-cell">BSO 5</td>
+                <td>
+                  <div class="bso-rmc-list">
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Shoulder_sleeve_insignia_of_Yangon_Region_Command.svg" alt="Yangon Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Yangon Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/Shoulder_sleeve_insignia_of_Nay_Pyi_Daw_Command.svg" alt="Naypyidaw Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Naypyidaw Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Shoulder_sleeve_insignia_of_Central_Command.svg" alt="Central Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Central Command
+                    </span>
+                    <span class="bso-rmc">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/Shoulder_sleeve_insignia_of_Southern_Command.svg" alt="Southern Command" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                      Southern Command
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LIDs -->
+      <div class="tab-content" id="tab-lids">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+          <strong style="color:var(--gold2)">ခြေမြန်တပ်မ (Light Infantry Division — LID):</strong> ခြေမြန်တပ်မ (သို့) ခြေမြန်တပ်မဌာနချုပ် (အတိုကောက်: တမခ, အင်္ဂလိပ်: Light Infantry Division - LID) သည် မြန်မာ့တပ်မတော် (ကြည်း) ၏ အဓိကတိုက်ခိုက်ရေးနှင့် ခြေလျင်တပ်များဖြစ်သည်။ ခြေမြန်တပ်မများကို ပြည်တွင်းပုန်ကန်မှုများ စတင်ပေါ်ပေါက်လာချိန်မှစ၍ ဒေသအသီးသီးသို့ လွယ်ကူလျင်မြန်စွာ ရွှေ့ပြောင်းစစ်ဆင်နိုင်ရန်အတွက် ဖွဲ့စည်းခဲ့ခြင်းဖြစ်သည်။
+        </div>
+        <div id="lids-grid" class="lids-grid"></div>
+      </div>
+
+      <!-- OOCs -->
+      <div class="tab-content" id="tab-oocs">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+          <strong style="color:var(--gold2)">စစ်ဆင်ရေးကွပ်ကဲမှုဌာနချုပ် (Military Operations Commands — MOC):</strong> စစ်ဆင်ရေးကွပ်ကဲမှု ဌာနချုပ် (စကခ) ဆိုသည်မှာ တပ်မ အသွင်ပြောင်းယူထားသော တပ်ဖွဲ့ ဖြစ်သည်။ တပ်မများနှင့် စကခများသည် ကက(ကြည်း) - (စစ်ဆင်ရေး)၏ တိုက်ရိုက်ကွပ်ကဲစီမံသော တိုက်ခိုက်ရေးတပ်ဖွဲ့များ ဖြစ်ပြီး စစ်ဆင်ရေးခွင် ပုံသေမရှိဘဲ ရန်သူအင်အားအပေါ် မူတည်ပြီး လိုအပ်သလို စစ်ကစားနိုင်ရန် စီစဉ်ထားခြင်း ဖြစ်သည်။
+        </div>
+        <div id="oocs-grid" class="lids-grid"></div>
+      </div>
+
+      <!-- RCHQs -->
+      <div class="tab-content" id="tab-rchqs">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+          <strong style="color:var(--gold2)">ဒေသကွပ်ကဲမှုစစ်ဌာနချုပ် (Regional Operations Commands — ROC):</strong> ဒေသကွပ်ကဲမှုစစ်ဌာနချုပ် (အတိုကောက် ဒကစ) ဆိုသည်မှာ တိုင်းစစ်ဌာနချုပ် တစ်ခု၏ ကွပ်ကဲမှုအောက်တွင်ရှိပြီး ၎င်းတိုင်းစစ်ဌာနချုပ်မှ အလှမ်းဝေးသော ဝေးလံခေါင်ဖျားသည့် နယ်မြေဒေသ၌ တိုင်းစစ်ဌာနချုပ် ကိုယ်စား ၎င်းနယ်မြေဒေသ၏ ကာကွယ်ရေး၊ လုံခြုံရေး နှင့် စစ်ဆင်ရေးကိစ္စရပ်များအား ကွပ်ကဲရန်၊ နယ်မြေအတွင်း၌ရှိသော လက်အောက်ခံ ခြေလျင်/ခြေမြန်တပ်များ နှင့် တွဲဖက်ထားသည့် အကူလက်ရုံး/ ဝန်ထမ်းတပ်များ အားလုံး၏ (စစ်ဦးစီး/ စစ်ရေး/ စစ်ထောက်)ဆိုင်ရာ လုပ်ငန်းများအား စစ်ဆေးခြင်း၊ လမ်းညွှန်ပေးခြင်း နှင့် ဖြေရှင်းဆောင်ရွက်ပေးခြင်းတို့အပြင် တိုင်းစစ်ဌာနချုပ်မှ အမိန့်နှင့် ညွှန်ကြားချက်များအား ထပ်ဆင့်ထုတ်ပြန်ခြင်း စသည့် ကွပ်ကဲမှုပိုင်းဆိုင်ရာ လုပ်ငန်းတာဝန်များအား ထမ်းဆောင်ရသော "တိုင်းစစ်ဌာနချုပ် အလတ်စား" ဖြစ်သည်။
+        </div>
+        <div id="rchqs-grid" class="lids-grid"></div>
+      </div>
+
+      <!-- Artillery Operations Commands -->
+      <div class="tab-content" id="tab-artillery">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+          <strong style="color:var(--gold2)">အမြောက်စခန်းကွပ်ကဲမှုဌာနချုပ် (Artillery Operations Command — AOC):</strong> မြန်မာ့တပ်မတော် (ကြည်း) ၏ အမြောက်တပ်ဖွဲ့များကို ကွပ်ကဲသော ကွပ်ကဲမှုဌာနချုပ်များဖြစ်သည်။ တပ်မတော် (ကြည်း) တွင် အမြောက်စခန်းကွပ်ကဲမှုဌာနချုပ် ၁၀ ခု ပါဝင်ပြီး လယ်တင်းအမြောက်တပ်ရင်းများ ၁၁၃ ခုနှင့် ဖွဲ့စည်းထားသည်။
+        </div>
+        <div id="artillery-grid" class="lids-grid"></div>
+      </div>
+
+      <!-- Armored Operations Commands -->
+      <div class="tab-content" id="tab-armored">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:var(--txt2);line-height:1.7">
+          <strong style="color:var(--gold2)">သံချပ်ကာစစ်ဆင်ရေးကွပ်ကဲမှုဌာနချုပ် (Armored Operations Command — AOC):</strong> သံချပ်ကာစစ်ဆင်ရေးကွပ်ကဲမှုဌာနချုပ် (သစခ) များသည် သံချပ်ကာယန္တရားတပ်ဖွဲ့၏ တိုက်ရိုက်ကွပ်ကဲစီမံသော တိုက်ခိုက်ရေးတပ်ဖွဲ့များဖြစ်ပြီး စစ်နယ်ဝန်းပုံသေမရှိဘဲ ရန်သူ၏အင်အားအပေါ်မူတည်၍ လိုအပ်သလိုစစ်ကစားနိုင်ရန် ဖွဲ့စည်းထားခြင်းလည်းဖြစ်သည်။ လက်ရှိတွင် တပ်မတော်တွင် သံချပ်ကာကွပ်ကဲမှုအောက်ရှိ သံချပ်ကာစစ်ဆင်ရေးကွပ်ကဲမှု ၅ ခုရှိသည်။
+        </div>
+        <div id="armored-grid" class="lids-grid"></div>
+      </div>
+
+      <!-- Army Info -->
+      <div class="tab-content" id="tab-army-info">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+          <div class="info-panel">
+            <h4>Force Composition</h4>
+            <ul class="info-list">
+              <li>14 x Regional Military Commands (RMC) — organised in 5 Bureau of Special Operations (BSO)</li>
+              <li>6 × Regional Operations Commands (ROC)</li>
+              <li>20 × Military Operations Commands (MOC) — incl. 1 × Airborne Infantry Division</li>
+              <li>10 × Light Infantry Divisions (LID)</li>
+              <li>5 × Armoured Operations Commands (AOC) — each with 6 Tank Battalions &amp; 4 Armoured Infantry Battalions (IFVs/APCs)</li>
+              <li>10 × Artillery Operations Commands — with 113 Field Artillery Battalions</li>
+              <li>9 × Air Defence Operations Commands</li>
+              <li>1 × Missile Operations Command</li>
+              <li>40+ × Military Affairs Security Companies (MAS Units — replacing former MI Units after disbandment of DDSI)</li>
+              <li>45 × Advanced Signal Battalions</li>
+              <li>54 × Field Engineer Battalions</li>
+              <li>4 × Armoured Engineer Battalions</li>
+              <li>14 × Medical Battalions</li>
+            </ul>
+          </div>
+          <div class="info-panel">
+            <h4>Key Equipment</h4>
+            <ul class="info-list">
+              <li>~150+ Main Battle Tanks (T-72, Type 59, MBT-2000)</li>
+              <li>~160+ Armored Personnel Carriers (BTR-3U, Type 85)</li>
+              <li>~200+ Artillery pieces (D-30, M-101, M-46)</li>
+              <li>Multiple MLRS systems (BM-21 Grad, Type 63)</li>
+              <li>Anti-tank guided missiles (Red Arrow 8 / HJ-8)</li>
+              <li>MANPADS (HN-5 / Igla derivatives)</li>
+              <li>Extensive small arms (Chinese, Russian, domestic)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="info-panel">
+          <h4>Training &amp; Doctrine</h4>
+          <div class="train-section-lbl">ACADEMIES &amp; COLLEGES</div>
+          <div class="bso-table-wrap">
+            <table class="bso-table">
+              <thead>
+                <tr><th>Academy</th><th>Location</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>National Defence College (NDC)</td><td class="train-loc">Naypyidaw <span class="train-burmese">နေပြည်တော်</span></td></tr>
+                <tr><td>Defence Services Command and General Staff College (DSCGSC)</td><td class="train-loc">Kalaw <span class="train-burmese">ကလော</span></td></tr>
+                <tr><td>Defence Services Academy (DSA)</td><td class="train-loc">Pyin U Lwin <span class="train-burmese">ပြင်ဦးလွင်</span></td></tr>
+                <tr><td>Defence Services Technological Academy (DSTA)</td><td class="train-loc">Pyin U Lwin <span class="train-burmese">ပြင်ဦးလွင်</span></td></tr>
+                <tr><td>Defence Services Medical Academy (DSMA)</td><td class="train-loc">Yangon <span class="train-burmese">ရန်ကုန်</span></td></tr>
+                <tr><td>Military Institute of Nursing and Paramedical Science (MINP)</td><td class="train-loc">Yangon <span class="train-burmese">ရန်ကုန်</span></td></tr>
+                <tr><td>Military Computer And Technological Institute (MCTI) <span style="color:var(--txt3);font-size:0.68rem">— formerly Military Technological College (MTC)</span></td><td class="train-loc">Hopong <span class="train-burmese">ဟိုပုံး</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="train-section-lbl" style="margin-top:1rem">TRAINING SCHOOLS</div>
+          <div class="bso-table-wrap">
+            <table class="bso-table">
+              <thead>
+                <tr><th>Training School</th><th>Location</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Officer Training School (OTS)</td><td class="train-loc">Bahtoo Station</td></tr>
+                <tr><td>Basic Army Combat Training School</td><td class="train-loc">Bahtoo Station</td></tr>
+                <tr><td>1st Army Combat Forces School</td><td class="train-loc">Bahtoo Station</td></tr>
+                <tr><td>2nd Army Combat Forces School</td><td class="train-loc">Fort Bayinnaung</td></tr>
+                <tr><td>Artillery Training School</td><td class="train-loc">Mone Tai</td></tr>
+                <tr><td>Armour Training School</td><td class="train-loc">Maing Maw</td></tr>
+                <tr><td>Electronic Warfare School</td><td class="train-loc">Pyin U Lwin</td></tr>
+                <tr><td>Engineer School</td><td class="train-loc">Pyin U Lwin</td></tr>
+                <tr><td>Information Warfare School</td><td class="train-loc">Yangon</td></tr>
+                <tr><td>Air, Land and Paratroops Training School</td><td class="train-loc">Hmawbi</td></tr>
+                <tr><td>Special Forces School</td><td class="train-loc">Fort Ye Mon</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- NAVY -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="navy">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge navy">NAVY</span>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Arm_Badge_or_Shoulder_Sleeve_of_Myanmar_Navy.svg"
+           alt="Myanmar Navy" referrerpolicy="no-referrer"
+           style="width:64px;height:64px;object-fit:contain;display:block;margin:0.5rem auto 0.75rem;filter:drop-shadow(0 0 10px rgba(30,144,255,0.35))"
+           onerror="this.style.display='none'">
+      <h2 class="section-title">Tatmadaw Yay — Myanmar Navy</h2>
+      <p class="section-subtitle">တပ်မတော် (ရေ) · Founded 1948 · ~16,000 personnel · 3 Naval Operations Commands</p>
+    </div>
+
+    <div class="tab-container">
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="tab-navy-overview">Overview</button>
+        <button class="tab-btn" data-tab="tab-navy-fleet">Fleet</button>
+        <button class="tab-btn" data-tab="tab-navy-bases">Naval Bases</button>
+      </div>
+
+      <div class="tab-content active" id="tab-navy-overview">
+        <div id="navy-overview-content"></div>
+      </div>
+
+      <div class="tab-content" id="tab-navy-fleet">
+        <p style="color:var(--txt3);font-size:0.85rem;margin-bottom:1.25rem">The Myanmar Navy operates a mix of domestically-built and imported vessels. Row color indicates vessel class.</p>
+        <div class="table-wrapper">
+          <table class="mil-table">
+            <thead>
+              <tr>
+                <th>Vessel Name</th>
+                <th>Designation</th>
+                <th>Type</th>
+                <th>Class</th>
+                <th>Displacement</th>
+                <th>Built In</th>
+                <th>Year</th>
+                <th>Status</th>
+                <th>Crew</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="fleet-tbody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;font-size:0.75rem">
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#2a5aac;border-radius:2px"></span>Frigate</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#2a6aac;border-radius:2px"></span>Corvette</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#1a5a8c;border-radius:2px"></span>Patrol Vessel (Large)</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#1a4a7c;border-radius:2px"></span>Fast Attack Craft</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#1a3a5c;border-radius:2px"></span>River Gunboat</span>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-navy-bases">
+        <div id="navy-bases-grid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- AIR FORCE -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="airforce">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge air">AIR FORCE</span>
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Emblem_of_the_Myanmar_Air_Force.svg"
+           alt="Myanmar Air Force" referrerpolicy="no-referrer"
+           style="width:64px;height:64px;object-fit:contain;display:block;margin:0.5rem auto 0.75rem;filter:drop-shadow(0 0 10px rgba(232,160,106,0.4))"
+           onerror="this.style.display='none'">
+      <h2 class="section-title">Tatmadaw Lay — Myanmar Air Force</h2>
+      <p class="section-subtitle">တပ်မတော် (လေ) · Founded 1947 · ~15,000 personnel · MiG-29 Fulcrum fighters</p>
+    </div>
+
+    <div class="tab-container">
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="tab-air-overview">Overview</button>
+        <button class="tab-btn" data-tab="tab-aircraft">Aircraft Inventory</button>
+        <button class="tab-btn" data-tab="tab-air-bases">Air Bases</button>
+      </div>
+
+      <div class="tab-content active" id="tab-air-overview">
+        <div id="air-overview-content"></div>
+      </div>
+
+      <div class="tab-content" id="tab-aircraft">
+        <p style="color:var(--txt3);font-size:0.85rem;margin-bottom:1.25rem">Myanmar Air Force inventory as reported by open-source intelligence. Quantities are approximate. Row color indicates aircraft role.</p>
+        <div class="table-wrapper">
+          <table class="mil-table">
+            <thead>
+              <tr>
+                <th>Aircraft</th>
+                <th>Role</th>
+                <th>Origin</th>
+                <th style="text-align:center">Qty</th>
+                <th>Acquired</th>
+                <th>Status</th>
+                <th>Primary Base(s)</th>
+                <th>Max Speed</th>
+                <th>Range</th>
+                <th style="color:var(--gold2)">Est. Unit Cost</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="aircraft-tbody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;font-size:0.75rem">
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#8b1a1a;border-radius:2px"></span>Fighter</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#1a2a4a;border-radius:2px"></span>Trainer/Light Attack</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#4a5a3a;border-radius:2px"></span>Transport</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#8b3a1a;border-radius:2px"></span>Attack Helicopter</span>
+          <span style="display:flex;align-items:center;gap:0.4rem"><span style="width:10px;height:10px;background:#3a3a6a;border-radius:2px"></span>Transport Helicopter</span>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-air-bases">
+        <div id="air-bases-grid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- CHARTS / ANALYTICS -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="charts">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge info">ANALYTICS</span>
+      <h2 class="section-title">Statistics &amp; Charts</h2>
+      <p class="section-subtitle">Personnel distribution, equipment inventory, fleet composition, and acquisition timeline</p>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card reveal">
+        <div class="chart-card-title">Personnel Distribution by Branch</div>
+        <div class="chart-wrap"><canvas id="chart-personnel"></canvas></div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-card-title">Air Force Aircraft by Role</div>
+        <div class="chart-wrap"><canvas id="chart-aircraft"></canvas></div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-card-title">Naval Fleet Composition</div>
+        <div class="chart-wrap"><canvas id="chart-naval"></canvas></div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-card-title">Ground Equipment Distribution</div>
+        <div class="chart-wrap"><canvas id="chart-ground"></canvas></div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-card-title">Regional Command Strength (Approx.)</div>
+        <div class="chart-wrap"><canvas id="chart-commands"></canvas></div>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-card-title">Equipment Acquisition Timeline (Est.)</div>
+        <div class="chart-wrap"><canvas id="chart-timeline"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="reveal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-top:2rem">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:#6ab882">14</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">Regional Commands</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:#6ab882">10</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">Light Infantry Divs.</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:#6ab882">20</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">MOCs</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:#6a9be8">3</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">Frigates</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:#6a9be8">20+</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">Patrol Vessels</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:#4a6a8a">20</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">MiG-29 Fighters</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:#4a6a8a">~100</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">Total Aircraft</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem;text-align:center">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--gold2)">~150+</div>
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:0.05em">Main Battle Tanks</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ADMINISTRATION / COMMAND STRUCTURE -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="admin">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge info">COMMAND</span>
+      <h2 class="section-title">Administration &amp; Command Structure</h2>
+      <p class="section-subtitle">Unified command hierarchy of Myanmar's three service branches</p>
+    </div>
+    <div id="admin-content"></div>
+  </div>
+</section>
+
+
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ══════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-logo">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Flag_of_the_Armed_Forces_%28Tatmadaw%29_of_Myanmar.svg"
+         alt="" referrerpolicy="no-referrer"
+         style="width:36px;height:36px;object-fit:contain;vertical-align:middle;margin-right:10px;filter:drop-shadow(0 0 8px rgba(200,216,232,0.2))"
+         onerror="this.style.display='none'">TATMADAW<img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Flag_of_the_Armed_Forces_%28Tatmadaw%29_of_Myanmar.svg"
+         alt="" referrerpolicy="no-referrer"
+         style="width:36px;height:36px;object-fit:contain;vertical-align:middle;margin-left:10px;filter:drop-shadow(0 0 8px rgba(200,216,232,0.2))"
+         onerror="this.style.display='none'">
+  </div>
+  <div class="footer-tagline">Myanmar Armed Forces — Information Portal</div>
+  <div class="footer-source">
+    <strong style="color:var(--txt2)">Data Sources:</strong> SIPRI Arms Transfers Database · IISS Military Balance ·
+    Global Security Organisation · Jane's Defence Weekly · Amnesty International reports ·
+    Reuters · Irrawaddy News · Open-source intelligence (OSINT)<br><br>
+    <span style="color:var(--txt3)">All information sourced from publicly available open-source records.
+    Quantities and unit positions are approximate and may not reflect current operational status.
+    This portal is for educational and research purposes only.</span>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- MODAL -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <div id="modal-title" class="modal-title"></div>
+        <div id="modal-subtitle" class="modal-subtitle"></div>
+      </div>
+      <button id="modal-close" class="modal-close" aria-label="Close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SCRIPTS -->
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- App -->
+<script src="app.js?v=5"></script>
+
+</body>
+</html>
+

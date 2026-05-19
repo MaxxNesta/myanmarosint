@@ -1,0 +1,15 @@
+{
+    "created": "2023-07-04T03:01:10.902675",
+    "description": "Zipped Shapefile. Polygons of Myanmar Township boundaries (Admin3) with Sub-regions, based on the latest MIMU Pcode version 9.4 . Place names from General Administration Department (GAD), are available in Myanmar Unicode. Transliteration in roman script by MIMU.",
+    "format": "SHP",
+    "download_url": "https://geonode.themimu.info/geoserver/geonode/ows?format_options=charset%3AUTF-8&outputFormat=SHAPE-ZIP&version=1.0.0&service=WFS&request=GetFeature&typename=geonode:mmr_polbnda_adm3_250k_mimu_1",
+    "id": "4f4afc85-823c-4259-95e8-566725bdfffd",
+    "last_modified": "2026-05-01T08:44:08.561714",
+    "metadata_modified": "2026-05-01T09:26:49.114729",
+    "microdata": false,
+    "dataset_id": "4240673d-33e0-4e45-b8c5-2eadde2ebb22",
+    "resource_type": "api",
+    "name": "Myanmar Township Boundaries MIMU v9.4 shapefile",
+    "mimetype": null,
+    "size": "3.3M"
+}
