@@ -37,6 +37,10 @@ const RISK_COLORS: Record<string, string> = {
   LOW:      '#22c55e',
 }
 
+const THREAT_RANK: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 }
+const STATUS_RANK: Record<string, number> = { OPERATIONAL: 1, CONTESTED: 2, SEIZED_PDF: 3, SEIZED_EAO: 4, UNKNOWN: 5 }
+const THREAT_CLR:  Record<string, string> = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#22c55e' }
+
 function StatPill({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
     <div className="flex items-center gap-2 px-4 h-full border-r border-white/[0.07] last:border-r-0 shrink-0">
@@ -70,6 +74,9 @@ export default function BasesShell() {
   const [sidebarOpen,        setSidebarOpen]        = useState(true)
   const [scenarioPanelOpen,  setScenarioPanelOpen]  = useState(false)
   const [search,             setSearch]             = useState('')
+  const [sortField,    setSortField]    = useState<'num' | 'region' | 'threat' | 'status'>('num')
+  const [sortDir,      setSortDir]      = useState<'asc' | 'desc'>('asc')
+  const [glowEnabled,  setGlowEnabled]  = useState(false)
 
   // Commander dashboard state
   const [areaSelection,   setAreaSelection]   = useState<AreaSelection | null>(null)
@@ -129,6 +136,23 @@ export default function BasesShell() {
       return true
     })
   }, [filterRegion, filterThreat, search])
+
+  const sorted = useMemo<MilitaryBase[]>(() => {
+    const dir = sortDir === 'asc' ? 1 : -1
+    return [...filtered].sort((a, b) => {
+      switch (sortField) {
+        case 'num': {
+          const na = parseInt(a.regimentEn.replace(/^[A-Z]+ /, '')) || 0
+          const nb = parseInt(b.regimentEn.replace(/^[A-Z]+ /, '')) || 0
+          return (na - nb) * dir
+        }
+        case 'region': return a.region.localeCompare(b.region) * dir
+        case 'threat': return ((THREAT_RANK[a.threat] ?? 0) - (THREAT_RANK[b.threat] ?? 0)) * dir
+        case 'status': return ((STATUS_RANK[a.status] ?? 0) - (STATUS_RANK[b.status] ?? 0)) * dir
+        default:       return 0
+      }
+    })
+  }, [filtered, sortField, sortDir])
 
   const visibleIds = useMemo<Set<number>>(
     () => new Set(filtered.filter(b => visibleStatuses.has(b.status)).map(b => b.id)),
@@ -251,7 +275,7 @@ export default function BasesShell() {
         <aside className={`
           flex flex-col bg-surface-1 border-r border-white/[0.07] shrink-0
           transition-all duration-300 ease-in-out overflow-hidden
-          fixed md:relative z-40 md:z-auto h-full top-0 md:top-auto
+          fixed md:relative z-40 md:z-auto h-[calc(100vh-3.5rem)] md:h-full top-14 md:top-auto
           ${sidebarOpen ? 'w-60 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0'}
         `}>
 
@@ -268,7 +292,7 @@ export default function BasesShell() {
           </div>
 
           {/* Search + filters */}
-          <div className="px-3 py-2 border-b border-white/[0.07] space-y-2 shrink-0">
+          <div className="px-3 py-2 border-b border-white/[0.07] space-y-1.5 shrink-0 overflow-hidden">
             <input
               type="text"
               placeholder="Search…"
@@ -276,11 +300,11 @@ export default function BasesShell() {
               onChange={e => setSearch(e.target.value)}
               className="w-full bg-white/[0.05] border border-white/[0.08] rounded px-2.5 py-1.5 text-xs font-mono text-slate-300 placeholder-slate-600 focus:outline-none focus:border-accent-blue/50"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 w-full">
               <select
                 value={filterRegion}
                 onChange={e => setFilterRegion(e.target.value)}
-                className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded px-2 py-1.5 text-[10px] font-mono text-slate-400 focus:outline-none"
+                className="flex-1 min-w-0 bg-white/[0.05] border border-white/[0.08] rounded px-2 py-1.5 text-[10px] font-mono text-slate-400 focus:outline-none"
               >
                 <option value="">All Regions</option>
                 {ALL_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
@@ -288,7 +312,7 @@ export default function BasesShell() {
               <select
                 value={filterThreat}
                 onChange={e => setFilterThreat(e.target.value as ThreatLevel | '')}
-                className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded px-2 py-1.5 text-[10px] font-mono text-slate-400 focus:outline-none"
+                className="flex-1 min-w-0 bg-white/[0.05] border border-white/[0.08] rounded px-2 py-1.5 text-[10px] font-mono text-slate-400 focus:outline-none"
               >
                 <option value="">All</option>
                 <option value="HIGH">High</option>
@@ -298,8 +322,46 @@ export default function BasesShell() {
             </div>
           </div>
 
+          {/* Sort controls */}
+          <div className="px-3 py-1.5 border-b border-white/[0.07] shrink-0 flex items-center gap-1">
+            <span className="text-[8px] font-mono text-slate-700 tracking-widest mr-1">SORT</span>
+            {(['num', 'region', 'threat', 'status'] as const).map(field => {
+              const labels: Record<string, string> = { num: '#', region: 'RGN', threat: 'THR', status: 'STA' }
+              const active = sortField === field
+              return (
+                <button
+                  key={field}
+                  onClick={() => {
+                    if (active) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+                    else { setSortField(field); setSortDir('asc') }
+                  }}
+                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono transition-colors cursor-pointer ${
+                    active ? 'bg-white/[0.08] text-slate-200' : 'text-slate-600 hover:text-slate-400'
+                  }`}
+                >
+                  {labels[field]}
+                  {active && <span className="ml-0.5">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+                </button>
+              )
+            })}
+          </div>
+
           {/* Layer toggles */}
           <div className="px-3 py-2 border-b border-white/[0.07] shrink-0">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[8px] font-mono text-slate-600 tracking-widest uppercase">Status</span>
+              <button
+                onClick={() => setGlowEnabled(v => !v)}
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-mono transition-colors cursor-pointer border ${
+                  glowEnabled
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                    : 'bg-white/[0.03] border-white/[0.08] text-slate-600 hover:text-slate-400'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full transition-colors ${glowEnabled ? 'bg-amber-400' : 'bg-slate-700'}`} />
+                GLOW
+              </button>
+            </div>
             <div className="space-y-1">
               {ALL_STATUSES.map(s => {
                 const on  = visibleStatuses.has(s)
@@ -324,7 +386,14 @@ export default function BasesShell() {
 
           {/* Regiment list */}
           <div className="flex-1 overflow-y-auto">
-            {filtered.map(base => {
+            {/* Column header */}
+            <div className="flex items-center px-2 py-1 border-b border-white/[0.06] bg-white/[0.02] sticky top-0 z-10">
+              <span className="w-5 text-right text-[7px] font-mono text-slate-700">#</span>
+              <span className="w-3 shrink-0" />
+              <span className="flex-1 text-[7px] font-mono text-slate-600 tracking-widest uppercase">Unit / Location</span>
+              <span className="shrink-0 w-4 text-center text-[7px] font-mono text-slate-600 tracking-widest">T</span>
+            </div>
+            {sorted.map((base, idx) => {
               const isActive = selected === base.id
               const clr      = STATUS_COLORS[base.status]
               const dimmed   = !visibleStatuses.has(base.status)
@@ -334,29 +403,33 @@ export default function BasesShell() {
                   key={base.id}
                   onClick={() => handleSelect(base.id)}
                   className={`
-                    w-full text-left px-3 py-2 border-b border-white/[0.05] transition-colors
-                    flex items-start gap-2
+                    w-full text-left px-2 py-1.5 border-b border-white/[0.04] transition-colors
+                    flex items-center gap-1.5
                     ${isActive ? 'bg-accent-blue/10 border-l-2 border-l-accent-blue' : 'hover:bg-white/[0.03]'}
-                    ${dimmed   ? 'opacity-40' : ''}
+                    ${dimmed   ? 'opacity-30' : ''}
                   `}
                 >
-                  <div
-                    className="shrink-0 w-7 h-7 rounded flex items-center justify-center font-mono text-[9px] font-bold mt-0.5"
-                    style={{ background: clr + '20', border: `1px solid ${clr}44`, color: clr }}
-                  >
-                    {base.regimentEn.replace('IB ', '')}
-                  </div>
+                  <span className="shrink-0 text-[8px] font-mono text-slate-700 w-5 text-right tabular-nums">
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <span className="shrink-0 w-0.5 h-5 rounded-full" style={{ background: clr }} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="text-[10px] font-mono font-bold text-slate-200 truncate">{base.regimentEn}</span>
-                      {inArea && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent-blue" />}
+                      {inArea && <span className="shrink-0 w-1 h-1 rounded-full bg-accent-blue" />}
                     </div>
-                    <div className="text-[9px] text-slate-500 truncate">{base.locationEn}</div>
+                    <div className="text-[8px] font-mono text-slate-600 truncate">{base.locationEn}</div>
                   </div>
+                  <span
+                    className="shrink-0 text-[7px] font-mono font-bold w-4 text-center py-0.5 rounded"
+                    style={{ background: (THREAT_CLR[base.threat] ?? '#6b7280') + '25', color: THREAT_CLR[base.threat] ?? '#6b7280' }}
+                  >
+                    {base.threat[0]}
+                  </span>
                 </button>
               )
             })}
-            {filtered.length === 0 && (
+            {sorted.length === 0 && (
               <div className="px-4 py-8 text-center text-xs font-mono text-slate-600">No bases match</div>
             )}
           </div>
@@ -439,6 +512,7 @@ export default function BasesShell() {
               sidebarOpen={sidebarOpen}
               clearSignal={clearSignal}
               onAreaSelected={handleAreaSelected}
+              glowEnabled={glowEnabled}
             />
           </div>
 

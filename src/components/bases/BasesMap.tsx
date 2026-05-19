@@ -7,6 +7,8 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import { area as turfArea, center as turfCenter, booleanPointInPolygon, point as turfPoint } from '@turf/turf'
 import { BASES, STATUS_COLORS, STATUS_LABELS, type MilitaryBase } from '@/lib/bases-data'
+import { REGIONAL_COMMANDS, type RegionalCommand } from '@/lib/rmc-data'
+import { LIGHT_INF_DIVS, type LightInfDiv } from '@/lib/lid-data'
 import type { AreaSelection } from '@/lib/analyze-types'
 
 export type { AreaSelection }
@@ -43,6 +45,7 @@ interface Props {
   sidebarOpen?:    boolean
   clearSignal?:    number
   onAreaSelected?: (sel: AreaSelection | null) => void
+  glowEnabled?:    boolean
 }
 
 function buildMarkerEl(base: MilitaryBase): HTMLElement {
@@ -50,7 +53,7 @@ function buildMarkerEl(base: MilitaryBase): HTMLElement {
   const num   = base.regimentEn
   const short = STATUS_SHORT[base.status]
 
-  const imgGlow = `drop-shadow(0 0 4px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
+  const imgGlow = `brightness(1.0)`
 
   const wrap = document.createElement('div')
   wrap.style.cssText =
@@ -95,6 +98,153 @@ function buildMarkerEl(base: MilitaryBase): HTMLElement {
   return wrap
 }
 
+const RMC_GOLD = '#d4a849'
+const RMC_SHADOW = '0 1px 5px rgba(0,0,0,1),0 0 14px rgba(0,0,0,0.95)'
+
+function buildRmcMarkerEl(rmc: RegionalCommand): HTMLElement {
+  const wrap = document.createElement('div')
+  wrap.style.cssText =
+    'display:flex;align-items:center;gap:5px;cursor:pointer;' +
+    'transition:transform 0.15s ease;touch-action:manipulation;z-index:5;'
+
+  wrap.innerHTML = `
+    <div style="
+      position:relative;flex-shrink:0;width:32px;height:32px;
+      display:flex;align-items:center;justify-content:center;
+    ">
+      <img
+        src="${rmc.insignia}"
+        width="26" height="26"
+        style="object-fit:contain;display:block;
+          filter:brightness(1.05);transition:filter 0.15s ease"
+        alt="${rmc.name}"
+        onerror="this.style.display='none'"
+      />
+    </div>
+    <div style="line-height:1.3;user-select:none">
+      <div style="
+        font-family:'Courier New',monospace;
+        font-size:11px;font-weight:800;letter-spacing:0.05em;
+        color:${RMC_GOLD};
+        text-shadow:${RMC_SHADOW};
+        white-space:nowrap;
+      ">${rmc.abbr}</div>
+      <div style="
+        font-family:'Courier New',monospace;
+        font-size:8px;font-weight:500;letter-spacing:0.04em;
+        color:#94a3b8;
+        text-shadow:${RMC_SHADOW};
+        white-space:nowrap;
+      ">${rmc.hq.toUpperCase()}</div>
+    </div>`
+
+  return wrap
+}
+
+function buildLidMarkerEl(lid: LightInfDiv): HTMLElement {
+  const wrap = document.createElement('div')
+  wrap.style.cssText =
+    'display:flex;align-items:center;gap:5px;cursor:pointer;' +
+    'transition:transform 0.15s ease;touch-action:manipulation;z-index:4;'
+
+  wrap.innerHTML = `
+    <div style="
+      position:relative;flex-shrink:0;width:32px;height:32px;
+      display:flex;align-items:center;justify-content:center;
+    ">
+      <img
+        src="${lid.insignia}"
+        width="26" height="26"
+        style="object-fit:contain;display:block;
+          filter:brightness(1.05);transition:filter 0.15s ease"
+        alt="${lid.name}"
+        onerror="this.style.display='none'"
+      />
+    </div>
+    <div style="line-height:1.3;user-select:none">
+      <div style="
+        font-family:'Courier New',monospace;
+        font-size:11px;font-weight:800;letter-spacing:0.05em;
+        color:${RMC_GOLD};
+        text-shadow:${RMC_SHADOW};
+        white-space:nowrap;
+      ">LID-${lid.num}</div>
+      <div style="
+        font-family:'Courier New',monospace;
+        font-size:8px;font-weight:500;letter-spacing:0.04em;
+        color:#94a3b8;
+        text-shadow:${RMC_SHADOW};
+        white-space:nowrap;
+      ">${lid.loc.toUpperCase()}</div>
+    </div>`
+
+  return wrap
+}
+
+function lidPopupHTML(lid: LightInfDiv): string {
+  return `
+    <div style="padding:14px 16px;font-size:0.8rem;min-width:250px;max-width:310px">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+        <img src="${lid.insignia}" width="28" height="28"
+             style="object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 5px ${RMC_GOLD}88)"
+             onerror="this.style.display='none'" />
+        <div>
+          <div style="font-weight:700;color:#e2e8f0;font-size:0.9rem;font-family:monospace">${lid.name}</div>
+          <div style="color:#64748b;font-size:0.72rem;font-family:monospace">Light Infantry Division</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 10px;margin-bottom:10px">
+        <div style="display:flex;gap:8px;margin-bottom:5px">
+          <span style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;min-width:28px">HQ</span>
+          <span style="color:#cbd5e1;font-size:0.75rem">${lid.loc}</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:5px">
+          <span style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;min-width:28px">CMD</span>
+          <span style="color:#94a3b8;font-size:0.72rem">${lid.cmd}</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;min-width:28px">EST</span>
+          <span style="color:#94a3b8;font-size:0.72rem">${lid.est}</span>
+        </div>
+      </div>
+      <span style="
+        background:${RMC_GOLD}20;color:${RMC_GOLD};border:1px solid ${RMC_GOLD}44;
+        border-radius:4px;padding:2px 8px;font-size:0.68rem;font-weight:700;font-family:monospace">
+        ▣ LID-${lid.num} · ${lid.regiments} REGIMENTS
+      </span>
+    </div>`
+}
+
+function rmcPopupHTML(rmc: RegionalCommand): string {
+  return `
+    <div style="padding:14px 16px;font-size:0.8rem;min-width:250px;max-width:310px">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+        <img src="${rmc.insignia}" width="28" height="28"
+             style="object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 5px ${RMC_GOLD}88)"
+             onerror="this.style.display='none'" />
+        <div>
+          <div style="font-weight:700;color:#e2e8f0;font-size:0.9rem;font-family:monospace">${rmc.name}</div>
+          <div style="color:#64748b;font-size:0.72rem;font-family:monospace">${rmc.burmese}</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 10px;margin-bottom:10px">
+        <div style="display:flex;gap:8px;margin-bottom:5px">
+          <span style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;min-width:28px">HQ</span>
+          <span style="color:#cbd5e1;font-size:0.75rem">${rmc.hq}</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span style="color:#64748b;font-size:0.65rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;min-width:28px">AOR</span>
+          <span style="color:#94a3b8;font-size:0.72rem">${rmc.region}</span>
+        </div>
+      </div>
+      <span style="
+        background:${RMC_GOLD}20;color:${RMC_GOLD};border:1px solid ${RMC_GOLD}44;
+        border-radius:4px;padding:2px 8px;font-size:0.68rem;font-weight:700;font-family:monospace">
+        ▣ ${rmc.abbr} · REGIONAL COMMAND
+      </span>
+    </div>`
+}
+
 function popupHTML(b: MilitaryBase): string {
   const color     = STATUS_COLORS[b.status]
   const statusLbl = STATUS_LABELS[b.status]
@@ -137,15 +287,19 @@ function popupHTML(b: MilitaryBase): string {
     </div>`
 }
 
-export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, onAreaSelected }: Props) {
+export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, onAreaSelected, glowEnabled = false }: Props) {
   const containerRef      = useRef<HTMLDivElement>(null)
   const mapRef            = useRef<mapboxgl.Map | null>(null)
   const markersRef        = useRef<Map<number, mapboxgl.Marker>>(new Map())
+  const rmcMarkersRef     = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const lidMarkersRef     = useRef<Map<number, mapboxgl.Marker>>(new Map())
   const drawRef           = useRef<InstanceType<typeof MapboxDraw> | null>(null)
   const onAreaSelectedRef = useRef(onAreaSelected)
+  const glowEnabledRef    = useRef(glowEnabled)
   const [ready, setReady] = useState(false)
 
   useEffect(() => { onAreaSelectedRef.current = onAreaSelected }, [onAreaSelected])
+  useEffect(() => { glowEnabledRef.current = glowEnabled }, [glowEnabled])
 
   // Clear drawn polygon when parent signals it
   useEffect(() => {
@@ -252,39 +406,80 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
           if (shortEl) shortEl.style.fontSize = `${shortFs}px`
         }
       })
+
+      // RMC markers — larger scale (1.75× IB/LIB)
+      const rmcSize   = Math.round(20 + 14 * t)
+      const rmcAbbrFs = +(10 + 2 * t).toFixed(1)
+      const rmcHqFs   = +(7.5 + 1.5 * t).toFixed(1)
+      const rmcGap    = Math.round(4 + 2 * t)
+
+      rmcMarkersRef.current.forEach(marker => {
+        const el      = marker.getElement()
+        const iconBox = el.children[0] as HTMLElement | null
+        const textBox = el.children[1] as HTMLElement | null
+
+        el.style.gap = `${rmcGap}px`
+
+        if (iconBox) {
+          const boxSize = rmcSize + 6
+          iconBox.style.width  = `${boxSize}px`
+          iconBox.style.height = `${boxSize}px`
+          const img = iconBox.querySelector('img') as HTMLImageElement | null
+          if (img) { img.width = rmcSize; img.height = rmcSize }
+        }
+
+        if (textBox) {
+          textBox.style.display = showText ? '' : 'none'
+          const abbrEl = textBox.children[0] as HTMLElement | null
+          const hqEl   = textBox.children[1] as HTMLElement | null
+          if (abbrEl) abbrEl.style.fontSize = `${rmcAbbrFs}px`
+          if (hqEl)   hqEl.style.fontSize   = `${rmcHqFs}px`
+        }
+      })
+
+      // LID markers — same scale as RMC
+      lidMarkersRef.current.forEach(marker => {
+        const el      = marker.getElement()
+        const iconBox = el.children[0] as HTMLElement | null
+        const textBox = el.children[1] as HTMLElement | null
+
+        el.style.gap = `${rmcGap}px`
+
+        if (iconBox) {
+          const boxSize = rmcSize + 6
+          iconBox.style.width  = `${boxSize}px`
+          iconBox.style.height = `${boxSize}px`
+          const img = iconBox.querySelector('img') as HTMLImageElement | null
+          if (img) { img.width = rmcSize; img.height = rmcSize }
+        }
+
+        if (textBox) {
+          textBox.style.display = showText ? '' : 'none'
+          const nameEl = textBox.children[0] as HTMLElement | null
+          const locEl  = textBox.children[1] as HTMLElement | null
+          if (nameEl) nameEl.style.fontSize = `${rmcAbbrFs}px`
+          if (locEl)  locEl.style.fontSize  = `${rmcHqFs}px`
+        }
+      })
     }
 
     map.on('load', () => {
-      // Tint satellite imagery darker + greener (military tactical look)
-      if (map.getLayer('satellite')) {
-        map.setPaintProperty('satellite', 'raster-brightness-max', 0.60)
-        map.setPaintProperty('satellite', 'raster-brightness-min', 0.04)
-        map.setPaintProperty('satellite', 'raster-saturation',     -0.20)
-        map.setPaintProperty('satellite', 'raster-contrast',        0.15)
-        map.setPaintProperty('satellite', 'raster-hue-rotate',      30)   // shift toward green
-      }
-
-      // Terrain + dark green hillshade
-      map.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url:  'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14,
+      // Dim all countries except Myanmar (ISO 'MM')
+      map.addSource('country-mask', {
+        type: 'vector',
+        url: 'mapbox://mapbox.country-boundaries-v1',
       })
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.0 })
-      const beforeLayer = map.getLayer('road-label') ? 'road-label' : undefined
       map.addLayer({
-        id:     'hillshade',
-        type:   'hillshade',
-        source: 'mapbox-dem',
+        id:           'non-myanmar-dim',
+        type:         'fill',
+        source:       'country-mask',
+        'source-layer': 'country_boundaries',
+        filter:       ['!=', ['get', 'iso_3166_1'], 'MM'],
         paint: {
-          'hillshade-shadow-color':            '#0d1f0d',
-          'hillshade-highlight-color':         '#1e3d1e',
-          'hillshade-accent-color':            '#162b16',
-          'hillshade-illumination-direction':  315,
-          'hillshade-exaggeration':            0.55,
+          'fill-color':   '#000000',
+          'fill-opacity': 0.55,
         },
-      }, beforeLayer)
+      })
 
       BASES.forEach(base => {
         const el     = buildMarkerEl(base)
@@ -305,6 +500,44 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
         })
         markersRef.current.set(base.id, marker)
       })
+      // LID markers
+      LIGHT_INF_DIVS.forEach(lid => {
+        const el     = buildLidMarkerEl(lid)
+        const popup  = new mapboxgl.Popup({ offset: 10, maxWidth: '320px', closeButton: true })
+          .setHTML(lidPopupHTML(lid))
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'left' })
+          .setLngLat([lid.lng, lid.lat])
+          .setPopup(popup)
+          .addTo(map)
+
+        el.addEventListener('click', () => marker.togglePopup())
+        el.addEventListener('touchend', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          marker.togglePopup()
+        })
+        lidMarkersRef.current.set(lid.num, marker)
+      })
+
+      // RMC markers — rendered above base markers (z-index via style)
+      REGIONAL_COMMANDS.forEach(rmc => {
+        const el     = buildRmcMarkerEl(rmc)
+        const popup  = new mapboxgl.Popup({ offset: 10, maxWidth: '320px', closeButton: true })
+          .setHTML(rmcPopupHTML(rmc))
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'left' })
+          .setLngLat([rmc.lng, rmc.lat])
+          .setPopup(popup)
+          .addTo(map)
+
+        el.addEventListener('click', () => marker.togglePopup())
+        el.addEventListener('touchend', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          marker.togglePopup()
+        })
+        rmcMarkersRef.current.set(rmc.id, marker)
+      })
+
       applyMarkerSizes(map.getZoom())
       map.on('zoom', () => applyMarkerSizes(map.getZoom()))
       setReady(true)
@@ -324,6 +557,8 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       mapRef.current  = null
       drawRef.current = null
       markersRef.current.clear()
+      rmcMarkersRef.current.clear()
+      lidMarkersRef.current.clear()
       setReady(false)
     }
   }, [onSelect])
@@ -335,6 +570,22 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       marker.getElement().style.display = visibleIds.has(id) ? '' : 'none'
     })
   }, [visibleIds, ready])
+
+  // Glow toggle — apply/remove drop-shadow on all non-selected markers
+  useEffect(() => {
+    if (!ready) return
+    markersRef.current.forEach((marker, id) => {
+      if (id === selected) return
+      const base  = BASES.find(b => b.id === id)!
+      const color = STATUS_COLORS[base.status]
+      const img   = marker.getElement().querySelector('img') as HTMLImageElement | null
+      if (img) {
+        img.style.filter = glowEnabled
+          ? `drop-shadow(0 0 4px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
+          : `brightness(1.0)`
+      }
+    })
+  }, [glowEnabled, ready, selected])
 
   // Highlight selected marker
   useEffect(() => {
@@ -352,7 +603,9 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       if (img) {
         img.style.filter = active
           ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 3px ${color}) brightness(1.35)`
-          : `drop-shadow(0 0 4px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
+          : glowEnabledRef.current
+            ? `drop-shadow(0 0 4px ${color}cc) drop-shadow(0 0 2px ${color}88) brightness(1.1)`
+            : `brightness(1.0)`
       }
 
       if (active && mapRef.current) {
