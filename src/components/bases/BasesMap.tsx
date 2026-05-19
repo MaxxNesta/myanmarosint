@@ -46,6 +46,8 @@ interface Props {
   clearSignal?:    number
   onAreaSelected?: (sel: AreaSelection | null) => void
   glowEnabled?:    boolean
+  showRmc?:        boolean
+  showLid?:        boolean
 }
 
 function buildMarkerEl(base: MilitaryBase): HTMLElement {
@@ -287,7 +289,7 @@ function popupHTML(b: MilitaryBase): string {
     </div>`
 }
 
-export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, onAreaSelected, glowEnabled = false }: Props) {
+export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, onAreaSelected, glowEnabled = false, showRmc = true, showLid = true }: Props) {
   const containerRef      = useRef<HTMLDivElement>(null)
   const mapRef            = useRef<mapboxgl.Map | null>(null)
   const markersRef        = useRef<Map<number, mapboxgl.Marker>>(new Map())
@@ -570,6 +572,22 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       marker.getElement().style.display = visibleIds.has(id) ? '' : 'none'
     })
   }, [visibleIds, ready])
+
+  // RMC visibility toggle
+  useEffect(() => {
+    if (!ready) return
+    rmcMarkersRef.current.forEach((marker: mapboxgl.Marker) => {
+      marker.getElement().style.display = showRmc ? '' : 'none'
+    })
+  }, [showRmc, ready])
+
+  // LID visibility toggle
+  useEffect(() => {
+    if (!ready) return
+    lidMarkersRef.current.forEach((marker: mapboxgl.Marker) => {
+      marker.getElement().style.display = showLid ? '' : 'none'
+    })
+  }, [showLid, ready])
 
   // Glow toggle — apply/remove drop-shadow on all non-selected markers
   useEffect(() => {

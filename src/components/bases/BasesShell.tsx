@@ -77,6 +77,8 @@ export default function BasesShell() {
   const [sortField,    setSortField]    = useState<'num' | 'region' | 'threat' | 'status'>('num')
   const [sortDir,      setSortDir]      = useState<'asc' | 'desc'>('asc')
   const [glowEnabled,  setGlowEnabled]  = useState(false)
+  const [showRmc,      setShowRmc]      = useState(true)
+  const [showLid,      setShowLid]      = useState(true)
 
   // Commander dashboard state
   const [areaSelection,   setAreaSelection]   = useState<AreaSelection | null>(null)
@@ -350,17 +352,33 @@ export default function BasesShell() {
           <div className="px-3 py-2 border-b border-white/[0.07] shrink-0">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[8px] font-mono text-slate-600 tracking-widest uppercase">Status</span>
-              <button
-                onClick={() => setGlowEnabled(v => !v)}
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-mono transition-colors cursor-pointer border ${
-                  glowEnabled
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                    : 'bg-white/[0.03] border-white/[0.08] text-slate-600 hover:text-slate-400'
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full transition-colors ${glowEnabled ? 'bg-amber-400' : 'bg-slate-700'}`} />
-                GLOW
-              </button>
+              <div className="flex items-center gap-1">
+                {([['RMC', showRmc, setShowRmc], ['LID', showLid, setShowLid]] as const).map(([label, on, set]) => (
+                  <button
+                    key={label}
+                    onClick={() => set(v => !v)}
+                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-mono transition-colors cursor-pointer border ${
+                      on
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                        : 'bg-white/[0.03] border-white/[0.08] text-slate-600 hover:text-slate-400'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full transition-colors ${on ? 'bg-amber-400' : 'bg-slate-700'}`} />
+                    {label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setGlowEnabled(v => !v)}
+                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-mono transition-colors cursor-pointer border ${
+                    glowEnabled
+                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                      : 'bg-white/[0.03] border-white/[0.08] text-slate-600 hover:text-slate-400'
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full transition-colors ${glowEnabled ? 'bg-amber-400' : 'bg-slate-700'}`} />
+                  GLOW
+                </button>
+              </div>
             </div>
             <div className="space-y-1">
               {ALL_STATUSES.map(s => {
@@ -513,6 +531,8 @@ export default function BasesShell() {
               clearSignal={clearSignal}
               onAreaSelected={handleAreaSelected}
               glowEnabled={glowEnabled}
+              showRmc={showRmc}
+              showLid={showLid}
             />
           </div>
 
