@@ -138,7 +138,8 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'tat-taung',    date: '2024-12-20', actor: 'AA' },
   { townId: 'pauktaw',      date: '2024-01-24', actor: 'AA' },
   { townId: 'sane',         date: '2024-05-09', actor: 'AA' , contested: true },
-  { townId: 'tan-lwe-ywar-ma', date: '2024-11-24', actor: 'AA' },
+  { townId: 'tan-hlwe-ywar-ma-town', date: '2024-11-24', actor: 'AA' },
+  { townId: 'ngapali',          date: '2024-06-24', actor: 'AA' }, // Ngapali Beach seized
   { townId: 'taungpyo',     date: '2024-02-06', actor: 'AA' },
   { townId: 'mrauk-u',      date: '2024-02-08', actor: 'AA' },
   { townId: 'ponnagyun',    date: '2024-03-04', actor: 'AA' }, // MIMU: Ponnagyun
