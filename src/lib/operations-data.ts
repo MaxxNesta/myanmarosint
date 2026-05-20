@@ -118,7 +118,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'singu',        date: '2024-07-17', actor: 'PDF_NUG' },
 
   // ── Arakan / Rakhine State ────────────────────────────────────────────────
-  { townId: 'kanhtaunggyi', date: '2024-02-15', actor: 'AA' },
+  { townId: 'kanhtauntkyi', date: '2024-02-15', actor: 'AA' },
   { townId: 'thandwe',      date: '2024-07-16', actor: 'AA' },
   { townId: 'ann',          date: '2024-12-20', actor: 'AA' },
   { townId: 'ramree',       date: '2024-03-11', actor: 'AA' },
@@ -142,7 +142,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'taungpyo',     date: '2024-02-06', actor: 'AA' },
   { townId: 'mrauk-u',      date: '2024-02-08', actor: 'AA' },
   { townId: 'ponnagyun',    date: '2024-03-04', actor: 'AA' }, // MIMU: Ponnagyun
-  { townId: 'maei',         date: '2024-02-23', actor: 'AA' }, // liberated; AA conducted landmine clearance
+  { townId: 'ma-ei',        date: '2024-02-23', actor: 'AA' }, // liberated; AA conducted landmine clearance
   { townId: 'kyeintali',    date: '2024-08-14', actor: 'AA' },
 
   // ── New towns — initial resistance captures (estimated dates) ─────────────
