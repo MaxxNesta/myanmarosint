@@ -143,7 +143,7 @@ function TownRow({ entry, effectiveDate, onTownClick }: {
         {!captured ? (
           <span className="text-[6.5px] font-mono text-slate-700">upcoming</span>
         ) : ctrl?.contested ? (
-          <span className="text-[6.5px] font-mono text-red-400">⚡ contested</span>
+          <span className="text-[6.5px] font-mono" style={{ color: '#E62900' }}>⚡ contested</span>
         ) : ctrl?.actor === 'MILITARY' ? (
           <span className="text-[6.5px] font-mono text-slate-600">↩ SAC</span>
         ) : (

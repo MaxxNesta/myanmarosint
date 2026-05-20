@@ -67,7 +67,7 @@ function townPopupHTML(
 ): string {
   const a = ACTORS[actor] ?? ACTORS.UNKNOWN
   const statusLabel = contested ? '⚡ CONTESTED' : `● ${a.shortName} CONTROL`
-  const statusColor = contested ? '#ef4444' : a.color
+  const statusColor = contested ? '#E62900' : a.color
 
   const historyRows = history.slice().reverse().slice(0, 4).map(ev => {
     const ea = ACTORS[ev.actor] ?? ACTORS.UNKNOWN
@@ -118,7 +118,7 @@ function townshipPopupHTML(
     : activeConflict && actor === 'MILITARY'
       ? '⚔ ACTIVE FIGHTING — SAC Zone'
       : `● ${a.shortName} CONTROL`
-  const statusColor = contested ? '#ef4444' : (activeConflict && actor === 'MILITARY') ? '#92400e' : a.color
+  const statusColor = contested ? '#E62900' : (activeConflict && actor === 'MILITARY') ? '#92400e' : a.color
 
   const historyRows = history.slice().reverse().slice(0, 4).map(ev => {
     const ea = ACTORS[ev.actor] ?? ACTORS.UNKNOWN
@@ -287,7 +287,7 @@ export default function OperationsMap({
         const hasConflict = conflictTownshipsRef.current.has(ts.pcode)
         let fillColor: string
         if (!visible)        fillColor = '#1e293b'
-        else if (contested)                           fillColor = '#dc2626'  // formal contested control
+        else if (contested)                           fillColor = '#E62900'  // formal contested control
         else if (hasConflict && actor === 'MILITARY') fillColor = '#92400e'  // SAC zone with active fighting
         else                                          fillColor = a.color    // actor color (resistance or stable SAC)
         map.setFeatureState(
