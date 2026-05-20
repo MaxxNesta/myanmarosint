@@ -154,13 +154,12 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'kawlin',       date: '2023-12-01', actor: 'PDF_NUG' }, // Sagaing PDF
 
   // ── Magway Region – Yaw/SAW corridor ─────────────────────────────────────
-  // PDF never captured these towns but controlled the surrounding region 2022–2026.
-  // contested: true = PDF influence over region; towns remained physically SAC-held.
-  { townId: 'saw',        date: '2022-01-01', actor: 'PDF_NUG', contested: true }, // PDF regional influence; town never fell
-  { townId: 'gangaw',     date: '2022-01-01', actor: 'PDF_NUG', contested: true }, // Yaw region hub; PDF influence 2022–2026
-  { townId: 'myaing',     date: '2022-01-01', actor: 'PDF_NUG', contested: true },
-  { townId: 'pauk',       date: '2022-01-01', actor: 'PDF_NUG', contested: true },
-  { townId: 'sidoktaya',  date: '2022-01-01', actor: 'PDF_NUG', contested: true },
+  // Towns always SAC-held; contested: true reflects PDF regional influence 2022–2026.
+  { townId: 'saw',        date: '2022-01-01', actor: 'MILITARY', contested: true }, // PDF controlled surrounding region; town never fell
+  { townId: 'gangaw',     date: '2022-01-01', actor: 'MILITARY', contested: true }, // Yaw region hub; PDF influence in area 2022–2026
+  { townId: 'myaing',     date: '2022-01-01', actor: 'MILITARY', contested: true },
+  { townId: 'pauk',       date: '2022-01-01', actor: 'MILITARY', contested: true },
+  { townId: 'sidoktaya',  date: '2022-01-01', actor: 'MILITARY', contested: true },
 
   // ── SAC / Military recaptures 2025–2026 ───────────────────────────────────
   { townId: 'lashio',       date: '2025-04-22', actor: 'MILITARY' },
