@@ -41,7 +41,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'rezua',       date: '2023-11-29', actor: 'CNF' },
   { townId: 'm-kuiimnu',   date: '2021-07-24', actor: 'CNF' },
   { townId: 'kanpetlet',   date: '2024-12-22', actor: 'CNF' },
-  { townId: 'mindat',      date: '2024-12-21', actor: 'CNF' },
+  { townId: 'mindat',      date: '2024-12-21', actor: 'CNF', contested: true  },
   { townId: 'hanring',     date: '2023-11-30', actor: 'CNF' },
   { townId: 'matupi',      date: '2024-06-29', actor: 'CNF' },
   { townId: 'paletwa',     date: '2024-01-14', actor: 'AA'  },
@@ -135,7 +135,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'myebon',       date: '2024-02-15', actor: 'AA' },
   { townId: 'tat-taung',    date: '2024-12-20', actor: 'AA' },
   { townId: 'pauktaw',      date: '2024-01-24', actor: 'AA' },
-  { townId: 'sane',         date: '2024-05-09', actor: 'AA' },
+  { townId: 'sane',         date: '2024-05-09', actor: 'AA' , contested: true },
   { townId: 'tan-lwe-ywar-ma', date: '2024-11-24', actor: 'AA' },
   { townId: 'taungpyo',     date: '2024-02-06', actor: 'AA' },
   { townId: 'mrauk-u',      date: '2024-02-08', actor: 'AA' },
@@ -152,6 +152,15 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'indaw',        date: '2025-04-08', actor: 'PDF_NUG' }, // Sagaing PDF
   { townId: 'madaya',       date: '2024-11-01', actor: 'PDF_NUG' }, // Mandalay PDF advance
   { townId: 'kawlin',       date: '2023-12-01', actor: 'PDF_NUG' }, // Sagaing PDF
+
+  // ── Magway Region – Yaw/SAW corridor (SAC-held towns; surroundings PDF-contested) ──
+  // These towns were never captured by resistance; marked MILITARY + contested to reflect
+  // that PDF controls much of the surrounding rural area but not the town centres.
+  { townId: 'saw',        date: '2025-05-01', actor: 'MILITARY', contested: true }, // Saw Township seat; SAC-held despite heavy PDF activity in region
+  { townId: 'gangaw',     date: '2025-05-01', actor: 'MILITARY', contested: true }, // Gangaw (Yaw region hub); SAC-held
+  { townId: 'myaing',     date: '2025-05-01', actor: 'MILITARY', contested: true }, // Myaing; SAC-held, region contested
+  { townId: 'pauk',       date: '2025-05-01', actor: 'MILITARY', contested: true }, // Pauk; SAC-held, region contested
+  { townId: 'sidoktaya',  date: '2025-05-01', actor: 'MILITARY', contested: true }, // Sidoktaya; SAC-held, region contested
 
   // ── SAC / Military recaptures 2025–2026 ───────────────────────────────────
   { townId: 'lashio',       date: '2025-04-22', actor: 'MILITARY' },
