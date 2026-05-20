@@ -9,9 +9,9 @@ export const ACTORS: Record<ActorId, Actor> = {
   PDF_NUG:  { id: 'PDF_NUG',  name: "People's Defence Force / NUG",                shortName: 'PDF',   color: '#22c55e', side: 'resistance' },
   KNLA:     { id: 'KNLA',     name: 'Karen National Liberation Army',               shortName: 'KNLA',  color: '#10b981', side: 'resistance' },
   KNDO:     { id: 'KNDO',     name: 'Karen National Defence Organisation',          shortName: 'KNDO',  color: '#34d399', side: 'resistance' },
-  CNF:      { id: 'CNF',      name: 'Chin National Front / Chin Brotherhood',       shortName: 'CNF',   color: '#f43f5e', side: 'resistance' },
+  CNF:      { id: 'CNF',      name: 'Chin National Front / Chin Brotherhood',       shortName: 'CNF',   color: '#ffecb9', side: 'resistance' },
   SSPP_SSA: { id: 'SSPP_SSA', name: 'Shan State Progress Party / SSA-North',       shortName: 'SSPP',  color: '#8b5cf6', side: 'resistance' },
-  KNPP:     { id: 'KNPP',     name: 'Karenni National People\'s Party / KRF',       shortName: 'KNPP',  color: '#db2777', side: 'resistance' },
+  KNPP:     { id: 'KNPP',     name: 'Karenni National People\'s Party / KRF',       shortName: 'KNPP',  color: '#A99ED1', side: 'resistance' },
   UWSA:     { id: 'UWSA',     name: 'United Wa State Army',                         shortName: 'UWSA',  color: '#0369a1', side: 'resistance' },
   UNKNOWN:  { id: 'UNKNOWN',  name: 'Unknown / Unconfirmed',                        shortName: '?',     color: '#6b7280', side: 'resistance' },
 }
@@ -153,14 +153,14 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'madaya',       date: '2024-11-01', actor: 'PDF_NUG' }, // Mandalay PDF advance
   { townId: 'kawlin',       date: '2023-12-01', actor: 'PDF_NUG' }, // Sagaing PDF
 
-  // ── Magway Region – Yaw/SAW corridor (SAC-held towns; surroundings PDF-contested) ──
-  // These towns were never captured by resistance; marked MILITARY + contested to reflect
-  // that PDF controls much of the surrounding rural area but not the town centres.
-  { townId: 'saw',        date: '2025-05-01', actor: 'MILITARY', contested: true }, // Saw Township seat; SAC-held despite heavy PDF activity in region
-  { townId: 'gangaw',     date: '2025-05-01', actor: 'MILITARY', contested: true }, // Gangaw (Yaw region hub); SAC-held
-  { townId: 'myaing',     date: '2025-05-01', actor: 'MILITARY', contested: true }, // Myaing; SAC-held, region contested
-  { townId: 'pauk',       date: '2025-05-01', actor: 'MILITARY', contested: true }, // Pauk; SAC-held, region contested
-  { townId: 'sidoktaya',  date: '2025-05-01', actor: 'MILITARY', contested: true }, // Sidoktaya; SAC-held, region contested
+  // ── Magway Region – Yaw/SAW corridor ─────────────────────────────────────
+  // PDF never captured these towns but controlled the surrounding region 2022–2026.
+  // contested: true = PDF influence over region; towns remained physically SAC-held.
+  { townId: 'saw',        date: '2022-01-01', actor: 'PDF_NUG', contested: true }, // PDF regional influence; town never fell
+  { townId: 'gangaw',     date: '2022-01-01', actor: 'PDF_NUG', contested: true }, // Yaw region hub; PDF influence 2022–2026
+  { townId: 'myaing',     date: '2022-01-01', actor: 'PDF_NUG', contested: true },
+  { townId: 'pauk',       date: '2022-01-01', actor: 'PDF_NUG', contested: true },
+  { townId: 'sidoktaya',  date: '2022-01-01', actor: 'PDF_NUG', contested: true },
 
   // ── SAC / Military recaptures 2025–2026 ───────────────────────────────────
   { townId: 'lashio',       date: '2025-04-22', actor: 'MILITARY' },
@@ -183,4 +183,9 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'maw-lu',       date: '2026-05-05', actor: 'MILITARY' }, // SAC recapture
   { townId: 'tonzang',      date: '2026-05-19', actor: 'MILITARY' }, // SAC recapture; CNF had held since 2024-05-21
   { townId: 'maw-taung',    date: '2026-05-19', actor: 'MILITARY' }, // SAC recapture; KNLA had held since 2025-11-14
+  { townId: 'saw',          date: '2026-05-01', actor: 'MILITARY' }, // SAC reasserts; PDF regional influence ended
+  { townId: 'gangaw',       date: '2026-05-01', actor: 'MILITARY' },
+  { townId: 'myaing',       date: '2026-05-01', actor: 'MILITARY' },
+  { townId: 'pauk',         date: '2026-05-01', actor: 'MILITARY' },
+  { townId: 'sidoktaya',    date: '2026-05-01', actor: 'MILITARY' },
 ]
