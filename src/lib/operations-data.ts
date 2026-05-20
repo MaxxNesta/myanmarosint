@@ -52,6 +52,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'lay-kay-kaw', date: '2024-10-17', actor: 'KNLA' },
   { townId: 'hpapun',      date: '2024-03-28', actor: 'KNLA' },
   { townId: 'kyaikdon',    date: '2024-03-14', actor: 'KNLA' },
+  { townId: 'maw-taung',   date: '2025-11-14', actor: 'KNLA' }, // seized after ~4 days of fighting; key Thai–Myanmar border trade town
 
   // ── Karenni / Kayah State ─────────────────────────────────────────────────
   { townId: 'moebye',       date: '2023-11-13', actor: 'KNPP'    },
@@ -170,5 +171,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'kawlin',       date: '2026-01-31', actor: 'MILITARY' },
   { townId: 'falam',        date: '2026-04-25', actor: 'MILITARY' },
   { townId: 'indaw',        date: '2026-04-30', actor: 'MILITARY' },
-  { townId: 'maw-lu',     date: '2026-05-05', actor: 'MILITARY' }, // SAC recapture
+  { townId: 'maw-lu',       date: '2026-05-05', actor: 'MILITARY' }, // SAC recapture
+  { townId: 'tonzang',      date: '2026-05-19', actor: 'MILITARY' }, // SAC recapture; CNF had held since 2024-05-21
+  { townId: 'maw-taung',    date: '2026-05-19', actor: 'MILITARY' }, // SAC recapture; KNLA had held since 2025-11-14
 ]
