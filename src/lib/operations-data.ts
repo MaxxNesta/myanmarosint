@@ -124,12 +124,14 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'ramree',       date: '2024-03-11', actor: 'AA' },
   { townId: 'maungdaw',     date: '2024-12-08', actor: 'AA' },
   { townId: 'gwa',          date: '2024-12-29', actor: 'AA' },
-  { townId: 'taungup',      date: '2024-11-24', actor: 'AA' },
-  { townId: 'toungup',      date: '2024-11-24', actor: 'AA' }, // MIMU slug alias
+  { townId: 'taungup',      date: '2024-03-11', actor: 'AA' },
+  { townId: 'toungup',      date: '2024-03-11', actor: 'AA' }, // MIMU slug alias
+  { townId: 'lay-taung-town', date: '2024-03-11', actor: 'AA' }, // Lay Taung Town, Ramree Twp
   { townId: 'buthidaung',   date: '2024-05-18', actor: 'AA' },
   { townId: 'kha-maung-seik', date: '2024-12-08', actor: 'AA' },
   { townId: 'kyauktaw',     date: '2024-02-07', actor: 'AA' }, // MIMU: Kyauktaw
   { townId: 'minbya',       date: '2024-02-06', actor: 'AA' },
+  { townId: 'taungpyoletwea', date: '2024-02-06', actor: 'AA' }, // Taung Pyo Let Wae outpost seized
   { townId: 'myin-hlut',    date: '2024-12-08', actor: 'AA' },
   { townId: 'rathedaung',   date: '2024-03-17', actor: 'AA' },
   { townId: 'myebon',       date: '2024-02-15', actor: 'AA' },
@@ -140,7 +142,7 @@ export const TOWN_CONTROL_EVENTS: TownControlEvent[] = [
   { townId: 'taungpyo',     date: '2024-02-06', actor: 'AA' },
   { townId: 'mrauk-u',      date: '2024-02-08', actor: 'AA' },
   { townId: 'ponnagyun',    date: '2024-03-04', actor: 'AA' }, // MIMU: Ponnagyun
-  { townId: 'maei',         date: '2024-02-16', actor: 'AA' },
+  { townId: 'maei',         date: '2024-02-23', actor: 'AA' }, // liberated; AA conducted landmine clearance
   { townId: 'kyeintali',    date: '2024-08-14', actor: 'AA' },
 
   // ── New towns — initial resistance captures (estimated dates) ─────────────
