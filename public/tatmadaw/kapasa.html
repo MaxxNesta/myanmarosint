@@ -125,12 +125,12 @@
     </div>
 
     <div class="kapasa-map-controls">
-      <button class="kps-layer-btn active" data-layer="rifles">🔫 Small Arms</button>
-      <button class="kps-layer-btn active" data-layer="ammo">💥 Ammunition</button>
-      <button class="kps-layer-btn active" data-layer="bombs">💣 Bombs & Mines</button>
-      <button class="kps-layer-btn active" data-layer="aa">🎯 Anti-Aircraft</button>
-      <button class="kps-layer-btn active" data-layer="materials">⚙ Materials/Support</button>
-      <button class="kps-layer-btn active" data-layer="heavy">🚗 Heavy Industries</button>
+      <button class="kps-layer-btn active" data-layer="rifles">Small Arms</button>
+      <button class="kps-layer-btn active" data-layer="ammo">Ammunition</button>
+      <button class="kps-layer-btn active" data-layer="bombs"> Bombs & Mines</button>
+      <button class="kps-layer-btn active" data-layer="aa">Anti-Aircraft</button>
+      <button class="kps-layer-btn active" data-layer="materials">Materials/Support</button>
+      <button class="kps-layer-btn active" data-layer="heavy">Heavy Industries</button>
     </div>
 
     <div id="kapasa-map"></div>
@@ -162,12 +162,12 @@
 
     <div class="kps-filter-row">
       <button class="kps-filter-btn active" data-filter="all">All Facilities</button>
-      <button class="kps-filter-btn" data-filter="rifles">🔫 Small Arms</button>
-      <button class="kps-filter-btn" data-filter="ammo">💥 Ammunition</button>
-      <button class="kps-filter-btn" data-filter="bombs">💣 Bombs &amp; Mines</button>
-      <button class="kps-filter-btn" data-filter="aa">🎯 Anti-Aircraft</button>
-      <button class="kps-filter-btn" data-filter="materials">⚙ Materials</button>
-      <button class="kps-filter-btn" data-filter="heavy">🚗 Heavy Industries</button>
+      <button class="kps-filter-btn" data-filter="rifles">Small Arms</button>
+      <button class="kps-filter-btn" data-filter="ammo">Ammunition</button>
+      <button class="kps-filter-btn" data-filter="bombs"> Bombs &amp; Mines</button>
+      <button class="kps-filter-btn" data-filter="aa"> Anti-Aircraft</button>
+      <button class="kps-filter-btn" data-filter="materials"> Materials</button>
+      <button class="kps-filter-btn" data-filter="heavy"> Heavy Industries</button>
     </div>
 
     <div id="kapasa-grid" class="kapasa-grid"></div>
@@ -244,7 +244,7 @@ const KPS = [
 // ═══════════════════════════════════════════════════════════════
 const catColor = { rifles:'#4a6a8a', ammo:'#4a6070', bombs:'#e83333', aa:'#6a9be8', materials:'#6ab882', heavy:'#9b6ae8' };
 const catLabel = { rifles:'Small Arms', ammo:'Ammunition', bombs:'Bombs & Mines', aa:'Anti-Aircraft', materials:'Materials/Support', heavy:'Heavy Industries' };
-const catIcon  = { rifles:'🔫', ammo:'💥', bombs:'💣', aa:'🎯', materials:'⚙', heavy:'🚗' };
+const catIcon  = { rifles:'', ammo:'', bombs:'', aa:'', materials:'', heavy:'' };
 const statusLabel = { active:'Active', captured:'Captured', inactive:'Inactive' };
 
 function esc(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
