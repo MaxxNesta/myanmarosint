@@ -1305,6 +1305,24 @@ function renderCapturedSummary() {
   </div>`;
 }
 
+function renderCapturedFilters() {
+  const el = $('#captured-filters');
+  if (!el) return;
+  const CAT_LABELS = { armor:'Armor & Vehicles', artillery:'Artillery & Rockets', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
+  const presentCats = [...new Set(CAPTURED_DATA.map(e => e.cat))];
+  const buttons = [['all','All'], ...presentCats.map(c => [c, CAT_LABELS[c] || c])];
+  el.innerHTML = buttons.map(([val, label], i) =>
+    `<button class="cap-sub-btn filter-btn${i === 0 ? ' active' : ''}" data-cap-cat="${val}">${label}</button>`
+  ).join('');
+  el.querySelectorAll('.cap-sub-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      el.querySelectorAll('.cap-sub-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCaptured(btn.dataset.capCat);
+    });
+  });
+}
+
 function renderCaptured(filter = 'all') {
   const grid = $('#captured-grid');
   if (!grid) return;
@@ -2207,6 +2225,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAdmin();
   initEquipmentFilters();
   renderCapturedSummary();
+  renderCapturedFilters();
   renderCaptured();
 
   // Maps (after DOM ready)
