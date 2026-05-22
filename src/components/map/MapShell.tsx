@@ -12,8 +12,14 @@ import ConflictTimeline from './ConflictTimeline'
 const MapView = dynamic(() => import('./MapView'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-surface-1">
-      <div className="text-xs font-mono text-slate-500 animate-pulse">Initializing map…</div>
+    <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-surface-0">
+      <img src="/mcw-logo.jpg" alt="MCW" className="w-20 h-20 object-contain animate-pulse" />
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs font-mono text-slate-500 tracking-[0.3em]">INITIALIZING MAP</span>
+        <div className="w-36 h-0.5 bg-surface-2 rounded overflow-hidden">
+          <div className="h-full bg-red-600 animate-[loading-bar_1.4s_ease-in-out_infinite]" />
+        </div>
+      </div>
     </div>
   ),
 })
