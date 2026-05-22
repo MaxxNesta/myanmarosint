@@ -855,6 +855,60 @@ const CAPTURED_DATA = [
     ],
   },
 
+  // ── ANTI-AIRCRAFT GUNS ─────────────────────────────────────
+  {
+    name: '14.5mm Type 02 QJG',
+    type: 'Anti-Aircraft Gun',
+    origin: 'China',
+    cat: 'aa',
+    total: 3, destroyed: 0, abandoned: 0, captured: 3,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/9FM8yMSr/2024-04-21-Myanmar-Type-02-QJG-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/qvVXXtKH/2024-04-10-Myanmar-ZPU-1-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/ryDPfrDD/2024-04-11-Myanmar-ZPU-1-Captured.jpg' },
+    ],
+  },
+  {
+    name: '14.5mm Type 02 QJG w/ KPVT',
+    type: 'Anti-Aircraft Gun Mount',
+    origin: 'China / Belarus',
+    cat: 'aa',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/m2N19qsS/2024-08-01-Myanmar-Type-02-QJG-with-KPV-Captured-by-Rebels-02.jpg' },
+    ],
+  },
+  {
+    name: '14.5mm ZGU-1',
+    type: 'Anti-Aircraft Gun',
+    origin: 'Soviet Union',
+    cat: 'aa',
+    total: 13, destroyed: 0, abandoned: 0, captured: 13,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/zDgPnFxM/2023-12-17-Myanmar-ZPU-1-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/XvqCr7Nw/2024-01-06-Myanmar-ZPU-1-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/4dhH1L9y/2024-01-07-Myanmar-ZPU-1-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/XvPydSXt/2024-01-07-Myanmar-ZPU-1-Captured-02.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/T161JRxN/2024-01-25-Myanmar-ZPU-1-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/HxsN9WDT/2024-01-31-Myanmar-ZPU-1-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/d12nDz0V/2024-02-14-Myanmar-2x-ZPU-1-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/g2bqxQZN/2024-07-01-Myanmar-2x-ZGU-1-Captured-by-Rebel.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/yxCWghp5/2024-07-30-Myanmar-ZGU-1-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/L6zXf4Xh/2024-08-06-Myanmar-ZGU-1-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/Xqtv1KNY/2024-08-26-Myanmar-ZGU-1-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: '37mm Type-74',
+    type: 'Anti-Aircraft Gun',
+    origin: 'China',
+    cat: 'aa',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/DyJBJ1Yy/2024-07-11-Myanmar-2x-37mm-Type-74-AA-Guns-Captured-by-Rebel.jpg' },
+    ],
+  },
+
   // ── INFANTRY MOBILITY VEHICLES ─────────────────────────────
   {
     name: 'Dongfeng CSK131',
@@ -1600,7 +1654,7 @@ function renderCapturedSummary(filter = 'all') {
 function renderCapturedFilters() {
   const el = $('#captured-filters');
   if (!el) return;
-  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', imv:'Infantry Mobility Vehicles', comms:'Command Posts & Comms', engineering:'Engineering Equipment', artillery:'Artillery & Rockets', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
+  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', imv:'Infantry Mobility Vehicles', comms:'Command Posts & Comms', engineering:'Engineering Equipment', artillery:'Artillery & Rockets', aa:'Anti-Aircraft Guns', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
   const presentCats = [...new Set(CAPTURED_DATA.map(e => e.cat))];
   const buttons = [['all','All'], ...presentCats.map(c => [c, CAT_LABELS[c] || c])];
   el.innerHTML = buttons.map(([val, label], i) =>
