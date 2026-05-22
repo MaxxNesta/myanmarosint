@@ -1198,6 +1198,541 @@ const CAPTURED_DATA = [
     ],
   },
 
+  // ── TRUCKS, VEHICLES & JEEPS ────────────────────────────────
+  {
+    name: 'Armored Dongfeng EQ2082',
+    type: 'Armored Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 5, destroyed: 0, abandoned: 0, captured: 5,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/L5FJQy80/2024-02-15-Myanmar-3x-Armored-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/nhFDtwYy/2024-02-15-Myanmar-Armored-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/tCrCng97/2024-02-15-Myanmar-Armored-Dongfeng-EQ2082-Captured-02.jpg' },
+    ],
+  },
+  {
+    name: 'Armored FAW Jiefang 141',
+    type: 'Armored Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 5, destroyed: 3, abandoned: 0, captured: 2,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/3wYf9PG5/2024-02-22-Myanmar-Armored-FAW-Jiefang-141-Destroyed-02-03.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/x1KFv0c3/2024-02-22-Myanmar-Armored-FAW-Jiefang-141-Destroyed-03-03.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/qvf56tM7/2024-02-22-Myanmar-Armored-FAW-Jiefang-141-Destroyed-04-03.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/k5WmsMPQ/2024-02-22-Myanmar-Armored-FAW-Jiefang-141-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/15f8nGGd/2024-01-23-Myanmar-Armored-FAW-Jiefang-141-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Armored Sinotruk HOWO',
+    type: 'Armored Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 6, destroyed: 0, abandoned: 0, damaged: 1, captured: 5,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/fRpz5gtN/2024-02-16-Myanmar-2x-Armored-Sinotruk-Howo-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/fbHpz44b/2024-01-07-Myanmar-2x-Unknown-Truck-Captured.jpg' },
+      { status: 'damaged',  url: 'https://i.postimg.cc/XY4f9nrZ/2023-11-02-Myanmar-Unknown-Truck-Destroyed-03.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/sfnBg6hS/2024-01-23-Myanmar-Armored-Sinotruk-Howo-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Beiben ND2200',
+    type: 'Heavy Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/wvmHpFR3/2024-08-02-Myanmar-Beiben-ND2200-Destroyed.jpg' },
+    ],
+  },
+  {
+    name: 'Dongfeng EQ140',
+    type: 'Light Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/cCj4MzRb/2024-06-17-Myanmar-Dongfeng-EQ140-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/pXhdX2xb/2024_06_17_Myanmar_Dongfeng_EQ140_Captured_by_Rebels_02.jpg' },
+    ],
+  },
+  {
+    name: 'Dongfeng EQ140 Tanker',
+    type: 'Fuel Tanker',
+    origin: 'China',
+    cat: 'trucks',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/y6Zm4q85/2024-04-15-Myanmar-Dongfeng-EQ140-Tanker-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/SRcK52nL/2024-07-09-Myanmar-Dongfeng-EQ140-Tanker-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Dongfeng EQ2082',
+    type: '4×4 Cargo Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 23, destroyed: 7, abandoned: 1, captured: 15,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/PJ5FHC4R/2024-03-10-Myanmar-2x-Dongfeng-EQ2082-Destroyed-and-2x-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/8cNPMJFf/2023-11-29-Myanmar-Unknown-Truck-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/dDMqjqn7/2024-08-20-Myanmar-Dongfeng-EQ2082-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/jdNN02pF/2024-08-20-Myanmar-Dongfeng-EQ2082-Destroyed-02.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/9XsTnZn9/2024-08-20-Myanmar-Dongfeng-EQ2082-Destroyed-03.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/HWrXzBBH/2024-08-20-Myanmar-Dongfeng-EQ2082-Destroyed-04.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/kXzxhWYb/2022-05-04-Myanmar-FAW-Jiefang-CA-141-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/2yk8j9HK/2023-11-02-Myanmar-FAW-Jiefang-CA-141-and-FAW-Jiefang-141-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/VLSP9cbF/2023-11-02-Myanmar-2x-FAW-Jiefang-CA-141-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/63rjBYSg/2023-10-28-Myanmar-Dongfeng-EQ2082-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/XJtCDbQ0/2023-11-03-Myanmar-FAW-Jiefang-CA-141-Captured-01.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/L6dqYPv9/2023-11-13-Myanmar-2x-Dongfeng-EQ2082-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/nL5jBVbx/2024-02-15-Myanmar-2x-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/mgmFZNmt/2024-02-15-Myanmar-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/zXSg61Ww/2024-02-15-Myanmar-Dongfeng-EQ2082-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/j5XkBHzf/2024-01-07-Myanmar-Mil-Truk-and-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/PJ5FHC4R/2024-03-10-Myanmar-2x-Dongfeng-EQ2082-Destroyed-and-2x-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/fRYTmBJ8/2024-06-13-Myanmar-Dongfeng-EQ2082-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Dongfeng EQ2082 EW System',
+    type: 'Electronic Warfare Vehicle',
+    origin: 'China',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/GtDBCg5y/2024-07-27-Myanmar-Dongfeng-EQ2082-with-EW-System-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Dongfeng EQ2102',
+    type: '6×6 Cargo Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 2, destroyed: 1, abandoned: 0, captured: 1,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/vTwzMXmB/2024-01-08-Myanmar-Shaanxi-SX-21090-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/wxhH95y1/2024-08-04-Myanmar-Dongfeng-EQ2102-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'FAW 1041',
+    type: 'Light Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 12, destroyed: 1, abandoned: 0, captured: 11,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/j5p5ZQSd/2024-07-09-Myanmar-FAW-1041-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/QtS4zstC/2023-12-09-Myanmar-FAW-1041-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/TYThyYCp/2024-01-26-Myanmar-FAW-1041-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/BbMT3Bvm/2024-01-17-Myanmar-FAW-1041-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/9XLnpBX5/2024-03-10-Myanmar-FAW-1041-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/c4kfRvPj/2024-04-26-Myanmar-FAW-141-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Wpf3vdBw/2024_06_17_Myanmar_FAW_1041_Captured_by_Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/T3x7zpCd/2024-03-31-Myanmar-FAW-1041-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/j52zVrpd/2024-06-25-Myanmar-FAW-1041-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/B6T4zrNY/2024-07-11-Myanmar-FAW-1041-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/bJD22wyG/2024-08-02-Myanmar-FAW-1041-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/kGFdw93Q/2024-08-04-Myanmar-FAW-1041-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'FAW Jiefang CA1122J',
+    type: 'Medium Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 6, destroyed: 2, abandoned: 0, captured: 4,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/g09JVQ65/2021-06-18-Myanmar-FAW-Jiefang-CA1122-J-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/MZnqKxHS/2023-03-15-Myanmar-FAW-Jiefang-CA-1122-J-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/RhTzZ2Xn/2023-11-17-Myanmar-FAW-Jiefang-CA-1122-J-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Qxdgbw6w/2024-01-17-Myanmar-FAW-Jiefang-CA-1122-J-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Y9qxGJW4/2024-04-03-Myanmar-FAW-Jiefang-CA1122-J-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/43R6tRMG/2024-12-22-Myanmar-FAW-Jiefang-CA1122-J-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Foton Aumark',
+    type: 'Light Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 31, destroyed: 2, abandoned: 1, captured: 28,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/Fskpy0j7/2023-12-09-Myanmar-FOTON-Aumark-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/3xRNtvtg/2021-05-23-Myanmar-Foton-Aumark-Destroyed.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/DZFjw0DB/2022-03-09-Myanmar-Foton-Aumark-Damaged-and-Abandoned.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/1XYGpjj8/2023-11-12-Myanmar-Foton-Aumark-Captured-01.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/wBdhcJ0Q/2023-11-12-Myanmar-Foton-Aumark-Captured-02.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Rh57GD1h/2023-11-12-Myanmar-Foton-Aumark-Captured-03.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/768GxBhT/2023-12-23-Myanmar-Toyota-Hilux-Unknown-Pickup-and-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/mDz55XDn/2024-01-29-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/d1QDFPTK/2023-11-16-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/RhRRFzgQ/2023-12-30-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/4N26FPqd/2024-01-17-Myanmar-Foton-Aumark-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/wjSh9v6Y/2024-01-17-Myanmar-Foton-Aumark-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/4dTJR7Q2/2024-02-16-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/qvyw9cr7/2024-03-31-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Xvg8vVpS/2024-04-03-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/bwx06z0D/2024-04-06-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/FKCymNct/2024-04-15-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/1Xb0dXY6/2024-04-07-Myanmar-Unknown-Truck-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/W1DgX2v4/2024-04-24-Myanmar-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/j2CSfT7f/2024_06_17_Myanmar_Foton_Aumark_Captured_by_Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/SsCxh2QG/2024-07-28-Myanmar-Foton-Aumark-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/PqFrhP6V/2024-08-06-Myanmar-Foton-Aumark-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/DZ80bqJK/2024-08-10-Myanmar-Foton-Aumark-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/XY4rR8cr/2024-07-09-Myanmar-Foton-Aumark-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/W1vZ2jjb/2024-08-18-Myanmar-Foton-Aumark-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/g2HZj5ky/2024-08-18-Myanmar-Foton-Aumark-Captured-by-Rebels-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/yN00mdPR/2024_10_12_Myanmar_Foton_Aumark_Captured_by_Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/T20qNKXq/2024_10_16_Myanmar_Foton_Aumark_Captured_by_Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/jjvD5VYZ/2024-11-23-Myanmar-Foton-Aumark-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/SRP8xB8w/2024-12-20-Myanmar-Foton-Aumark-Captured-by-Rebel-01.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/RhhK9S37/2024-12-20-Myanmar-Foton-Aumark-Captured-by-Rebel-02.jpg' },
+    ],
+  },
+  {
+    name: 'Ford Ranger',
+    type: 'Pickup Truck',
+    origin: 'USA / Thailand',
+    cat: 'trucks',
+    total: 6, destroyed: 2, abandoned: 0, captured: 4,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/gJ90cBmD/2024-03-07-Myanmar-Ford-Ranger-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/C1rFS2Qx/2024-06-06-Myanmar-Ford-Ranger-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/V6DVwyqH/2023-10-25-Myanmar-Ford-Ranger-Captured-by-Mili.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/zXWJ9PC5/2023-11-12-Myanmar-Ford-Ranger-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/pXy0TgGb/2022-05-12-Myanmar-Ford-Ranger-Damaged-and-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/26M6dVhL/2024-08-10-Myanmar-Ford-Ranger-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Hino TH',
+    type: 'Medium Truck',
+    origin: 'Japan',
+    cat: 'trucks',
+    total: 3, destroyed: 0, abandoned: 0, captured: 3,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/WzzZddGB/2023-12-23-Myanmar-FAW-Jiefang-141-and-Hino-TH-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/nc6TRR65/2024-03-31-Myanmar-Hino-TH-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/q7Y0SWR9/2024-08-02-Myanmar-Hino-TH-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Hyundai County Schoolbus',
+    type: 'Troop Transport Bus',
+    origin: 'South Korea',
+    cat: 'trucks',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/05FF1knK/2023-11-12-Myanmar-Hyundai-County-Schoolbus-Captured.png' },
+      { status: 'captured', url: 'https://i.postimg.cc/SNwwbp8G/2024-02-02-Myanmar-Hyundai-County-Schoolbus-Captured.jpg' },
+    ],
+  },
+  {
+    name: 'Innlay Tactical Jeep',
+    type: 'Tactical Jeep',
+    origin: 'Myanmar',
+    cat: 'trucks',
+    total: 3, destroyed: 0, abandoned: 0, captured: 3,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/d0PTzxBq/2024-01-17-Myanmar-Innlay-Tactical-Jeep-Captured-02.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/1XwwpFdP/2024-04-21-Myanmar-Innlay-Tactical-Jeep-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/HLXFv503/2024-05-06-Myanmar-Innlay-Tactical-Jeep-Captured.jpg' },
+    ],
+  },
+  {
+    name: 'IZh-412',
+    type: 'Sedan / Staff Car',
+    origin: 'Soviet Union',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/T1spCLv9/2023-11-13-Myanmar-IZh-412-Captured.png' },
+    ],
+  },
+  {
+    name: 'Lanjian Truck',
+    type: '4×4 Cargo Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 11, destroyed: 0, abandoned: 0, captured: 11,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/8kf2K5fC/2024-01-29-Myanmar-Lanjian-Truck-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/YCYTpyzB/2024-02-02-Myanmar-Lanjian-Truck-Captured-01.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/266HBHh6/2024-02-02-Myanmar-Lanjian-Truck-Captured-02.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/0yrf8FDD/2023-12-30-Myanmar-Lanjian-Truck-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/k5Qt9v1W/2024-01-17-Myanmar-Lanjian-Truck-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/cHpt7GCF/2024-08-02-Myanmar-2x-Lanjian-Truck-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/L8D8Cyjp/2024-08-06-Myanmar-Lanjian-Truck-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/yxLmDbTr/2024_10_16_Myanmar_Lanjian_Truck_Captured_by_Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/zB0K9bfD/2024-12-20-Myanmar-Lanjian-Truck-Captured-by-Rebel.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/j236JwV3/2024-12-23-Myanmar-Lanjian-Truck-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Mil-Truk Dumptruck',
+    type: 'Military Dump Truck',
+    origin: 'Myanmar',
+    cat: 'trucks',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/d12dhXJR/2023-11-04-Myanmar-Unknown-Truck-Destroyed.jpg' },
+    ],
+  },
+  {
+    name: 'Mil-Truk',
+    type: 'Military Cargo Truck',
+    origin: 'Myanmar',
+    cat: 'trucks',
+    total: 11, destroyed: 5, abandoned: 0, captured: 6,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/4NDJ036d/2023-11-07-Myanmar-Sinotruk-Howo-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/ZRZMf7yZ/2024-01-07-Myanmar-Mil-Truk-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/3J0qwjh6/2024-02-22-Myanmar-Miltruk-Destroyed-01-03.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/MHNrDH7d/2024-02-22-Myanmar-Miltruk-Destroyed-02-03.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/sDFCJN9d/2023-11-02-Myanmar-Sinotruk-HOWO-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/qMjsc9yj/2023-11-05-Myanmar-Sinotruk-Howo-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/j5XkBHzf/2024-01-07-Myanmar-Mil-Truk-and-Dongfeng-EQ2082-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/FzK7xc27/2024-01-23-Myanmar-Miltruk-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/cHnrLkhw/2024-08-01-Myanmar-2x-Mil-Truk-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Mitsubishi L200',
+    type: 'Pickup Truck',
+    origin: 'Japan',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/CMrYBpNw/2023-11-12-Myanmar-Mitsubishi-L200-Captured.png' },
+    ],
+  },
+  {
+    name: 'Mitsubishi L200 w/ EW Equipment',
+    type: 'Electronic Warfare Vehicle',
+    origin: 'Japan',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/7Lx3VzXz/2024-06-26-Myanmar-Mitsubishi-L200-with-Anti-Drone-Jammer-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Mitsubishi Pajero',
+    type: '4×4 SUV',
+    origin: 'Japan',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 1, captured: 0,
+    images: [
+      { status: 'abandoned', url: 'https://i.postimg.cc/PrCCk2F3/2022-01-18-Myanmar-Mitsubishi-Pajero-Damaged-and-Abandoned-02.jpg' },
+    ],
+  },
+  {
+    name: 'Nissan UD CD48',
+    type: 'Medium Truck',
+    origin: 'Japan',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/tTz85VwV/2023-12-09-Myanmar-Sinotruk-Watercannon-and-Nissan-UD-CD48-Captured-01.jpg' },
+    ],
+  },
+  {
+    name: 'Shaanxi SX2190',
+    type: 'Heavy Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/j5S6Dyz8/2024-04-12-Myanmar-Shaanxi-SX-2190-Captured-01.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/qM3kHjXp/2024-05-27-Myanmar-Shaanxi-SX2190-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Sinotruk HOWO Water Cannon',
+    type: 'Water Cannon Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/tTz85VwV/2023-12-09-Myanmar-Sinotruk-Watercannon-and-Nissan-UD-CD48-Captured-01.jpg' },
+    ],
+  },
+  {
+    name: 'Tata LPTA 715',
+    type: 'Light Truck',
+    origin: 'India',
+    cat: 'trucks',
+    total: 4, destroyed: 0, abandoned: 4, captured: 0,
+    images: [
+      { status: 'abandoned', url: 'https://i.postimg.cc/4337MQJB/2024-01-16-Myanmar-Unknown-Truck-Abandoned.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/ry4zzbfd/2024_10_26_Myanmar_Tata_LPTA_715_Abandoned.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/sf4wFn5W/2024_10_26_Myanmar_Tata_LPTA_715_Abandoned_02.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/Bb4pLDft/2024_10_26_Myanmar_Tata_LPTA_715_Abandoned_03.jpg' },
+    ],
+  },
+  {
+    name: 'Tata Xenon GS 800',
+    type: 'Pickup Truck',
+    origin: 'India',
+    cat: 'trucks',
+    total: 21, destroyed: 0, abandoned: 2, captured: 19,
+    images: [
+      { status: 'abandoned', url: 'https://i.postimg.cc/dtQb9H54/2023-09-05-Myanmar-Tata-Xenon-GS-800-Damaged-and-Abandoned.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/T2yyhjq4/2024-05-11-Myanmar-Tata-Xenon-GS800-Abandoned.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/BZYKz27C/2023-11-12-Myanmar-Tata-Xenon-GS-800-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/FKwC5Gg5/2023-11-13-Myanmar-Tata-Xenon-GS-800-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/9QQBWDcG/2024-01-08-Myanmar-Tata-Xenon-GS-800-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Y9tLSLZZ/2024-01-17-Myanmar-Tata-Xenon-GS-800-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Wz5jZ9Lx/2024-02-16-Myanmar-Tata-Xenon-GS-800-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/28Xr8XxZ/2024-02-21-Myanmar-Tata-Xenon-GS800-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/L4NPSq4X/2024-03-31-Myanmar-Tata-Xenon-GS800-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/SsGMJRWg/2024-03-31-Myanmar-Tata-Xenon-GS800-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/vZ77fh7M/2024-06-26-Myanmar-Tata-Xenon-GS800-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/N0WjS7tM/2024-07-28-Myanmar-Tata-Xenon-GS800-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/qMRqTJfz/2024-08-04-Myanmar-Tata-Xenon-GS800-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/FFGz8fBM/2024-08-04-Myanmar-Tata-Xenon-GS800-Captured-by-Rebels-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/7PzY8PSX/2024-08-05-Myanmar-Tata-Xenon-GS800-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Xv2XJ2v8/2024-08-10-Myanmar-Tata-Xenon-GS800-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/NjDKBHpp/2024-07-09-Myanmar-Tata-Xenon-GS800-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/QtH96dgS/2024-08-06-Myanmar-2x-Tata-Xenon-GS800-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/jdGP0rRf/2024-12-16-Myanmar-Tata-Xenon-GS800-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/ydPyspLH/2024-12-23-Myanmar-Tata-Xenon-GS800-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Toyota Hilux w/ B-10 Recoilless Rifle',
+    type: 'Armed Pickup',
+    origin: 'Japan',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/zfKWY03Z/2024-03-31-Myanmar-Toyota-Hilux-with-B-10-Captured.jpg' },
+    ],
+  },
+  {
+    name: 'Tuk Tuk',
+    type: 'Three-Wheeled Vehicle',
+    origin: 'Thailand / India',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/qvstPhbf/2024-11-23-Myanmar-Tuk-Tuk-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Uparmored Mil-Truk',
+    type: 'Armored Military Truck',
+    origin: 'Myanmar',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/FzPKLqSr/2024-08-04-Myanmar-Uparmored-Mil-Truk-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Zhongxing Grand Tiger',
+    type: '4×4 Pickup Truck',
+    origin: 'China',
+    cat: 'trucks',
+    total: 26, destroyed: 2, abandoned: 0, captured: 24,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/XYqTB9Jc/2024-08-04-Myanmar-Zhongxing-Grand-Tiger-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/bJ8k3hCB/2024_10_12_Myanmar_Tata_Xenon_GS800_Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/gj9dnzYj/2023-11-12-Myanmar-Zhongxing-Grand-Tiger-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/4xdWYjWR/2023-11-13-Myanmar-Zhongxing-Grand-Tiger-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/LX7QvBv5/2023-12-09-Myanmar-Zhongxing-Grand-Tiger-211-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/fbzhP90Z/2023-12-15-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/C1YXpgGB/2023-12-23-Myanmar-Toyota-Hilux-and-Zhongxing-Grandtiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/76wHsjbX/2023-12-23-Myanmar-Zhongxing-Grandtiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/vmXqTR1k/2024-01-29-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/2yL20VHN/2024-02-02-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/pT0rXGD5/2023-11-16-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/1tF7y2xJ/2023-12-18-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/rFD0zkZV/2024-01-17-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/yxbDnQxC/2024-01-17-Myanmar-Zhongxing-Grand-Tiger-Captured-02-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/59gfDtYp/2024-02-16-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/L6vhkT39/2024-03-05-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/cLnkdyR0/2024-03-14-Myanmar-Zhongxing-Grand-Tiger-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/qvDRXHZ2/2024-07-28-Myanmar-Zhongxing-Grand-Tiger-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/PJdTnSRt/2024-08-02-Myanmar-Zhongxing-Grand-Tiger-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/wjrnX3RK/2024-08-04-Myanmar-Zhongxing-Grand-Tiger-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/YqcG3kvf/2024-07-09-Myanmar-Zhongxing-Grand-Tiger-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/6644nTpp/2024-07-19-Myanmar-Zhongxing-Grand-Tiger-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/d1mmY1ZF/2024_10_16_Myanmar_Tata_Xenon_GS800_Captured_by_Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/50MqTv0p/2024_10_16_Myanmar_Zhongxing_Grand_Tiger_Captured_by_Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/KYmKxGw1/2024-11-23-Myanmar-Zhongxing-Grand-Tiger-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/P5g44wCB/2024-12-23-Myanmar-Zhongxing-Grand-Tiger-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown Jeep',
+    type: 'Jeep',
+    origin: 'Unknown',
+    cat: 'trucks',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/Dzm5c8D2/2024-01-08-Myanmar-Car-Captured.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown Pickup',
+    type: 'Pickup Truck',
+    origin: 'Unknown',
+    cat: 'trucks',
+    total: 14, destroyed: 1, abandoned: 1, captured: 12,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/YScLwvms/2024-01-23-Myanmar-Unknown-Pickup-Destroyed.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/rsKmd1Jn/2023-12-10-Myanmar-Unknown-Pickup-Abandoned.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/768GxBhT/2023-12-23-Myanmar-Toyota-Hilux-Unknown-Pickup-and-Foton-Aumark-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/sftrsSCS/2024-01-27-Myanmar-Pickup-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/sx9nhWgW/2023-12-30-Myanmar-2x-Unknown-Pickup-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/rFbY6Ftf/2024-03-14-Myanmar-Unknown-Pickup-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/ZYsw3KjJ/2024-03-31-Myanmar-5x-Unknown-Pickup-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/x8TbHQ5n/2024-03-31-Myanmar-Unknown-Pickup-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/CKCjs6Tq/2024-12-20-Myanmar-Unknown-Pickup-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown Truck',
+    type: 'Truck',
+    origin: 'Unknown',
+    cat: 'trucks',
+    total: 16, destroyed: 4, abandoned: 0, damaged: 2, captured: 10,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/ZY61ngTn/2022-04-15-Myanmar-Sinotruk-Howo-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/1XtLBbL5/2024-05-09-Myanmar-Unknown-Truck-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/bNWsQZLw/2023-11-05-Myanmar-Unknown-Truck-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/vZ0GL4d8/2024-08-05-Myanmar-2x-Unknown-Trucks-Destroyed.jpg' },
+      { status: 'damaged',   url: 'https://i.postimg.cc/5tW707gv/2024-03-29-Myanmar-Unknown-Truck-Damaged.jpg' },
+      { status: 'damaged',   url: 'https://i.postimg.cc/Pf7MJVrx/2024-04-05-Myanmar-Unknown-Truck-Damaged.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/gkYVDxXf/2024-01-04-Myanmar-Unknown-Nissan-UD-Truck-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/MTQcDkqQ/2024-02-15-Myanmar-Unknown-Truck-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/901Vmy6y/2024-08-02-Myanmar-Unknown-Truck-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/W4BLvtsm/2024-08-04-Myanmar-2x-Unknown-Trucks-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/NFhgppyc/2024-08-04-Myanmar-Unknown-Truck-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/d3C05wjH/2024-08-10-Myanmar-2x-Unknown-Truck-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/tCh1vfP0/2024-07-09-Myanmar-Unknown-Truck-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/fLp31QBs/2024-08-03-Myanmar-Truck-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown Vehicle',
+    type: 'Vehicle',
+    origin: 'Unknown',
+    cat: 'trucks',
+    total: 3, destroyed: 0, abandoned: 0, captured: 3,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/QtS9Kxrt/2024-01-17-Myanmar-Unknown-Vehicle-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/25q509PM/2024-07-28-Myanmar-Unknown-Vehicle-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/hjQDLHts/2024-08-04-Myanmar-Unknown-Vehicle-Captured-by-Rebels.jpg' },
+    ],
+  },
+
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -1900,7 +2435,7 @@ function renderCapturedSummary(filter = 'all') {
 function renderCapturedFilters() {
   const el = $('#captured-filters');
   if (!el) return;
-  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', imv:'Infantry Mobility Vehicles', comms:'Command Posts & Comms', engineering:'Engineering Equipment', artillery:'Artillery & Rockets', aa:'Anti-Aircraft Guns', aircraft:'Aircraft', helicopter:'Helicopters', uav:'Unmanned Aerial Vehicles', naval:'Naval' };
+  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', imv:'Infantry Mobility Vehicles', comms:'Command Posts & Comms', engineering:'Engineering Equipment', artillery:'Artillery & Rockets', aa:'Anti-Aircraft Guns', aircraft:'Aircraft', helicopter:'Helicopters', uav:'Unmanned Aerial Vehicles', naval:'Naval', trucks:'Trucks, Vehicles & Jeeps' };
   const presentCats = [...new Set(CAPTURED_DATA.map(e => e.cat))];
   const buttons = [['all','All'], ...presentCats.map(c => [c, CAT_LABELS[c] || c])];
   el.innerHTML = buttons.map(([val, label], i) =>
@@ -1924,9 +2459,10 @@ function renderCaptured(filter = 'all') {
 
   grid.innerHTML = items.map((e, i) => {
     const gid = 'capg' + i;
-    CAP_GALLERY_DATA[gid] = e.images;
-    const first = e.images[0];
-    const multi = e.images.length > 1;
+    const imgs = (e.cat === 'trucks' && e.images.length >= 10) ? e.images.slice(0, 5) : e.images;
+    CAP_GALLERY_DATA[gid] = imgs;
+    const first = imgs[0];
+    const multi = imgs.length > 1;
     return `
     <div class="equip-card">
       <div class="equip-img-wrap">
@@ -1938,7 +2474,7 @@ function renderCaptured(filter = 'all') {
           ${multi ? `
           <button class="gallery-nav gallery-prev" onclick="event.stopPropagation();capGalleryStep('${gid}',-1)">&#8249;</button>
           <button class="gallery-nav gallery-next" onclick="event.stopPropagation();capGalleryStep('${gid}',1)">&#8250;</button>
-          <div class="gallery-dots">${e.images.map((_, j) => `<span class="gallery-dot${j === 0 ? ' active' : ''}" onclick="event.stopPropagation();capGalleryGoto('${gid}',${j})"></span>`).join('')}</div>
+          <div class="gallery-dots">${imgs.map((_, j) => `<span class="gallery-dot${j === 0 ? ' active' : ''}" onclick="event.stopPropagation();capGalleryGoto('${gid}',${j})"></span>`).join('')}</div>
           ` : ''}
         </div>
         <span class="equip-cat-badge cat-armor">AFV</span>
@@ -1958,7 +2494,7 @@ function renderCaptured(filter = 'all') {
         </div>
         <div class="equip-footer">
           <span class="equip-qty">Total: ${e.total}</span>
-          ${multi ? `<span class="cap-img-counter">1 / ${e.images.length}</span>` : ''}
+          ${multi ? `<span class="cap-img-counter">1 / ${imgs.length}</span>` : ''}
         </div>
       </div>
     </div>`;
