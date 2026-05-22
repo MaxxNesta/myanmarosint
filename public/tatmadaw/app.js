@@ -909,6 +909,72 @@ const CAPTURED_DATA = [
     ],
   },
 
+  // ── AIRCRAFT ───────────────────────────────────────────────
+  {
+    name: 'FTC-2000G',
+    type: 'Advanced Jet Trainer / Light Attack',
+    origin: 'China',
+    cat: 'aircraft',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/XqfZRrx0/2024-01-17-Myanmar-FTC-2000-G-Destroyed-02.jpg' },
+    ],
+  },
+  {
+    name: 'Hongdu K-8W',
+    type: 'Jet Trainer / Light Attack',
+    origin: 'China',
+    cat: 'aircraft',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/fy668B3b/2023-11-11-Myanmar-Hongdu-K-8-W-Destroyed-04.jpg' },
+    ],
+  },
+  {
+    name: 'MiG-29',
+    type: 'Multirole Fighter',
+    origin: 'Russia',
+    cat: 'aircraft',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/1Pq6b1zS/2024-02-29-Myanmar-Mi-G-29-Destroyed-07.jpg' },
+    ],
+  },
+  {
+    name: 'Shaanxi Y-8',
+    type: 'Military Transport Aircraft',
+    origin: 'China',
+    cat: 'aircraft',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/cJvvs9Th/2024-01-23-Myanmar-Shaanxi-Y-8-Crashed.jpg' },
+    ],
+  },
+
+  // ── HELICOPTERS ────────────────────────────────────────────
+  {
+    name: 'Harbin Z-9',
+    type: 'Utility / Attack Helicopter',
+    origin: 'China',
+    cat: 'helicopter',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/MpwJjSTp/2024-01-29-Myanmar-Harbin-Z-9-Destroyed-03.jpg' },
+    ],
+  },
+  {
+    name: 'Mi-17',
+    type: 'Military Transport Helicopter',
+    origin: 'Russia',
+    cat: 'helicopter',
+    total: 3, destroyed: 3, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/Bb3xR6hP/2024-01-02-Myanmar-Unknown-Helicopter-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/BZYPq6g7/2024-02-04-Myanmar-Mi8-or-Mi-17-Destroyed-03.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/rpN3k8Tw/2024-05-06-Myanmar-Mi-17-Destroyed-03.jpg' },
+    ],
+  },
+
   // ── INFANTRY MOBILITY VEHICLES ─────────────────────────────
   {
     name: 'Dongfeng CSK131',
