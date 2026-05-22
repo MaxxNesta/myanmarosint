@@ -765,6 +765,96 @@ const CAPTURED_DATA = [
     ],
   },
 
+  // ── SELF-PROPELLED ARTILLERY ───────────────────────────────
+  {
+    name: '155mm Norinco SH1',
+    type: 'Self-Propelled Howitzer',
+    origin: 'China',
+    cat: 'artillery',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/TPPYZrcW/2024-08-06-Myanmar-155mm-Norinco-SH1-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/cHstfc6q/2024-09-05-Myanmar-155mm-Norinco-SH1-Captured-by-Rebels-02-02.jpg' },
+    ],
+  },
+
+  // ── MULTIPLE ROCKET LAUNCHERS ───────────────────────────────
+  {
+    name: '107mm Type-63 (Innlay Jeep)',
+    type: 'Vehicle-Mounted MLRS',
+    origin: 'China',
+    cat: 'artillery',
+    total: 1, destroyed: 0, abandoned: 1, captured: 0,
+    images: [
+      { status: 'abandoned', url: 'https://i.postimg.cc/FsPpz7Ws/2024_10_26_Myanmar_Innlay_Tactical_Jeep_with_107mm_Type-63_Abandoned.jpg' },
+    ],
+  },
+  {
+    name: '107mm Makeshift MLRS',
+    type: 'Improvised Multiple Rocket Launcher',
+    origin: 'Myanmar (improvised)',
+    cat: 'artillery',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/Bbnc65z1/2024-12-23-Myanmar-Makeshift-107mm-MLRS-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: '122mm MAM-01',
+    type: 'Multiple Rocket Launcher',
+    origin: 'Myanmar',
+    cat: 'artillery',
+    total: 8, destroyed: 6, abandoned: 0, captured: 2,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/RFXZx86P/2023-11-12-Myanmar-122mm-MAM-01-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/3xYc2rYR/2024-01-07-Myanmar-122mm-MAM-01-Destroyed-02-02.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/J4bFyHwv/2024-01-07-Myanmar-122mm-MAM-01-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/T1nRrQTB/2024-08-06-Myanmar-122mm-MAM-01-Destroyed-01.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/xCwfJBVK/2024-08-06-Myanmar-2x-122mm-MAM-01-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Z5QdNWwb/2023-11-18-Myanmar-122mm-MAM-01-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/9F61GzvP/2024-07-10-Myanmar-122mm-MAM-01-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: '122mm Makeshift MLRS',
+    type: 'Improvised Multiple Rocket Launcher',
+    origin: 'Myanmar (improvised)',
+    cat: 'artillery',
+    total: 8, destroyed: 0, abandoned: 0, captured: 8,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/zG8Rw14m/2024-01-14-Myanmar-MLRS-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/v8n1pBsF/2024-01-18-Myanmar-2x-MLRS-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/0QWBWgPD/2024-01-31-Myanmar-MLRS-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/1XyBFJgc/2024-02-12-Myanmar-Unknown-MLRS-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/jjDWS7Ns/2024-03-05-Myanmar-2x-Unknown-MLRS-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/ZKVK4hmX/2024-07-25-Myanmar-Unknown-MLRS-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: '240mm MAM-02',
+    type: 'Multiple Rocket Launcher',
+    origin: 'Myanmar',
+    cat: 'artillery',
+    total: 6, destroyed: 2, abandoned: 0, captured: 4,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/SxJQ6pKd/2024-02-15-Myanmar-2x-240mm-MAM-02-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/C1cNWhFz/2023-11-18-Myanmar-240mm-MAM-02-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/sxV2ZzS9/2023-11-18-Myanmar-240mm-MAM-02-Captured-02.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/x1RVcm57/2023-11-12-Myanmar-240mm-MAM-02-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/MZr30PR0/2023-11-12-Myanmar-240mm-MAM-02-Captured-02.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown MLRS',
+    type: 'Multiple Rocket Launcher',
+    origin: 'Unknown',
+    cat: 'artillery',
+    total: 2, destroyed: 2, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/GhBG5pnr/2024-12-17-Myanmar-2x-Unknown-MLRS-Destroyed.jpg' },
+    ],
+  },
+
   // ── INFANTRY MOBILITY VEHICLES ─────────────────────────────
   {
     name: 'Dongfeng CSK131',
