@@ -549,7 +549,15 @@ const T = {
 // Sources: Oryx, open-source OSINT imagery
 // ═══════════════════════════════════════════════════════════════
 
-const CAP_SUMMARY = { total: 31, destroyed: 8, abandoned: 2, captured: 21 };
+function computeCapSummary(filter = 'all') {
+  const data = filter === 'all' ? CAPTURED_DATA : CAPTURED_DATA.filter(e => e.cat === filter);
+  return data.reduce((a, e) => ({
+    total:     a.total     + e.total,
+    destroyed: a.destroyed + (e.destroyed || 0),
+    abandoned: a.abandoned + (e.abandoned || 0),
+    captured:  a.captured  + (e.captured  || 0),
+  }), { total: 0, destroyed: 0, abandoned: 0, captured: 0 });
+}
 
 const CAPTURED_DATA = [
 
@@ -607,6 +615,42 @@ const CAPTURED_DATA = [
       { status: 'captured',  url: 'https://i.postimg.cc/FHBR8H6w/2024-03-08-Myanmar-WMA-301-Captured.jpg' },
       { status: 'captured',  url: 'https://i.postimg.cc/C1PsjmGc/2024-04-03-Myanmar-WMA-301-Captured.jpg' },
       { status: 'captured',  url: 'https://i.postimg.cc/xjpNbM27/2024-09-04-Myanmar-WMA-301-Captured-by-Rebels.jpg' },
+    ],
+  },
+
+  // ── INFANTRY FIGHTING VEHICLES ─────────────────────────────
+  {
+    name: 'BTR-3U',
+    type: 'Infantry Fighting Vehicle',
+    origin: 'Ukraine',
+    cat: 'ifv',
+    total: 10, destroyed: 0, abandoned: 0, captured: 10,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/GmY949Rv/2023-11-12-Myanmar-BTR-3-Captured-02.png' },
+      { status: 'captured', url: 'https://i.postimg.cc/VLCt2Str/2023-11-25-Myanmar-BTR-3-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/LXFtJGG8/2024-04-27-Myanmar-BTR-3-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/Njns2754/2024-07-25-Myanmar-BTR-3-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/8kv6pcX9/2024-08-01-Myanmar-BTR-3-U-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/Yqwmh7J9/2024-08-01-Myanmar-BTR-3-U-Captured-by-Rebels-02.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/GhL0rWnf/2024-08-03-Myanmar-BTR-3-U-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/FHnXTDqB/2024-08-04-Myanmar-BTR-3-U-Captured-by-Rebels-01.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/02nsw8Cx/2024-08-04-Myanmar-BTR-3-U-Captured-by-Rebels-02.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/MKb6HsPQ/2024-08-05-Myanmar-BTR-3-U-Captured-by-Rebels-02.jpg' },
+    ],
+  },
+  {
+    name: 'MT-LBMSh',
+    type: 'Multi-purpose Tracked Carrier / IFV',
+    origin: 'Ukraine (Soviet design)',
+    cat: 'ifv',
+    total: 7, destroyed: 3, abandoned: 0, captured: 4,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/Pf8N5g50/2023-10-28-Myanmar-MT-LB-with-Shkval-Module-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/rp07hThM/2023-11-14-Myanmar-MT-LBMSh-Destroyed.webp' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/KvFRmNM3/2024-07-30-Myanmar-MT-LBMSh-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/DyrZq1sg/2023-10-28-Myanmar-MT-LB-with-Shkval-Module-Captured-01.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/85nJThRh/2023-11-12-Myanmar-MT-LBMSh-Captured.webp' },
+      { status: 'captured',  url: 'https://i.postimg.cc/RVSy4BZQ/2023-12-16-Myanmar-2x-MT-LBMSh-Captured.jpg' },
     ],
   },
 
@@ -1280,24 +1324,24 @@ function capGalleryStep(id, dir) {
   capGalleryGoto(id, parseInt(el.dataset.idx || '0') + dir);
 }
 
-function renderCapturedSummary() {
+function renderCapturedSummary(filter = 'all') {
   const el = $('#captured-summary');
   if (!el) return;
-  const s = CAP_SUMMARY;
+  const s = computeCapSummary(filter);
   el.innerHTML = `
   <div class="cap-summary-bar">
     <div class="cap-summary-item">
       <span class="cap-summary-num" style="color:var(--gold2)">${s.total}</span>
-      <span class="cap-summary-lbl">Total AFVs</span>
+      <span class="cap-summary-lbl">Total</span>
     </div>
     <div class="cap-summary-item">
       <span class="cap-summary-num" style="color:#f87171">${s.destroyed}</span>
       <span class="cap-summary-lbl">Destroyed</span>
     </div>
-    <div class="cap-summary-item">
+    ${s.abandoned ? `<div class="cap-summary-item">
       <span class="cap-summary-num" style="color:#fbbf24">${s.abandoned}</span>
       <span class="cap-summary-lbl">Abandoned</span>
-    </div>
+    </div>` : ''}
     <div class="cap-summary-item">
       <span class="cap-summary-num" style="color:#4ade80">${s.captured}</span>
       <span class="cap-summary-lbl">Captured</span>
@@ -1308,7 +1352,7 @@ function renderCapturedSummary() {
 function renderCapturedFilters() {
   const el = $('#captured-filters');
   if (!el) return;
-  const CAT_LABELS = { armor:'Armor & Vehicles', artillery:'Artillery & Rockets', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
+  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', artillery:'Artillery & Rockets', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
   const presentCats = [...new Set(CAPTURED_DATA.map(e => e.cat))];
   const buttons = [['all','All'], ...presentCats.map(c => [c, CAT_LABELS[c] || c])];
   el.innerHTML = buttons.map(([val, label], i) =>
@@ -1318,7 +1362,9 @@ function renderCapturedFilters() {
     btn.addEventListener('click', () => {
       el.querySelectorAll('.cap-sub-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderCaptured(btn.dataset.capCat);
+      const cat = btn.dataset.capCat;
+      renderCapturedSummary(cat);
+      renderCaptured(cat);
     });
   });
 }
