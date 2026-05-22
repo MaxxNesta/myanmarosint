@@ -22,11 +22,6 @@ export const metadata: Metadata = {
     'Open-source conflict monitoring and geopolitical intelligence platform for Myanmar. ' +
     'OSINT-based war map, incident tracking, and probabilistic risk modeling.',
   keywords: ['Myanmar', 'OSINT', 'conflict', 'risk analysis', 'geopolitical', 'intelligence'],
-  icons: {
-    icon: '/mcw-logo.jpg',
-    shortcut: '/mcw-logo.jpg',
-    apple: '/mcw-logo.jpg',
-  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
