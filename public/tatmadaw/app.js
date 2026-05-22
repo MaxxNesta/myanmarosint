@@ -654,6 +654,53 @@ const CAPTURED_DATA = [
     ],
   },
 
+  // ── INFANTRY MOBILITY VEHICLES ─────────────────────────────
+  {
+    name: 'Dongfeng CSK131',
+    type: 'Light Infantry Mobility Vehicle',
+    origin: 'China',
+    cat: 'imv',
+    total: 2, destroyed: 2, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/LXvJm7p7/2023-12-26-Myanmar-Dongfeng-Menghsi-Destroyed-04.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/B6J893dH/2023-12-26-Myanmar-Dongfeng-CSK141-Destroyed-03.jpg' },
+    ],
+  },
+
+  // ── COMMAND POSTS & COMMUNICATION STATIONS ─────────────────
+  {
+    name: 'Type 702D Meteorological Radar',
+    type: 'Meteorological Radar System',
+    origin: 'China',
+    cat: 'comms',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/MZr9p95F/2024-07-10-Myanmar-Unknown-Beiben-Based-Radar-Destroyed.jpg' },
+    ],
+  },
+
+  // ── ENGINEERING EQUIPMENT ───────────────────────────────────
+  {
+    name: 'Caterpillar D8R',
+    type: 'Bulldozer',
+    origin: 'USA',
+    cat: 'engineering',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/vmDx4gKX/2024-02-15-Myanmar-Unknown-Bulldozer-Captured.jpg' },
+    ],
+  },
+  {
+    name: 'XJZ-92',
+    type: 'Mine-Clearing Vehicle',
+    origin: 'China',
+    cat: 'engineering',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/qqHrMn2w/2024-08-01-Myanmar-XJZ-92-Captured-by-Rebels.jpg' },
+    ],
+  },
+
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -1352,7 +1399,7 @@ function renderCapturedSummary(filter = 'all') {
 function renderCapturedFilters() {
   const el = $('#captured-filters');
   if (!el) return;
-  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', artillery:'Artillery & Rockets', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
+  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', imv:'Infantry Mobility Vehicles', comms:'Command Posts & Comms', engineering:'Engineering Equipment', artillery:'Artillery & Rockets', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
   const presentCats = [...new Set(CAPTURED_DATA.map(e => e.cat))];
   const buttons = [['all','All'], ...presentCats.map(c => [c, CAT_LABELS[c] || c])];
   el.innerHTML = buttons.map(([val, label], i) =>
