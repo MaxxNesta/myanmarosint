@@ -75,43 +75,29 @@
 <section id="equipment" style="padding-top:5rem">
   <div class="container">
     <div class="section-header reveal">
-      <span class="section-badge info">EQUIPMENT</span>
-      <h2 class="section-title">Military Equipment &amp; Inventory</h2>
-      <p class="section-subtitle">Ground vehicles, artillery, aircraft, helicopters, and naval vessels — click any card for full specifications</p>
+      <span class="section-badge info" id="eq-section-badge">EQUIPMENT</span>
+      <h2 class="section-title" id="eq-section-title">Military Equipment &amp; Inventory</h2>
+      <p class="section-subtitle" id="eq-section-sub">Ground vehicles, artillery, aircraft, helicopters, and naval vessels — click any card for full specifications</p>
     </div>
 
     <div class="filter-row">
       <button class="filter-btn active" data-filter="all">All Equipment</button>
-      <button class="filter-btn" data-filter="armor"> Armor &amp; Vehicles</button>
-      <button class="filter-btn" data-filter="artillery"> Artillery &amp; Rockets</button>
-      <button class="filter-btn" data-filter="aircraft"> Aircraft</button>
-      <button class="filter-btn" data-filter="helicopter"> Helicopters</button>
-      <button class="filter-btn" data-filter="naval"> Naval</button>
+      <button class="filter-btn filter-btn--losses" data-filter="losses">Equipment Losses</button>
+      <button class="filter-btn" data-filter="armor">Armor &amp; Vehicles</button>
+      <button class="filter-btn" data-filter="artillery">Artillery &amp; Rockets</button>
+      <button class="filter-btn" data-filter="aircraft">Aircraft</button>
+      <button class="filter-btn" data-filter="helicopter">Helicopters</button>
+      <button class="filter-btn" data-filter="naval">Naval</button>
     </div>
 
+    <!-- Tatmadaw inventory -->
     <div id="equipment-grid" class="equipment-grid"></div>
-  </div>
-</section>
 
-<!-- ══════════════════════════════════════════════════════ -->
-<!-- CAPTURED / LOSSES -->
-<!-- ══════════════════════════════════════════════════════ -->
-<section id="captured" style="padding-top:2.5rem;padding-bottom:3rem;border-top:1px solid rgba(255,255,255,0.06)">
-  <div class="container">
-    <div class="section-header reveal">
-      <span class="section-badge danger">LOSSES</span>
-      <h2 class="section-title">Captured &amp; Destroyed Equipment</h2>
-      <p class="section-subtitle">Tatmadaw equipment captured, abandoned, or destroyed by EAO and PDF forces — documented from open-source imagery (Oryx / OSINT). Use arrows to browse all photos per vehicle.</p>
+    <!-- Losses view (hidden until losses filter active) -->
+    <div id="captured-section" style="display:none">
+      <div id="captured-summary"></div>
+      <div id="captured-grid" class="equipment-grid"></div>
     </div>
-
-    <div id="captured-summary"></div>
-
-    <div class="filter-row" style="margin-bottom:1.5rem">
-      <button class="cap-filter-btn filter-btn active" data-cap-filter="all">All</button>
-      <button class="cap-filter-btn filter-btn" data-cap-filter="armor">Armor &amp; Vehicles</button>
-    </div>
-
-    <div id="captured-grid" class="equipment-grid"></div>
   </div>
 </section>
 

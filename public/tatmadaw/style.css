@@ -2387,6 +2387,9 @@ footer {
    CAPTURED / LOSSES SECTION
    ════════════════════════════════════════════════════════ */
 .section-badge.danger { background: rgba(239,68,68,0.1); color: #f87171; border-color: rgba(239,68,68,0.3); }
+.filter-btn--losses { border-color: rgba(239,68,68,0.25); color: #f87171; }
+.filter-btn--losses:hover { border-color: rgba(239,68,68,0.5); color: #fca5a5; background: rgba(239,68,68,0.06); }
+.filter-btn--losses.active { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.45); color: #f87171; }
 
 .cap-summary-bar {
   display: flex;

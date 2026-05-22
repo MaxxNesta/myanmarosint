@@ -1224,11 +1224,31 @@ function renderEquipment(filter='all') {
 }
 
 function initEquipmentFilters() {
+  const badge   = $('#eq-section-badge');
+  const title   = $('#eq-section-title');
+  const sub     = $('#eq-section-sub');
+  const eqGrid  = $('#equipment-grid');
+  const capSec  = $('#captured-section');
+
   $$('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       $$('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderEquipment(btn.dataset.filter);
+
+      if (btn.dataset.filter === 'losses') {
+        if (eqGrid)  eqGrid.style.display  = 'none';
+        if (capSec)  capSec.style.display  = '';
+        if (badge)  { badge.textContent = 'LOSSES'; badge.className = 'section-badge danger'; }
+        if (title)    title.textContent = 'Captured & Destroyed Equipment';
+        if (sub)      sub.textContent   = 'Tatmadaw equipment captured, abandoned, or destroyed by EAO and PDF forces — documented from open-source imagery (Oryx / OSINT). Use arrows to browse all photos per vehicle.';
+      } else {
+        if (capSec)  capSec.style.display  = 'none';
+        if (eqGrid)  eqGrid.style.display  = '';
+        if (badge)  { badge.textContent = 'EQUIPMENT'; badge.className = 'section-badge info'; }
+        if (title)    title.textContent = 'Military Equipment & Inventory';
+        if (sub)      sub.textContent   = 'Ground vehicles, artillery, aircraft, helicopters, and naval vessels — click any card for full specifications';
+        renderEquipment(btn.dataset.filter);
+      }
     });
   });
 }
@@ -1330,16 +1350,6 @@ function renderCaptured(filter = 'all') {
       </div>
     </div>`;
   }).join('');
-}
-
-function initCapturedFilters() {
-  $$('.cap-filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      $$('.cap-filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderCaptured(btn.dataset.capFilter);
-    });
-  });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2198,7 +2208,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initEquipmentFilters();
   renderCapturedSummary();
   renderCaptured();
-  initCapturedFilters();
 
   // Maps (after DOM ready)
   if($('#myanmar-map')) setTimeout(initMap, 100);
