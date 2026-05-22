@@ -555,8 +555,9 @@ function computeCapSummary(filter = 'all') {
     total:     a.total     + e.total,
     destroyed: a.destroyed + (e.destroyed || 0),
     abandoned: a.abandoned + (e.abandoned || 0),
+    damaged:   a.damaged   + (e.damaged   || 0),
     captured:  a.captured  + (e.captured  || 0),
-  }), { total: 0, destroyed: 0, abandoned: 0, captured: 0 });
+  }), { total: 0, destroyed: 0, abandoned: 0, damaged: 0, captured: 0 });
 }
 
 const CAPTURED_DATA = [
@@ -972,6 +973,181 @@ const CAPTURED_DATA = [
       { status: 'destroyed', url: 'https://i.postimg.cc/Bb3xR6hP/2024-01-02-Myanmar-Unknown-Helicopter-Destroyed.jpg' },
       { status: 'destroyed', url: 'https://i.postimg.cc/BZYPq6g7/2024-02-04-Myanmar-Mi8-or-Mi-17-Destroyed-03.jpg' },
       { status: 'destroyed', url: 'https://i.postimg.cc/rpN3k8Tw/2024-05-06-Myanmar-Mi-17-Destroyed-03.jpg' },
+    ],
+  },
+
+  // ── UNMANNED AERIAL VEHICLES ───────────────────────────────
+  {
+    name: 'AheadX QP537',
+    type: 'Fixed-Wing UAV',
+    origin: 'China',
+    cat: 'uav',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/qvyNYF3V/2024-09-04-Myanmar-Ahead-X-QP537-Destroyed.jpg' },
+    ],
+  },
+  {
+    name: 'DJI Mini',
+    type: 'Commercial Quadcopter UAV',
+    origin: 'China',
+    cat: 'uav',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/YqWzqMhv/2024-06-27-Myanmar-DJI-Mini-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'DJI Phantom',
+    type: 'Commercial Quadcopter UAV',
+    origin: 'China',
+    cat: 'uav',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/5Nnhtsx2/2023-12-01-Myanmar-DJI-Phantom-UAV-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/c48tc5fL/2024-11-24-Myanmar-DJI-Phantom-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'EFT GX Agricultural Drone',
+    type: 'Agricultural / Surveillance UAV',
+    origin: 'China',
+    cat: 'uav',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/MXkRD4vm/2024-04-11-Myanmar-Unknown-Quadcopter-Captured.jpg' },
+    ],
+  },
+  {
+    name: 'Orlan-10',
+    type: 'Reconnaissance UAV',
+    origin: 'Russia',
+    cat: 'uav',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/65xbz4SQ/2023-12-18-Myanmar-Orlan-10-Captured.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/Qt1vvMZ9/2024-07-20-Myanmar-Orlan-10-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Sperm Whale 420 W-42',
+    type: 'VTOL Fixed-Wing UAV',
+    origin: 'China',
+    cat: 'uav',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/dtXmsyjL/2024-12-22-Myanmar-Sperm-Whale-420-W-42-VTOL-UAV-Captured-by-Rebel.jpg' },
+    ],
+  },
+  {
+    name: 'Volantex Ranger EX 757-3',
+    type: 'Fixed-Wing UAV',
+    origin: 'China',
+    cat: 'uav',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/V69jnDcB/2024-04-27-Myanmar-UAV-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown Hexacopter',
+    type: 'Hexacopter UAV',
+    origin: 'Unknown',
+    cat: 'uav',
+    total: 9, destroyed: 4, abandoned: 0, captured: 5,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/Fstz7kh2/2024-08-07-Myanmar-Unknown-Hexacopter-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/hPgnkLDP/2024-08-11-Myanmar-Unknown-Hexacopter-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/nz0j2QQX/2024-09-07-Myanmar-Unknown-Hexacopter-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/qvVhDXGX/2024-11-18-Myanmar-Unknown-Hexacopter-UAV-Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/xdgv2t49/2024-04-11-Myanmar-3x-Sextocopter-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Dw0fzYy0/2024-07-25-Myanmar-Unknown-Hexacopter-UAV-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/qRRMkDz7/2024-08-21-Myanmar-Unknown-Hexacopter-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown Quadcopter',
+    type: 'Quadcopter UAV',
+    origin: 'Unknown',
+    cat: 'uav',
+    total: 15, destroyed: 5, abandoned: 0, captured: 10,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/85cSKHzQ/2024-05-18-Myanmar-Quadcopter-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/FKZrnzbc/2024-06-09-Myanmar-Quadcopter-UAV-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/Hn0gJx2g/2023-11-27-Myanmar-Unknown-Quadcopter-UAV-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/jjTDrhHW/2024-08-30-Myanmar-Unknown-Quadcopter-UAV-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/cLgRJTtX/2024_10_15_Myanmar_Unknown_Quadcopter_UAV_Destroyed.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/25mwKMjV/2024-07-11-Myanmar-3x-Unknown-Quadcopter-UAV-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/J0Qv4dnR/2024-07-22-Myanmar-Unknown-Quadcopter-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/JhB1NDXW/2024-07-25-Myanmar-2x-Unknown-Quadcopter-UAV-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/5NFyYrpY/2024-08-26-Myanmar-Unknown-UAV-Captured-by-Rebels.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/L5GYpzFS/2024-11-27-Myanmar-UAV-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/vBqx0JPc/2024-12-03-Myanmar-Unknown-Quadcopter-UAV-Captured-by-Rebel.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/mr49kNz2/2024-12-10-Myanmar-Unknown-Quadcopter-UAV-Captured-by-Rebel.jpg' },
+    ],
+  },
+
+  // ── NAVAL ──────────────────────────────────────────────────
+  {
+    name: 'LCM',
+    type: 'Landing Craft Mechanized',
+    origin: 'Unknown',
+    cat: 'naval',
+    total: 2, destroyed: 2, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/Hn329XXG/2024-02-11-Myanmar-LCM-Destroyed-02.jpg' },
+    ],
+  },
+  {
+    name: 'LCT',
+    type: 'Landing Craft Tank',
+    origin: 'Unknown',
+    cat: 'naval',
+    total: 3, destroyed: 2, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/Hspv8sXD/2024-02-11-Myanmar-LCT-Destroyed.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/SxRZVTgg/2024-02-11-Myanmar-LCT-Damaged-and-Captured-01.jpg' },
+    ],
+  },
+  {
+    name: 'RIB',
+    type: 'Rigid Inflatable Boat',
+    origin: 'Unknown',
+    cat: 'naval',
+    total: 1, destroyed: 0, abandoned: 0, captured: 1,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/3RtwWNd7/2024_06_17_Myanmar_RIB_Captured_by_Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Supply Barge',
+    type: 'Logistics / Supply Barge',
+    origin: 'Unknown',
+    cat: 'naval',
+    total: 2, destroyed: 0, abandoned: 0, captured: 2,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/g2ZhpJ17/2024-09-20-Myanmar-Supply-Barge-Captured-by-Rebels.jpg' },
+      { status: 'captured', url: 'https://i.postimg.cc/sD8WbSHS/2024-09-20-Myanmar-Supply-Barge-Damaged-and-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'Y-Series Gunboat',
+    type: 'River Patrol / Gunboat',
+    origin: 'Myanmar',
+    cat: 'naval',
+    total: 1, destroyed: 0, abandoned: 0, damaged: 1, captured: 0,
+    images: [
+      { status: 'damaged', url: 'https://i.postimg.cc/05VDdhpV/2024_09_28_Myanmar_Y-Series_Gunboat_Damaged_02.jpg' },
+    ],
+  },
+  {
+    name: 'Unknown Speedboat',
+    type: 'Patrol / Transport Speedboat',
+    origin: 'Unknown',
+    cat: 'naval',
+    total: 6, destroyed: 0, abandoned: 0, captured: 6,
+    images: [
+      { status: 'captured', url: 'https://i.postimg.cc/Kv5kQgRP/2024-01-14-Myanmar-6x-Boats-Captured.jpg' },
     ],
   },
 
@@ -1710,6 +1886,10 @@ function renderCapturedSummary(filter = 'all') {
       <span class="cap-summary-num" style="color:#fbbf24">${s.abandoned}</span>
       <span class="cap-summary-lbl">Abandoned</span>
     </div>` : ''}
+    ${s.damaged ? `<div class="cap-summary-item">
+      <span class="cap-summary-num" style="color:#93c5fd">${s.damaged}</span>
+      <span class="cap-summary-lbl">Damaged</span>
+    </div>` : ''}
     <div class="cap-summary-item">
       <span class="cap-summary-num" style="color:#4ade80">${s.captured}</span>
       <span class="cap-summary-lbl">Captured</span>
@@ -1720,7 +1900,7 @@ function renderCapturedSummary(filter = 'all') {
 function renderCapturedFilters() {
   const el = $('#captured-filters');
   if (!el) return;
-  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', imv:'Infantry Mobility Vehicles', comms:'Command Posts & Comms', engineering:'Engineering Equipment', artillery:'Artillery & Rockets', aa:'Anti-Aircraft Guns', aircraft:'Aircraft', helicopter:'Helicopters', naval:'Naval' };
+  const CAT_LABELS = { armor:'Armor & Vehicles', ifv:'Infantry Fighting Vehicles', imv:'Infantry Mobility Vehicles', comms:'Command Posts & Comms', engineering:'Engineering Equipment', artillery:'Artillery & Rockets', aa:'Anti-Aircraft Guns', aircraft:'Aircraft', helicopter:'Helicopters', uav:'Unmanned Aerial Vehicles', naval:'Naval' };
   const presentCats = [...new Set(CAPTURED_DATA.map(e => e.cat))];
   const buttons = [['all','All'], ...presentCats.map(c => [c, CAT_LABELS[c] || c])];
   el.innerHTML = buttons.map(([val, label], i) =>
@@ -1773,6 +1953,7 @@ function renderCaptured(filter = 'all') {
         <div class="cap-counts">
           ${e.destroyed ? `<span class="cap-count cap-destroyed">${e.destroyed} Destroyed</span>` : ''}
           ${e.abandoned ? `<span class="cap-count cap-abandoned">${e.abandoned} Abandoned</span>` : ''}
+          ${e.damaged   ? `<span class="cap-count cap-damaged">${e.damaged} Damaged</span>`      : ''}
           ${e.captured  ? `<span class="cap-count cap-captured">${e.captured} Captured</span>`  : ''}
         </div>
         <div class="equip-footer">
