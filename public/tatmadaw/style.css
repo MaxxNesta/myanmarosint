@@ -2382,3 +2382,68 @@ footer {
 .train-section-lbl { font-family: 'Fira Code',monospace; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.12em; color: var(--txt3); text-transform: uppercase; margin-bottom: 0.5rem; }
 .train-loc { white-space: nowrap; color: var(--txt2); font-size: 0.78rem; }
 .train-burmese { color: var(--txt3); font-size: 0.72rem; margin-left: 0.3rem; }
+
+/* ════════════════════════════════════════════════════════
+   CAPTURED / LOSSES SECTION
+   ════════════════════════════════════════════════════════ */
+.section-badge.danger { background: rgba(239,68,68,0.1); color: #f87171; border-color: rgba(239,68,68,0.3); }
+
+.cap-summary-bar {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.cap-summary-item {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1rem;
+  gap: 0.2rem;
+}
+.cap-summary-item + .cap-summary-item { border-left: 1px solid var(--border); }
+.cap-summary-num { font-family: 'Fira Code', monospace; font-size: 1.4rem; font-weight: 700; line-height: 1; }
+.cap-summary-lbl { font-family: 'Fira Code', monospace; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--txt3); }
+
+.cap-status-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 5;
+}
+.status-destroyed { background: rgba(239,68,68,0.88); color: #fff; border: 1px solid rgba(239,68,68,0.6); }
+.status-abandoned { background: rgba(245,158,11,0.88); color: #1a0f00; border: 1px solid rgba(245,158,11,0.6); }
+.status-captured  { background: rgba(34,197,94,0.88);  color: #001a0a; border: 1px solid rgba(34,197,94,0.6); }
+
+.cap-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0.6rem;
+}
+.cap-count {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.cap-destroyed { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.22); }
+.cap-abandoned  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.22); }
+.cap-captured   { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.22); }
+
+.cap-img-counter { font-family: 'Fira Code', monospace; font-size: 0.62rem; color: var(--txt3); }

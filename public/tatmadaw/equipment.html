@@ -10,7 +10,7 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -94,6 +94,28 @@
 </section>
 
 <!-- ══════════════════════════════════════════════════════ -->
+<!-- CAPTURED / LOSSES -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="captured" style="padding-top:2.5rem;padding-bottom:3rem;border-top:1px solid rgba(255,255,255,0.06)">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-badge danger">LOSSES</span>
+      <h2 class="section-title">Captured &amp; Destroyed Equipment</h2>
+      <p class="section-subtitle">Tatmadaw equipment captured, abandoned, or destroyed by EAO and PDF forces — documented from open-source imagery (Oryx / OSINT). Use arrows to browse all photos per vehicle.</p>
+    </div>
+
+    <div id="captured-summary"></div>
+
+    <div class="filter-row" style="margin-bottom:1.5rem">
+      <button class="cap-filter-btn filter-btn active" data-cap-filter="all">All</button>
+      <button class="cap-filter-btn filter-btn" data-cap-filter="armor">Armor &amp; Vehicles</button>
+    </div>
+
+    <div id="captured-grid" class="equipment-grid"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
 <!-- FOOTER -->
 <!-- ══════════════════════════════════════════════════════ -->
 <footer>
@@ -139,7 +161,7 @@
 <!-- ══════════════════════════════════════════════════════ -->
 <!-- SCRIPTS -->
 <!-- ══════════════════════════════════════════════════════ -->
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 <script>
 (function(){
   function tick(){

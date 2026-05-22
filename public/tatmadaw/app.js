@@ -545,6 +545,74 @@ const T = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// CAPTURED / LOSSES DATA — Equipment seized or destroyed by EAO/PDF
+// Sources: Oryx, open-source OSINT imagery
+// ═══════════════════════════════════════════════════════════════
+
+const CAP_SUMMARY = { total: 31, destroyed: 8, abandoned: 2, captured: 21 };
+
+const CAPTURED_DATA = [
+
+  // ── ARMOURED FIGHTING VEHICLES ─────────────────────────────
+  {
+    name: 'BRDM-2MS',
+    type: 'Armoured Reconnaissance Vehicle',
+    origin: 'Russia / Belarus',
+    cat: 'armor',
+    total: 1, destroyed: 1, abandoned: 0, captured: 0,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/m25dj4fV/2024-04-23-Myanmar-BRDM-2-MS-Destroyed-02.jpg' },
+    ],
+  },
+  {
+    name: 'EE-9 Cascavel',
+    type: 'Wheeled Armoured Car',
+    origin: 'Brazil',
+    cat: 'armor',
+    total: 8, destroyed: 1, abandoned: 0, captured: 7,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/nVgCGdNq/2023-04-13-Myanmar-EE-9-Cascavel-Destroyed-01.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/9fg99yTM/2023-04-13-Myanmar-EE-9-Cascavel-Abandoned-01.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/VLszxppx/2023-11-07-Myanmar-EE-9-Cascavel-Captured-01.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/BQjVPCK8/2023-11-12-Myanmar-EE-9-Cascavel-Captured.png' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Jnkq9SMv/2024-01-08-Myanmar-EE-9-Cascavel-Captured.webp' },
+      { status: 'captured',  url: 'https://i.postimg.cc/tgfkv9QF/2024-01-08-Myanmar-EE-9-Cascavel-and-Sinotruk-Howo-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/QxLPxkzc/2024-01-07-Myanmar-EE-9-Cascavel-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Pqf8w4Pg/2024-08-19-Myanmar-EE-9-Cascavel-Captured-by-Rebels.jpg' },
+    ],
+  },
+  {
+    name: 'WMA-301 / PTL-02',
+    type: 'Wheeled Tank Destroyer',
+    origin: 'China',
+    cat: 'armor',
+    total: 20, destroyed: 5, abandoned: 2, captured: 13,
+    images: [
+      { status: 'destroyed', url: 'https://i.postimg.cc/W3B9zT5s/2024-01-07-Myanmar-WMA-301-Destroyed-02.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/rs5ft3Hx/2024-01-07-Myanmar-WMA-301-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/fRTt1FRS/2024-03-01-Myanmar-WMA-301-Destroyed.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/1XpyTw6N/2024-08-04-Myanmar-WMA-301-Destroyed-02.jpg' },
+      { status: 'destroyed', url: 'https://i.postimg.cc/brYJd8sV/2024-08-04-Myanmar-WMA-301-Destroyed-02.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/kgJGJDZg/2023-11-09-Myanmar-WMA-301-Abandoned.jpg' },
+      { status: 'abandoned', url: 'https://i.postimg.cc/vHRnBnzZ/2024-01-16-Myanmar-WMA-301-Abandoned.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/T3DmbK0q/2023-10-27-Myanmar-PTL-02-Captured-by-Mili.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/vZTy2nkf/2023-10-30-Myanmar-WMA-301-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/wTP4Hs3h/2023-10-31-Myanmar-WMA-301-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/rw1HJwFx/2023-11-01-Myanmar-WMA-301-Captured-03.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/G287bHJM/2024-01-07-Myanmar-WMA-301-Captured-03-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/Dw6Y6Vwc/2024-01-07-Myanmar-WMA-301-Captured-02.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/xddpFskV/2024-01-07-Myanmar-WMA-301-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/rpY0LRsc/2024-01-14-Myanmar-WMA-301-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/GhJ4m5tX/2024-01-18-Myanmar-2x-WMA-301-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/FHBR8H6w/2024-03-08-Myanmar-WMA-301-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/C1PsjmGc/2024-04-03-Myanmar-WMA-301-Captured.jpg' },
+      { status: 'captured',  url: 'https://i.postimg.cc/xjpNbM27/2024-09-04-Myanmar-WMA-301-Captured-by-Rebels.jpg' },
+    ],
+  },
+
+];
+
+// ═══════════════════════════════════════════════════════════════
 // UTILITY HELPERS
 // ═══════════════════════════════════════════════════════════════
 const $ = (s, p=document) => p.querySelector(s);
@@ -1161,6 +1229,115 @@ function initEquipmentFilters() {
       $$('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderEquipment(btn.dataset.filter);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAPTURED EQUIPMENT — gallery state map (id → image array)
+// ═══════════════════════════════════════════════════════════════
+const CAP_GALLERY_DATA = {};
+
+function capGalleryGoto(id, idx) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const imgs = CAP_GALLERY_DATA[id];
+  if (!imgs) return;
+  idx = ((idx % imgs.length) + imgs.length) % imgs.length;
+  el.dataset.idx = idx;
+  const img = el.querySelector('img');
+  const badge = el.querySelector('.cap-status-badge');
+  const counter = el.closest('.equip-card') && el.closest('.equip-card').querySelector('.cap-img-counter');
+  if (img) { img.style.opacity = '0'; img.src = imgs[idx].url; img.onload = () => img.style.opacity = '1'; img.onerror = () => img.style.opacity = '1'; }
+  if (badge) { badge.textContent = imgs[idx].status.toUpperCase(); badge.className = 'cap-status-badge status-' + imgs[idx].status; }
+  if (counter) counter.textContent = (idx + 1) + ' / ' + imgs.length;
+  el.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+}
+
+function capGalleryStep(id, dir) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  capGalleryGoto(id, parseInt(el.dataset.idx || '0') + dir);
+}
+
+function renderCapturedSummary() {
+  const el = $('#captured-summary');
+  if (!el) return;
+  const s = CAP_SUMMARY;
+  el.innerHTML = `
+  <div class="cap-summary-bar">
+    <div class="cap-summary-item">
+      <span class="cap-summary-num" style="color:var(--gold2)">${s.total}</span>
+      <span class="cap-summary-lbl">Total AFVs</span>
+    </div>
+    <div class="cap-summary-item">
+      <span class="cap-summary-num" style="color:#f87171">${s.destroyed}</span>
+      <span class="cap-summary-lbl">Destroyed</span>
+    </div>
+    <div class="cap-summary-item">
+      <span class="cap-summary-num" style="color:#fbbf24">${s.abandoned}</span>
+      <span class="cap-summary-lbl">Abandoned</span>
+    </div>
+    <div class="cap-summary-item">
+      <span class="cap-summary-num" style="color:#4ade80">${s.captured}</span>
+      <span class="cap-summary-lbl">Captured</span>
+    </div>
+  </div>`;
+}
+
+function renderCaptured(filter = 'all') {
+  const grid = $('#captured-grid');
+  if (!grid) return;
+  const items = filter === 'all' ? CAPTURED_DATA : CAPTURED_DATA.filter(e => e.cat === filter);
+
+  grid.innerHTML = items.map((e, i) => {
+    const gid = 'capg' + i;
+    CAP_GALLERY_DATA[gid] = e.images;
+    const first = e.images[0];
+    const multi = e.images.length > 1;
+    return `
+    <div class="equip-card">
+      <div class="equip-img-wrap">
+        <div class="equip-gallery" id="${gid}" data-idx="0">
+          <img src="${esc(first.url)}" alt="${esc(e.name)}" referrerpolicy="no-referrer"
+               style="cursor:zoom-in" onclick="event.stopPropagation();openLightbox(this.src)"
+               onerror="this.style.opacity='0.15'">
+          <span class="cap-status-badge status-${first.status}">${first.status.toUpperCase()}</span>
+          ${multi ? `
+          <button class="gallery-nav gallery-prev" onclick="event.stopPropagation();capGalleryStep('${gid}',-1)">&#8249;</button>
+          <button class="gallery-nav gallery-next" onclick="event.stopPropagation();capGalleryStep('${gid}',1)">&#8250;</button>
+          <div class="gallery-dots">${e.images.map((_, j) => `<span class="gallery-dot${j === 0 ? ' active' : ''}" onclick="event.stopPropagation();capGalleryGoto('${gid}',${j})"></span>`).join('')}</div>
+          ` : ''}
+        </div>
+        <span class="equip-cat-badge cat-armor">AFV</span>
+      </div>
+      <div class="equip-body">
+        <div class="equip-name">${esc(e.name)}</div>
+        <div class="equip-type">${esc(e.type)}</div>
+        <div class="equip-spec" style="margin-bottom:0.5rem">
+          <span class="equip-spec-label">Origin</span>
+          <span class="equip-spec-val">${esc(e.origin)}</span>
+        </div>
+        <div class="cap-counts">
+          ${e.destroyed ? `<span class="cap-count cap-destroyed">${e.destroyed} Destroyed</span>` : ''}
+          ${e.abandoned ? `<span class="cap-count cap-abandoned">${e.abandoned} Abandoned</span>` : ''}
+          ${e.captured  ? `<span class="cap-count cap-captured">${e.captured} Captured</span>`  : ''}
+        </div>
+        <div class="equip-footer">
+          <span class="equip-qty">Total: ${e.total}</span>
+          ${multi ? `<span class="cap-img-counter">1 / ${e.images.length}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function initCapturedFilters() {
+  $$('.cap-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.cap-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCaptured(btn.dataset.capFilter);
     });
   });
 }
@@ -2019,6 +2196,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderEquipment();
   renderAdmin();
   initEquipmentFilters();
+  renderCapturedSummary();
+  renderCaptured();
+  initCapturedFilters();
 
   // Maps (after DOM ready)
   if($('#myanmar-map')) setTimeout(initMap, 100);
