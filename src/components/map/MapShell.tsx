@@ -38,9 +38,15 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [polling, setPolling]         = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [splash, setSplash]           = useState(true)
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
+  }, [])
+
+  useEffect(() => {
+    const t = setTimeout(() => setSplash(false), 1800)
+    return () => clearTimeout(t)
   }, [])
 
   const today    = useMemo(() => new Date(), [])
@@ -121,6 +127,17 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+      {splash && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-5 bg-surface-0 transition-opacity duration-500">
+          <img src="/mcw-logo.jpg" alt="MCW" className="w-28 h-28 object-contain animate-pulse" />
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-xs font-mono text-slate-400 tracking-[0.3em] uppercase">Loading War Map</span>
+            <div className="w-40 h-0.5 bg-surface-2 rounded overflow-hidden">
+              <div className="h-full bg-red-600 animate-[loading-bar_1.4s_ease-in-out_infinite]" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Stats bar ─────────────────────────────────────────────────────── */}
       {stats.total > 0 && (
