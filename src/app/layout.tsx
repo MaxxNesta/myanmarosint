@@ -16,7 +16,7 @@ const mono = JetBrains_Mono({
   display: 'swap',
 })
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://myanmarosint.vercel.app'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://myanmarcivilwar.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
