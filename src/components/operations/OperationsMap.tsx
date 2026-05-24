@@ -287,8 +287,8 @@ export default function OperationsMap({
         const hasConflict = conflictTownshipsRef.current.has(ts.pcode)
         let fillColor: string
         if (!visible)        fillColor = '#1e293b'
-        else if (contested)                           fillColor = '#E62900'  // formal contested control
-        else if (hasConflict && actor === 'MILITARY') fillColor = '#92400e'  // SAC zone with active fighting
+        else if (contested)                           fillColor = '#F2CFC7'  // formal contested control
+        else if (hasConflict && actor === 'MILITARY') fillColor = '#6f7429'  // SAC zone with active fighting
         else                                          fillColor = a.color    // actor color (resistance or stable SAC)
         map.setFeatureState(
           { source: 'townships-source', id: ts.pcode },

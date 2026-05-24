@@ -50,7 +50,24 @@
       "PowerShell(head -50)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "PowerShell(gh repo create tatmadaw --public --source=\"c:\\\\Users\\\\MSI\\\\Downloads\\\\myanmarosint\" --remote=origin --push)",
+      "Bash(mkdir -p /c/Users/MSI/Downloads/myanmarosint-git/public/tatmadaw /c/Users/MSI/Downloads/myanmarosint-git/public/eaos)",
+      "Bash(cp /c/Users/MSI/Downloads/myanmarosint/public/tatmadaw/* /c/Users/MSI/Downloads/myanmarosint-git/public/tatmadaw/)",
+      "Bash(cp /c/Users/MSI/Downloads/myanmarosint/public/eaos/* /c/Users/MSI/Downloads/myanmarosint-git/public/eaos/)",
+      "Bash(cp /c/Users/MSI/Downloads/myanmarosint-git/src/lib/bases-data.ts /c/Users/MSI/Downloads/myanmarosint/src/lib/bases-data.ts)",
+      "Bash(cp /c/Users/MSI/Downloads/myanmarosint-git/src/lib/rmc-data.ts /c/Users/MSI/Downloads/myanmarosint/src/lib/rmc-data.ts)",
+      "Bash(cp /c/Users/MSI/Downloads/myanmarosint-git/src/lib/lid-data.ts /c/Users/MSI/Downloads/myanmarosint/src/lib/lid-data.ts)",
+      "Bash(cp /c/Users/MSI/Downloads/myanmarosint-git/src/components/bases/BasesMap.tsx /c/Users/MSI/Downloads/myanmarosint/src/components/bases/BasesMap.tsx)",
+      "Bash(cp /c/Users/MSI/Downloads/myanmarosint-git/src/components/bases/BasesShell.tsx /c/Users/MSI/Downloads/myanmarosint/src/components/bases/BasesShell.tsx)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(rm -rf /c/Users/MSI/Downloads/myanmarosint-git && echo \"deleted\")",
+      "Bash(git commit *)",
+      "WebFetch(domain:docs.browsermcp.io)",
+      "Bash(grep -n \"function galleryStep\\\\|function galleryGoto\\\\|function esc\\\\|function \\\\$\\\\b\\\\|function \\\\$\\\\$\\\\b\\\\|renderEquipment\\\\\\(\\\\\\)\\\\|renderCaptured\\\\|initEquip\\\\|DOMContentLoaded\\\\|window.onload\" public/tatmadaw/app.js)",
+      "Bash(powershell -command \"Get-Content 'C:\\\\Users\\\\MSI\\\\.claude\\\\projects\\\\c--Users-MSI-Downloads-myanmarosint\\\\fa20b8f1-06b5-4247-9317-905b85a6b06c.jsonl' | Select-Object -Index 1346 | ConvertFrom-Json | Select-Object -ExpandProperty message | Select-Object -ExpandProperty content\")",
+      "Bash(powershell -command ' *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\MSI\\MiroFish\\myanmar-risk-platform",
@@ -59,7 +76,9 @@
       "c:\\Users\\MSI\\Downloads\\myanmarosint-git\\src\\lib",
       "c:\\Users\\MSI\\Downloads\\myanmarosint-git\\src\\components\\bases",
       "c:\\Users\\MSI\\Downloads\\myanmarosint-git\\src\\components\\operations",
-      "c:\\Users\\MSI\\Downloads\\myanmarosint-git\\src\\app\\api"
+      "c:\\Users\\MSI\\Downloads\\myanmarosint-git\\src\\app\\api",
+      "c:\\Users\\MSI\\Downloads\\myanmarosint-git\\public\\tatmadaw",
+      "C:\\Users\\MSI\\Downloads\\myanmarosint-git"
     ]
   }
 }
