@@ -17,11 +17,10 @@ const mono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Myanmar War Map — Conflict Intelligence',
+  title: 'Myanmar Civil War',
   description:
-    'Open-source conflict monitoring and geopolitical intelligence platform for Myanmar. ' +
-    'OSINT-based war map, incident tracking, and probabilistic risk modeling.',
-  keywords: ['Myanmar', 'OSINT', 'conflict', 'risk analysis', 'geopolitical', 'intelligence'],
+    'Independent OSINT, conflict mapping, military analysis, and situation updates on the Myanmar Civil War.',
+  keywords: ['Myanmar', 'civil war', 'OSINT', 'conflict', 'military', 'risk analysis', 'geopolitical', 'intelligence'],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
