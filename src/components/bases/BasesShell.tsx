@@ -86,6 +86,7 @@ export default function BasesShell() {
   const [analyzing,       setAnalyzing]       = useState(false)
   const [analyzeError,    setAnalyzeError]    = useState<string | null>(null)
   const [clearSignal,     setClearSignal]     = useState(0)
+  const [triggerDraw,     setTriggerDraw]     = useState(0)
   const [conflictEvents,  setConflictEvents]  = useState<ConflictEventDTO[]>([])
 
   const analyzeAbortRef = useRef<AbortController | null>(null)
@@ -529,6 +530,7 @@ export default function BasesShell() {
               visibleIds={visibleIds}
               sidebarOpen={sidebarOpen}
               clearSignal={clearSignal}
+              triggerDrawSignal={triggerDraw}
               onAreaSelected={handleAreaSelected}
               glowEnabled={glowEnabled}
               showRmc={showRmc}
@@ -619,6 +621,7 @@ export default function BasesShell() {
           analyzeError={analyzeError}
           nearbyEvents={nearbyEvents}
           onAnalyze={() => areaSelection && runAnalysis(areaSelection)}
+          onStartDraw={() => setTriggerDraw(s => s + 1)}
           open={scenarioPanelOpen}
           onClose={() => setScenarioPanelOpen(false)}
         />

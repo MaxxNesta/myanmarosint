@@ -81,13 +81,14 @@ interface Props {
   analyzeError: string | null
   nearbyEvents: ConflictEventDTO[]
   onAnalyze:    () => void
+  onStartDraw?: () => void
   open:         boolean
   onClose:      () => void
 }
 
 export default function ScenarioPanel({
   selection, analysis, analyzing, analyzeError,
-  nearbyEvents, onAnalyze, open, onClose,
+  nearbyEvents, onAnalyze, onStartDraw, open, onClose,
 }: Props) {
   const [tab, setTab] = useState<Tab>('ANALYSIS')
   const riskColor = analysis ? (RISK_COLORS[analysis.riskLevel] ?? '#6b7280') : '#6b7280'
@@ -149,14 +150,18 @@ export default function ScenarioPanel({
 
       {!selection && !analyzing && !analysis && !analyzeError && (
         <div className="flex flex-col items-center justify-center h-full min-h-[200px] px-6 text-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-xl">⬡</div>
+          <button
+            onClick={onStartDraw}
+            title="Start drawing area"
+            className="w-12 h-12 rounded-full bg-white/[0.04] border border-white/[0.08] hover:border-accent-blue/40 hover:bg-accent-blue/10 flex items-center justify-center text-xl transition-colors cursor-pointer"
+          >⬡</button>
           <div>
             <div className="text-xs font-mono font-bold text-slate-300 mb-1">DRAW AREA</div>
             <div className="text-[10px] text-slate-500 leading-relaxed">
-              Use the polygon tool on the map to select an operational area. AI will analyze bases and conflict intel.
+              Click the icon above or use the polygon tool on the map to select an operational area. AI will analyze bases and conflict intel.
             </div>
           </div>
-          <div className="text-[9px] font-mono text-slate-600 tracking-widest">POWERED BY GROQ</div>
+          <div className="text-[9px] font-mono text-slate-600 tracking-widest">POWERED BY DEEPSEEK</div>
         </div>
       )}
 

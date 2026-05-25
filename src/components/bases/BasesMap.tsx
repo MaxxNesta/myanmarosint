@@ -39,15 +39,16 @@ const DRAW_STYLES = [
 ]
 
 interface Props {
-  selected:        number | null
-  onSelect:        (id: number) => void
-  visibleIds:      Set<number>
-  sidebarOpen?:    boolean
-  clearSignal?:    number
-  onAreaSelected?: (sel: AreaSelection | null) => void
-  glowEnabled?:    boolean
-  showRmc?:        boolean
-  showLid?:        boolean
+  selected:          number | null
+  onSelect:          (id: number) => void
+  visibleIds:        Set<number>
+  sidebarOpen?:      boolean
+  clearSignal?:      number
+  triggerDrawSignal?: number
+  onAreaSelected?:   (sel: AreaSelection | null) => void
+  glowEnabled?:      boolean
+  showRmc?:          boolean
+  showLid?:          boolean
 }
 
 function buildMarkerEl(base: MilitaryBase): HTMLElement {
@@ -289,7 +290,7 @@ function popupHTML(b: MilitaryBase): string {
     </div>`
 }
 
-export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, onAreaSelected, glowEnabled = false, showRmc = true, showLid = true }: Props) {
+export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, triggerDrawSignal, onAreaSelected, glowEnabled = false, showRmc = true, showLid = true }: Props) {
   const containerRef      = useRef<HTMLDivElement>(null)
   const mapRef            = useRef<mapboxgl.Map | null>(null)
   const markersRef        = useRef<Map<number, mapboxgl.Marker>>(new Map())
@@ -309,6 +310,13 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       drawRef.current.deleteAll()
     }
   }, [clearSignal])
+
+  // Activate polygon draw mode when parent signals it
+  useEffect(() => {
+    if (triggerDrawSignal && drawRef.current) {
+      drawRef.current.changeMode('draw_polygon')
+    }
+  }, [triggerDrawSignal])
 
   // Resize when sidebar toggles
   useEffect(() => {
