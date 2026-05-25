@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30
 
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
@@ -79,7 +80,7 @@ Return JSON:
     const completion = await deepseek.chat.completions.create({
       model:           'deepseek-chat',
       response_format: { type: 'json_object' },
-      max_tokens:      500,
+      max_tokens:      1500,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user',   content: userPrompt },

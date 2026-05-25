@@ -227,6 +227,7 @@ export default function BasesShell() {
   const handleAreaSelected = useCallback((sel: AreaSelection | null) => {
     setAreaSelection(sel)
     if (sel) {
+      setScenarioPanelOpen(true)
       runAnalysis(sel)
     } else {
       setAnalysis(null)
