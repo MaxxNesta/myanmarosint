@@ -10,6 +10,28 @@ const deepseek = new OpenAI({
   baseURL: 'https://api.deepseek.com',
 })
 
+// Attempt to salvage truncated JSON by closing open structures
+function repairJson(raw: string): string {
+  let s = raw.trim()
+  // Close any unterminated string by appending quote before closing
+  const stack: string[] = []
+  let inString = false
+  let escaped  = false
+  for (const ch of s) {
+    if (escaped)           { escaped = false; continue }
+    if (ch === '\\')       { escaped = true;  continue }
+    if (ch === '"')        { inString = !inString; continue }
+    if (inString)          continue
+    if (ch === '{' || ch === '[') stack.push(ch)
+    if (ch === '}' || ch === ']') stack.pop()
+  }
+  if (inString) s += '"'
+  for (let i = stack.length - 1; i >= 0; i--) {
+    s += stack[i] === '{' ? '}' : ']'
+  }
+  return s
+}
+
 export async function POST(req: NextRequest) {
   if (!process.env.DEEPSEEK_API_KEY) {
     return NextResponse.json({ error: 'DEEPSEEK_API_KEY not set — add it to Vercel environment variables' }, { status: 500 })
@@ -30,7 +52,7 @@ export async function POST(req: NextRequest) {
           date: string; eventType: string; location?: string | null; region: string
           attackerActor?: string | null; defenderActor?: string | null; actors: string[]
           fatalities?: number | null
-        }>).slice(0, 8).map(e => {
+        }>).slice(0, 6).map(e => {
           const actor = (e.attackerActor ?? e.actors[0] ?? '?')
           const kia = e.fatalities ? `${e.fatalities}KIA` : ''
           return `[${String(e.date).slice(0, 10)}] ${e.eventType} ${e.location ?? e.region} ${actor} ${kia}`
@@ -43,51 +65,33 @@ export async function POST(req: NextRequest) {
     const lng = (center as [number, number])[0]
     const lat = (center as [number, number])[1]
 
-    const systemPrompt = `You are a professional Myanmar military and geopolitical analyst.
-
-Your expertise includes:
-- Tatmadaw structure and regional commands
-- EAOs and PDF groups
-- Myanmar civil war dynamics
-- Logistics, terrain, and border economics
-- Drone warfare trends
-- Information warfare and propaganda
-- Chinese, Thai, Indian, and ASEAN influence
-- Sanctions and arms supply chains
-- Historical context from 1948 to present
-
-Behavior:
-- Be analytical, neutral, and evidence-driven
-- Avoid emotional or ideological language
-- Distinguish confirmed facts from rumors
-- Explain military concepts clearly
-- Mention uncertainty levels when information is incomplete
-
-Writing style:
-- Concise but detailed
-- Professional intelligence briefing tone
-- Include strategic implications and likely next steps
-
-All analysis text fields in the JSON response MUST be written in Myanmar (Burmese) language (Unicode script). Only enum values like HIGH/MEDIUM/LOW and numbers remain in English. Return valid JSON only, no markdown, no code fences.`
+    const systemPrompt = `You are a professional Myanmar military and geopolitical analyst with expertise in Tatmadaw structure, EAOs, PDF, civil war dynamics, logistics, terrain, drone warfare, and regional geopolitics (China, Thailand, India, ASEAN). Be analytical, neutral, evidence-driven. Distinguish facts from rumors. Mention uncertainty where needed. Write in concise professional intelligence briefing tone. Include strategic implications and likely next steps. All text fields MUST be in Myanmar (Burmese) Unicode script. Only HIGH/MEDIUM/LOW enums and numbers stay in English. Return valid JSON only — no markdown, no code fences, no extra text.`
 
     const userPrompt = `Analyze Myanmar operational area. Size:${(area_km2 as number).toFixed(0)}km² Center:${lat.toFixed(2)}N,${lng.toFixed(2)}E Bases(${(bases as unknown[]).length}):ops=${operational},contested=${contested},seized=${seized}
 Assets: ${basesSummary}
 Events: ${eventsSummary}
 
-Return JSON:
-{"scenarioOverview":"string","areaSummary":{"operational":N,"contested":N,"seized":N,"dominant_actor":"string"},"projection":{"holdPosition":"HIGH|MEDIUM|LOW","lossRisk":"HIGH|MEDIUM|LOW","confidence":"HIGH|MEDIUM|LOW","confidence_pct":N},"keyDrivers":["x","x","x"],"interpretation":"string","recommendedActions":["x","x","x"],"threats":[{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"}],"riskLevel":"HIGH|MEDIUM|LOW"}`
+Return ONLY this JSON (keep each string field brief — max 40 words in Myanmar):
+{"scenarioOverview":"...","areaSummary":{"operational":${operational},"contested":${contested},"seized":${seized},"dominant_actor":"..."},"projection":{"holdPosition":"HIGH|MEDIUM|LOW","lossRisk":"HIGH|MEDIUM|LOW","confidence":"HIGH|MEDIUM|LOW","confidence_pct":0},"keyDrivers":["...","...","..."],"interpretation":"...","recommendedActions":["...","...","..."],"threats":[{"name":"...","probability":"HIGH|MEDIUM|LOW","description":"..."},{"name":"...","probability":"HIGH|MEDIUM|LOW","description":"..."},{"name":"...","probability":"HIGH|MEDIUM|LOW","description":"..."}],"riskLevel":"HIGH|MEDIUM|LOW"}`
 
     const completion = await deepseek.chat.completions.create({
       model:           'deepseek-chat',
       response_format: { type: 'json_object' },
-      max_tokens:      1500,
+      max_tokens:      2000,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user',   content: userPrompt },
       ],
     })
 
-    const parsed = JSON.parse(completion.choices[0].message.content ?? '{}') as Omit<ScenarioAnalysis, 'generatedAt'>
+    const raw = completion.choices[0].message.content ?? '{}'
+    let parsed: Omit<ScenarioAnalysis, 'generatedAt'>
+    try {
+      parsed = JSON.parse(raw)
+    } catch {
+      parsed = JSON.parse(repairJson(raw))
+    }
+
     return NextResponse.json({ ...parsed, generatedAt: new Date().toISOString() })
   } catch (err) {
     console.error('POST /api/analyze-area error:', err)
