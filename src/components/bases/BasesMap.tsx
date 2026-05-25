@@ -396,14 +396,14 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       el.innerHTML = '✕'
       el.title = 'Delete area'
       el.style.cssText = [
-        'background:#ef4444','color:#fff','border:none','border-radius:50%',
+        'background:#000','color:#fff','border:2px solid rgba(255,255,255,0.3)','border-radius:50%',
         'width:22px','height:22px','font-size:11px','font-weight:bold',
         'cursor:pointer','display:flex','align-items:center','justify-content:center',
-        'box-shadow:0 0 0 2px #fff2,0 2px 6px #0008',
+        'box-shadow:0 2px 8px rgba(0,0,0,0.6)',
         'transition:background 0.15s','z-index:10',
       ].join(';')
-      el.onmouseenter = () => { el.style.background = '#dc2626' }
-      el.onmouseleave = () => { el.style.background = '#ef4444' }
+      el.onmouseenter = () => { el.style.background = '#333' }
+      el.onmouseleave = () => { el.style.background = '#000' }
       el.onclick = (e) => {
         e.stopPropagation()
         suppressDeleteRef.current = true

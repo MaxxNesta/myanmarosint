@@ -65,13 +65,13 @@ export async function POST(req: NextRequest) {
     const lng = (center as [number, number])[0]
     const lat = (center as [number, number])[1]
 
-    const systemPrompt = `You are a professional Myanmar military and geopolitical analyst with expertise in Tatmadaw structure, EAOs, PDF, civil war dynamics, logistics, terrain, drone warfare, and regional geopolitics (China, Thailand, India, ASEAN). Be analytical, neutral, evidence-driven. Distinguish facts from rumors. Mention uncertainty where needed. Write in concise professional intelligence briefing tone. Include strategic implications and likely next steps. All text fields MUST be in Myanmar (Burmese) Unicode script. Only HIGH/MEDIUM/LOW enums and numbers stay in English. Return valid JSON only — no markdown, no code fences, no extra text.`
+    const systemPrompt = `You are a professional Myanmar military and geopolitical analyst. Expert in Tatmadaw structure, EAOs, PDF, civil war dynamics, logistics, terrain, drone warfare, and regional geopolitics (China, Thailand, India, ASEAN). Be analytical, neutral, evidence-driven. Reason deeply — use your token budget for sharp intelligence insight, not verbose text. Each string field must be concise (max 20 words). Return valid JSON only — no markdown, no code fences.`
 
-    const userPrompt = `Analyze Myanmar operational area. Size:${(area_km2 as number).toFixed(0)}km² Center:${lat.toFixed(2)}N,${lng.toFixed(2)}E Bases(${(bases as unknown[]).length}):ops=${operational},contested=${contested},seized=${seized}
+    const userPrompt = `Analyze this Myanmar operational area. Size:${(area_km2 as number).toFixed(0)}km² Center:${lat.toFixed(2)}N,${lng.toFixed(2)}E Bases(${(bases as unknown[]).length}):ops=${operational},contested=${contested},seized=${seized}
 Assets: ${basesSummary}
 Events: ${eventsSummary}
 
-Return ONLY this JSON (keep each string field brief — max 40 words in Myanmar):
+Return ONLY valid JSON, all fields in English, each string max 20 words:
 {"scenarioOverview":"...","areaSummary":{"operational":${operational},"contested":${contested},"seized":${seized},"dominant_actor":"..."},"projection":{"holdPosition":"HIGH|MEDIUM|LOW","lossRisk":"HIGH|MEDIUM|LOW","confidence":"HIGH|MEDIUM|LOW","confidence_pct":0},"keyDrivers":["...","...","..."],"interpretation":"...","recommendedActions":["...","...","..."],"threats":[{"name":"...","probability":"HIGH|MEDIUM|LOW","description":"..."},{"name":"...","probability":"HIGH|MEDIUM|LOW","description":"..."},{"name":"...","probability":"HIGH|MEDIUM|LOW","description":"..."}],"riskLevel":"HIGH|MEDIUM|LOW"}`
 
     const completion = await deepseek.chat.completions.create({
