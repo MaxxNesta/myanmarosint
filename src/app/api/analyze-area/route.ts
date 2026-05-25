@@ -4,14 +4,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import type { ScenarioAnalysis } from '@/lib/analyze-types'
 
-const groq = new OpenAI({
-  apiKey:  process.env.GROQ_API_KEY,
-  baseURL: 'https://api.groq.com/openai/v1',
+const deepseek = new OpenAI({
+  apiKey:  process.env.DEEPSEEK_API_KEY,
+  baseURL: 'https://api.deepseek.com',
 })
 
 export async function POST(req: NextRequest) {
-  if (!process.env.GROQ_API_KEY) {
-    return NextResponse.json({ error: 'GROQ_API_KEY not set — restart the dev server after adding the key to .env.local' }, { status: 500 })
+  if (!process.env.DEEPSEEK_API_KEY) {
+    return NextResponse.json({ error: 'DEEPSEEK_API_KEY not set — add it to Vercel environment variables' }, { status: 500 })
   }
 
   try {
@@ -51,8 +51,8 @@ Events: ${eventsSummary}
 Return JSON:
 {"scenarioOverview":"string","areaSummary":{"operational":N,"contested":N,"seized":N,"dominant_actor":"string"},"projection":{"holdPosition":"HIGH|MEDIUM|LOW","lossRisk":"HIGH|MEDIUM|LOW","confidence":"HIGH|MEDIUM|LOW","confidence_pct":N},"keyDrivers":["x","x","x"],"interpretation":"string","recommendedActions":["x","x","x"],"threats":[{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"},{"name":"x","probability":"HIGH|MEDIUM|LOW","description":"x"}],"riskLevel":"HIGH|MEDIUM|LOW"}`
 
-    const completion = await groq.chat.completions.create({
-      model:           'llama-3.1-8b-instant',
+    const completion = await deepseek.chat.completions.create({
+      model:           'deepseek-chat',
       response_format: { type: 'json_object' },
       max_tokens:      900,
       messages: [
