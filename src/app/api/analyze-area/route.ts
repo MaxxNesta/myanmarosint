@@ -67,7 +67,7 @@ Writing style:
 - Professional intelligence briefing tone
 - Include strategic implications and likely next steps
 
-Return valid JSON only, no markdown, no code fences.`
+All analysis text fields in the JSON response MUST be written in Myanmar (Burmese) language (Unicode script). Only enum values like HIGH/MEDIUM/LOW and numbers remain in English. Return valid JSON only, no markdown, no code fences.`
 
     const userPrompt = `Analyze Myanmar operational area. Size:${(area_km2 as number).toFixed(0)}km² Center:${lat.toFixed(2)}N,${lng.toFixed(2)}E Bases(${(bases as unknown[]).length}):ops=${operational},contested=${contested},seized=${seized}
 Assets: ${basesSummary}
@@ -79,7 +79,7 @@ Return JSON:
     const completion = await deepseek.chat.completions.create({
       model:           'deepseek-chat',
       response_format: { type: 'json_object' },
-      max_tokens:      900,
+      max_tokens:      500,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user',   content: userPrompt },
