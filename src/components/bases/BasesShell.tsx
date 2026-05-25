@@ -532,6 +532,7 @@ export default function BasesShell() {
               sidebarOpen={sidebarOpen}
               clearSignal={clearSignal}
               triggerDrawSignal={triggerDraw}
+              onRequestClear={() => { setAreaSelection(null); setAnalysis(null); setAnalyzeError(null); setClearSignal(s => s + 1) }}
               onAreaSelected={handleAreaSelected}
               glowEnabled={glowEnabled}
               showRmc={showRmc}

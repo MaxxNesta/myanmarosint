@@ -39,16 +39,17 @@ const DRAW_STYLES = [
 ]
 
 interface Props {
-  selected:          number | null
-  onSelect:          (id: number) => void
-  visibleIds:        Set<number>
-  sidebarOpen?:      boolean
-  clearSignal?:      number
+  selected:           number | null
+  onSelect:           (id: number) => void
+  visibleIds:         Set<number>
+  sidebarOpen?:       boolean
+  clearSignal?:       number
   triggerDrawSignal?: number
-  onAreaSelected?:   (sel: AreaSelection | null) => void
-  glowEnabled?:      boolean
-  showRmc?:          boolean
-  showLid?:          boolean
+  onAreaSelected?:    (sel: AreaSelection | null) => void
+  onRequestClear?:    () => void
+  glowEnabled?:       boolean
+  showRmc?:           boolean
+  showLid?:           boolean
 }
 
 function buildMarkerEl(base: MilitaryBase): HTMLElement {
@@ -290,24 +291,38 @@ function popupHTML(b: MilitaryBase): string {
     </div>`
 }
 
-export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, triggerDrawSignal, onAreaSelected, glowEnabled = false, showRmc = true, showLid = true }: Props) {
+export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, clearSignal, triggerDrawSignal, onAreaSelected, onRequestClear, glowEnabled = false, showRmc = true, showLid = true }: Props) {
   const containerRef      = useRef<HTMLDivElement>(null)
   const mapRef            = useRef<mapboxgl.Map | null>(null)
   const markersRef        = useRef<Map<number, mapboxgl.Marker>>(new Map())
   const rmcMarkersRef     = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const lidMarkersRef     = useRef<Map<number, mapboxgl.Marker>>(new Map())
-  const drawRef           = useRef<InstanceType<typeof MapboxDraw> | null>(null)
-  const onAreaSelectedRef = useRef(onAreaSelected)
-  const glowEnabledRef    = useRef(glowEnabled)
-  const [ready, setReady] = useState(false)
+  const drawRef            = useRef<InstanceType<typeof MapboxDraw> | null>(null)
+  const onAreaSelectedRef  = useRef(onAreaSelected)
+  const onRequestClearRef  = useRef(onRequestClear)
+  const glowEnabledRef     = useRef(glowEnabled)
+  const suppressDeleteRef  = useRef(false)
+  const deleteMarkerRef    = useRef<mapboxgl.Marker | null>(null)
+  const [ready, setReady]  = useState(false)
 
   useEffect(() => { onAreaSelectedRef.current = onAreaSelected }, [onAreaSelected])
+  useEffect(() => { onRequestClearRef.current = onRequestClear }, [onRequestClear])
   useEffect(() => { glowEnabledRef.current = glowEnabled }, [glowEnabled])
+
+  function removeClearMarker() {
+    if (deleteMarkerRef.current) {
+      deleteMarkerRef.current.remove()
+      deleteMarkerRef.current = null
+    }
+  }
 
   // Clear drawn polygon when parent signals it
   useEffect(() => {
     if (clearSignal && drawRef.current) {
+      suppressDeleteRef.current = true
       drawRef.current.deleteAll()
+      removeClearMarker()
+      suppressDeleteRef.current = false
     }
   }, [clearSignal])
 
@@ -374,11 +389,43 @@ export default function BasesMap({ selected, onSelect, visibleIds, sidebarOpen, 
       })
 
       onAreaSelectedRef.current?.({ bases: basesInside, area_km2, center, polygon: poly })
+
+      // Add a visible × delete button at the polygon centroid
+      removeClearMarker()
+      const el = document.createElement('button')
+      el.innerHTML = '✕'
+      el.title = 'Delete area'
+      el.style.cssText = [
+        'background:#ef4444','color:#fff','border:none','border-radius:50%',
+        'width:22px','height:22px','font-size:11px','font-weight:bold',
+        'cursor:pointer','display:flex','align-items:center','justify-content:center',
+        'box-shadow:0 0 0 2px #fff2,0 2px 6px #0008',
+        'transition:background 0.15s','z-index:10',
+      ].join(';')
+      el.onmouseenter = () => { el.style.background = '#dc2626' }
+      el.onmouseleave = () => { el.style.background = '#ef4444' }
+      el.onclick = (e) => {
+        e.stopPropagation()
+        suppressDeleteRef.current = true
+        drawRef.current?.deleteAll()
+        removeClearMarker()
+        suppressDeleteRef.current = false
+        onRequestClearRef.current?.()
+      }
+      if (mapRef.current) {
+        deleteMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat(center)
+          .addTo(mapRef.current)
+      }
     }
 
     map.on('draw.create', computeArea)
     map.on('draw.update', computeArea)
-    map.on('draw.delete', () => { onAreaSelectedRef.current?.(null) })
+    map.on('draw.delete', () => {
+      if (suppressDeleteRef.current) return
+      removeClearMarker()
+      onAreaSelectedRef.current?.(null)
+    })
 
     // On mobile, double-tap to finish polygon conflicts with map double-click zoom
     map.on('draw.modechange', ({ mode }: { mode: string }) => {
