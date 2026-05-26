@@ -140,7 +140,7 @@ export default function EventClusters({ events }: Props) {
               <th className="px-4 py-2 text-left">{groupBy === 'type' ? 'Type' : groupBy === 'region' ? 'Region' : 'Period'}</th>
               <th className="px-3 py-2 text-right">Events</th>
               <th className="px-3 py-2 text-right">Avg Sev</th>
-              <th className="px-3 py-2 text-right">KIA</th>
+              <th className="px-3 py-2 text-right">Deaths</th>
             </tr>
           </thead>
           <tbody>

@@ -74,7 +74,7 @@ export default function VolatilityTable() {
                 <th className="text-left px-4 py-2 text-slate-600 font-normal tracking-wider uppercase text-[9px]">Region</th>
                 <th className="text-right px-3 py-2 text-slate-600 font-normal tracking-wider uppercase text-[9px]">Score</th>
                 <th className="text-right px-3 py-2 text-slate-600 font-normal tracking-wider uppercase text-[9px]">Events</th>
-                <th className="text-right px-3 py-2 text-slate-600 font-normal tracking-wider uppercase text-[9px]">KIA</th>
+                <th className="text-right px-3 py-2 text-slate-600 font-normal tracking-wider uppercase text-[9px]">Deaths</th>
                 <th className="px-3 py-2 text-slate-600 font-normal tracking-wider uppercase text-[9px]">Top Types</th>
               </tr>
             </thead>

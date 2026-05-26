@@ -105,7 +105,7 @@ function conflictPopupHTML(p: Record<string, unknown>): string {
   const fat    = p.fatalities as number
   const fatMin = p.fatalitiesMin as number
   const fatMax = p.fatalitiesMax as number
-  const fatStr = fat > 0 ? `${fatMin === fatMax ? fat : `${fatMin}–${fatMax}`} KIA` : ''
+  const fatStr = fat > 0 ? `${fatMin === fatMax ? fat : `${fatMin}–${fatMax}`} killed` : ''
 
   // Location: only show if there's a specific place (not generic "Myanmar" fallback)
   const adminArea = (p.adminArea as string | null) ?? ''

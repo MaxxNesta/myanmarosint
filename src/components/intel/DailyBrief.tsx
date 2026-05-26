@@ -87,7 +87,7 @@ export default function DailyBrief({ summary }: Props) {
                 </span>
                 {e.fatalities > 0 && (
                   <span className="text-[0.6rem] text-red-400 font-mono">
-                    {e.fatalities} KIA
+                    {e.fatalities} killed
                   </span>
                 )}
                 <span className="text-[0.6rem] text-slate-600 font-mono ml-auto">
