@@ -123,12 +123,6 @@ async function getRecentEvents(): Promise<ProcessedEventDTO[]> {
       where:   { date: { gte: subDays(new Date(), 30) } },
       orderBy: { date: 'desc' },
       take:    200,
-      select: {
-        id: true, date: true, country: true, region: true, adminArea: true,
-        type: true, severity: true, summary: true, source: true, sourceUrl: true,
-        reliability: true, confidence: true, latitude: true, longitude: true,
-        fatalities: true, actors: true, tags: true,
-      },
     })
     return rows.map(toDTO)
   } catch (err) {
