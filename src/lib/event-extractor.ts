@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 import type { ConflictEventType } from '@prisma/client'
 import { findTownInText } from './towns'
 
@@ -321,37 +321,44 @@ function parseResponse(raw: unknown, fullText: string): ExtractedEvent[] {
   })
 }
 
-// ── Gemini client singleton ───────────────────────────────────────────────────
+// ── Groq client (fast bulk extraction) ───────────────────────────────────────
 
-let _gemini: GoogleGenerativeAI | null = null
-function getGemini() {
-  if (!_gemini) _gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-  return _gemini
+let _groq: OpenAI | null = null
+function getGroq() {
+  if (!_groq) _groq = new OpenAI({
+    apiKey:  process.env.GROQ_API_KEY!,
+    baseURL: 'https://api.groq.com/openai/v1',
+  })
+  return _groq
 }
 
-async function extractWithGemini(
+async function extractWithGroq(
   title:       string,
   content:     string,
   sourceName:  string,
   publishedAt: Date | null,
 ): Promise<ExtractedEvent[]> {
-  const model = getGemini().getGenerativeModel({
-    model:             'gemini-2.0-flash-lite',
-    systemInstruction: EXTRACTION_SYSTEM,
-  })
-
   const prompt =
     `Source: ${sourceName}\nPublished: ${publishedAt?.toISOString() ?? 'unknown'}\n\nTitle: ${title}\n\nContent:\n${content.slice(0, 4000)}`
 
-  const result = await model.generateContent(prompt)
-  const text   = result.response.text().trim()
+  const completion = await getGroq().chat.completions.create({
+    model:           'llama-3.3-70b-versatile',
+    response_format: { type: 'json_object' },
+    max_tokens:      1200,
+    temperature:     0.1,
+    messages: [
+      { role: 'system', content: `${EXTRACTION_SYSTEM}\n\nIMPORTANT: Wrap your JSON array in an object: {"events": [...]}` },
+      { role: 'user',   content: prompt },
+    ],
+  })
 
-  // Strip markdown code fences if Gemini wraps the JSON
-  const json = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+  const raw  = completion.choices[0].message.content ?? '{}'
+  const json = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
 
   try {
     const parsed = JSON.parse(json)
-    const events = parseResponse(parsed, `${title}\n${content}`)
+    const arr    = Array.isArray(parsed) ? parsed : (parsed.events ?? [])
+    const events = parseResponse(arr, `${title}\n${content}`)
     if (events.length > 0) return events
   } catch { /* fall through to regex */ }
 
@@ -366,9 +373,9 @@ export async function extractEvents(
   sourceName:  string,
   publishedAt: Date | null,
 ): Promise<ExtractedEvent[]> {
-  if (process.env.GEMINI_API_KEY) {
+  if (process.env.GROQ_API_KEY) {
     try {
-      const events = await extractWithGemini(title, content, sourceName, publishedAt)
+      const events = await extractWithGroq(title, content, sourceName, publishedAt)
       if (events.length > 0) return events
     } catch { /* fall through to regex */ }
   }

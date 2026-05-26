@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -11,11 +12,12 @@ function authHeaders(req: NextRequest) {
 }
 
 /**
- * GET /api/cron/ingest  — Vercel Cron entry point (runs hourly)
+ * GET /api/cron/ingest  — Vercel Cron entry point (runs every 6 hours)
  *
  * Orchestrates the full automated pipeline:
- *   1. /api/scrape        — fetch all Myanmar news RSS feeds → save new RawArticles
- *   2. /api/cron/process  — run unprocessed articles through Claude OSINT pipeline → save events
+ *   1. /api/scrape          — fetch all Myanmar news RSS feeds → save new RawArticles
+ *   2. /api/cron/process    — run unprocessed articles through Claude OSINT pipeline → save ProcessedEvents
+ *   3. /api/cron/extract    — extract ConflictEvents from recent articles → populate conflict map
  */
 export async function GET(req: NextRequest) {
   const secret = req.headers.get('authorization')?.replace('Bearer ', '')
@@ -34,9 +36,9 @@ export async function GET(req: NextRequest) {
     results.scrape = { error: String(err) }
   }
 
-  // Step 2 — Process with Claude (run up to 6 batches per cron tick to drain the queue)
+  // Step 2 — Process with Claude (up to 3 batches per tick to stay within 300s budget)
   results.process = []
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 3; i++) {
     try {
       const processRes = await fetch(`${BASE}/api/cron/process`, { cache: 'no-store', headers })
       const data       = await processRes.json() as { message?: string; articles?: number }
@@ -46,6 +48,14 @@ export async function GET(req: NextRequest) {
       ;(results.process as unknown[]).push({ error: String(err) })
       break
     }
+  }
+
+  // Step 3 — Extract ConflictEvents from recent articles (populates the conflict map)
+  try {
+    const extractRes = await fetch(`${BASE}/api/cron/extract`, { cache: 'no-store', headers })
+    results.extract  = await extractRes.json()
+  } catch (err) {
+    results.extract = { error: String(err) }
   }
 
   return NextResponse.json({ ok: true, ...results })
