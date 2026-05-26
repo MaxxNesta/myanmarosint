@@ -323,18 +323,18 @@ function parseResponse(raw: unknown, fullText: string): ExtractedEvent[] {
   })
 }
 
-// ── DeepSeek client (classification + categorisation) ────────────────────────
+// ── Groq client (fast bulk extraction) ───────────────────────────────────────
 
-let _deepseek: OpenAI | null = null
-function getDeepSeek() {
-  if (!_deepseek) _deepseek = new OpenAI({
-    apiKey:  process.env.DEEPSEEK_API_KEY!,
-    baseURL: 'https://api.deepseek.com',
+let _groq: OpenAI | null = null
+function getGroq() {
+  if (!_groq) _groq = new OpenAI({
+    apiKey:  process.env.GROQ_API_KEY!,
+    baseURL: 'https://api.groq.com/openai/v1',
   })
-  return _deepseek
+  return _groq
 }
 
-async function extractWithDeepSeek(
+async function extractWithGroq(
   title:       string,
   content:     string,
   sourceName:  string,
@@ -343,13 +343,13 @@ async function extractWithDeepSeek(
   const prompt =
     `Source: ${sourceName}\nPublished: ${publishedAt?.toISOString().slice(0, 10) ?? 'unknown'}\n\nTitle: ${title}\n\nContent:\n${content.slice(0, 3500)}`
 
-  const completion = await getDeepSeek().chat.completions.create({
-    model:           'deepseek-chat',
+  const completion = await getGroq().chat.completions.create({
+    model:           'llama-3.3-70b-versatile',
     response_format: { type: 'json_object' },
     max_tokens:      800,
     temperature:     0.1,
     messages: [
-      { role: 'system', content: `${EXTRACTION_SYSTEM}\n\nCRITICAL: Return {"events":[...]} with EXACTLY ONE event (the most important battle event in the article). Include attacker_actor and defender_actor fields. Summary must be: "[Brief action]. [Attacker] vs [Defender] in [location]." max 180 chars.` },
+      { role: 'system', content: `${EXTRACTION_SYSTEM}\n\nReturn {"events":[...]} with EXACTLY ONE event (most important). Include attacker_actor and defender_actor fields.` },
       { role: 'user',   content: prompt },
     ],
   })
@@ -361,7 +361,7 @@ async function extractWithDeepSeek(
     const parsed = JSON.parse(json)
     const arr    = Array.isArray(parsed) ? parsed : (parsed.events ?? [])
     const events = parseResponse(arr, `${title}\n${content}`)
-    if (events.length > 0) return [events[0]]  // always top event only
+    if (events.length > 0) return [events[0]]
   } catch { /* fall through to regex */ }
 
   return []
@@ -375,9 +375,9 @@ export async function extractEvents(
   sourceName:  string,
   publishedAt: Date | null,
 ): Promise<ExtractedEvent[]> {
-  if (process.env.DEEPSEEK_API_KEY) {
+  if (process.env.GROQ_API_KEY) {
     try {
-      const events = await extractWithDeepSeek(title, content, sourceName, publishedAt)
+      const events = await extractWithGroq(title, content, sourceName, publishedAt)
       if (events.length > 0) return events
     } catch { /* fall through to regex */ }
   }

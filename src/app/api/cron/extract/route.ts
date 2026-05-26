@@ -4,6 +4,7 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { extractEvents } from '@/lib/event-extractor'
+import { enrichEvents } from '@/lib/event-enricher'
 import { normalizeActors, normalizeRegion } from '@/lib/normalizer'
 import { buildDedupHash } from '@/lib/dedup'
 import { resolveCoordinates } from '@/lib/geocoding'
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
     const pubDate = article.publishedAt ?? article.ingestedAt
     if (pubDate < INTEL_START) { skipped++; continue }
 
-    // DeepSeek: classify, categorise, extract single top event with attacker/defender
+    // Stage 1 — Groq: fast extraction of top battle event
     let events
     try {
       events = await extractEvents(article.title, article.content, article.sourceName, pubDate)
@@ -52,24 +53,28 @@ export async function GET(req: NextRequest) {
     // Only the top event per article
     const ev = events[0]
 
+    // Stage 2 — DeepSeek: interpret attacker/defender, write structured summary
+    const [enr] = await enrichEvents(
+      [{ eventType: ev.eventType, actors: ev.actors, location: ev.location, region: normalizeRegion(ev.region), rawSummary: ev.summary, fatalities: ev.fatalities }],
+      article.title,
+    )
+
     const actors    = normalizeActors(ev.actors)
-    // Normalise AI-provided region
     let   region    = normalizeRegion(ev.region)
     const evDate    = new Date(ev.date)
     const dedupHash = buildDedupHash({ actors, region, adminArea: ev.adminArea, eventType: ev.eventType, date: evDate })
 
-    // Geocode — township lookup also returns the authoritative region name
+    // Geocode — township lookup returns the authoritative region, overriding AI value
     const geo = resolveCoordinates(
       ev.location ?? ev.adminArea ?? '',
       ev.adminArea ?? '',
       region,
     )
-
-    // Override AI region with lookup-verified region to prevent mismatches
-    // (e.g. AI says "Rakhine State" but town is Naypyitaw → use "Naypyidaw Union Territory")
     if (geo.region) region = geo.region
 
-    const confidence = Math.round(getBaseReliability(article.sourceName) * 100) / 100
+    const confidence = Math.round(
+      (getBaseReliability(article.sourceName) * 0.6 + enr.confidence * 0.4) * 100,
+    ) / 100
 
     try {
       await prisma.conflictEvent.upsert({
@@ -83,9 +88,9 @@ export async function GET(req: NextRequest) {
           lat:                  geo.coords[1],
           lng:                  geo.coords[0],
           actors,
-          attackerActor:        ev.attackerActor ? normalizeActors([ev.attackerActor])[0] ?? null : null,
-          defenderActor:        ev.defenderActor ? normalizeActors([ev.defenderActor])[0] ?? null : null,
-          summary:              ev.summary.slice(0, 800),
+          attackerActor:        enr.attackerActor ? normalizeActors([enr.attackerActor])[0] ?? null : null,
+          defenderActor:        enr.defenderActor ? normalizeActors([enr.defenderActor])[0] ?? null : null,
+          summary:              enr.summary.slice(0, 800),
           fatalities:           ev.fatalities,
           fatalitiesMin:        ev.fatalitiesMin,
           fatalitiesMax:        ev.fatalitiesMax,
@@ -100,8 +105,9 @@ export async function GET(req: NextRequest) {
         },
         update: {
           confidence:    { increment: 0.02 },
-          attackerActor: ev.attackerActor ? normalizeActors([ev.attackerActor])[0] ?? undefined : undefined,
-          defenderActor: ev.defenderActor ? normalizeActors([ev.defenderActor])[0] ?? undefined : undefined,
+          attackerActor: enr.attackerActor ? normalizeActors([enr.attackerActor])[0] ?? undefined : undefined,
+          defenderActor: enr.defenderActor ? normalizeActors([enr.defenderActor])[0] ?? undefined : undefined,
+          summary:       enr.summary.slice(0, 800),
         },
       })
       saved++

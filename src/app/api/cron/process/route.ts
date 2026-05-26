@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { differenceInDays } from 'date-fns'
 import prisma from '@/lib/db'
 import { resolveCoordinates } from '@/lib/geocoding'
@@ -15,8 +15,8 @@ import {
 } from '@/lib/confidence'
 import type { EventType } from '@/lib/types'
 
-const client  = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const BATCH   = 20
+const groq  = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' })
+const BATCH = 20
 
 // ─── Event type mapping ───────────────────────────────────────────────────────
 
@@ -132,36 +132,29 @@ neutral | pro_resistance | pro_junta | unverified_claim
   "meta": { "processed_at": "<ISO timestamp>", "event_count": <int>, "source_articles": <int> }
 }`
 
-// ─── Claude call ──────────────────────────────────────────────────────────────
+// ─── Groq call ────────────────────────────────────────────────────────────────
 
-async function callClaude(
+async function callGroq(
   articles: Array<{ id: string; content: string; sourceName: string; url: string }>,
 ): Promise<ClaudeEvent[]> {
   const body = articles
     .map((a, i) =>
-      `=== ARTICLE ${i + 1} | source: ${a.sourceName} | url: ${a.url} ===\n${a.content}`,
+      `=== ARTICLE ${i + 1} | source: ${a.sourceName} | url: ${a.url} ===\n${a.content.slice(0, 2000)}`,
     )
     .join('\n\n')
 
-  const res = await client.messages.create({
-    model:      'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: [
-      { type: 'text', text: OSINT_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+  const completion = await groq.chat.completions.create({
+    model:           'llama-3.3-70b-versatile',
+    response_format: { type: 'json_object' },
+    max_tokens:      4096,
+    temperature:     0.1,
+    messages: [
+      { role: 'system', content: OSINT_SYSTEM_PROMPT },
+      { role: 'user',   content: `Process these ${articles.length} articles. Extract conflict events and return ONLY the JSON with "events" array.\n\n${body}` },
     ],
-    messages: [{
-      role:    'user',
-      content: `Process these ${articles.length} articles. Extract conflict events and return ONLY the JSON.\n\n${body}`,
-    }],
   })
 
-  const block = res.content.find(b => b.type === 'text')
-  if (!block || block.type !== 'text') return []
-
-  let raw = block.text.trim()
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (fence) raw = fence[1].trim()
-
+  const raw = completion.choices[0].message.content ?? '{}'
   try {
     return (JSON.parse(raw) as { events: ClaudeEvent[] }).events ?? []
   } catch {
@@ -364,8 +357,8 @@ export async function GET(req: NextRequest) {
   if (process.env.NODE_ENV === 'production' && secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 })
+  if (!process.env.GROQ_API_KEY) {
+    return NextResponse.json({ error: 'GROQ_API_KEY not configured' }, { status: 500 })
   }
 
   const articles = await prisma.rawArticle.findMany({
@@ -385,14 +378,14 @@ export async function GET(req: NextRequest) {
   })
   const scoreMap = new Map(storedStats.map(s => [s.sourceName, s.reliabilityScore]))
 
-  // Claude extraction
+  // Groq extraction
   let events: ClaudeEvent[] = []
   try {
-    events = await callClaude(
+    events = await callGroq(
       articles.map(a => ({ id: a.id, content: a.content, sourceName: a.sourceName, url: a.url })),
     )
   } catch (err) {
-    return NextResponse.json({ error: 'Claude processing failed', detail: String(err) }, { status: 500 })
+    return NextResponse.json({ error: 'Groq processing failed', detail: String(err) }, { status: 500 })
   }
 
   const articleIds = articles.map(a => a.id)
@@ -418,7 +411,7 @@ export async function GET(req: NextRequest) {
   await prisma.updateLog.create({
     data: {
       change:   `Processed ${articles.length} articles → ${saved} new events, ${merged} merged`,
-      reason:   'Automated Claude OSINT pipeline',
+      reason:   'Automated Groq OSINT pipeline',
       source:   'AI Extraction',
       metadata: { articles: articles.length, events: events.length, saved, merged, errors },
     },
