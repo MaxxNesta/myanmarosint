@@ -27,32 +27,46 @@ function buildClusters(events: ProcessedEventDTO[], groupBy: GroupBy): Cluster[]
     if (groupBy === 'region') key = e.region
     else if (groupBy === 'type') key = e.type
     else {
-      // ISO week bucket
+      // Week bucket keyed by Monday's date
       const d = new Date(e.date)
-      const wk = Math.floor(d.getTime() / (7 * 86400_000))
-      key = `Week ${wk}`
+      const day = d.getUTCDay()  // 0=Sun
+      const monday = new Date(d)
+      monday.setUTCDate(d.getUTCDate() - ((day + 6) % 7))
+      key = monday.toISOString().slice(0, 10)  // YYYY-MM-DD for sorting
     }
     if (!groups[key]) groups[key] = []
     groups[key].push(e)
   }
 
-  return Object.entries(groups)
-    .map(([label, evts]) => {
+  const formatWeekKey = (key: string) => {
+    const d = new Date(key)
+    return d.toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' }) + ' wk'
+  }
+
+  const entries = Object.entries(groups)
+  if (groupBy === 'week') entries.sort(([a], [b]) => a.localeCompare(b))
+
+  return entries
+    .map(([key, evts]) => {
       const typeCounts = evts.reduce<Record<string, number>>((acc, e) => {
         acc[e.type] = (acc[e.type] ?? 0) + 1
         return acc
       }, {})
       const dominant = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] as EventType ?? 'ARMED_CONFLICT'
+      const label =
+        groupBy === 'type' ? (EVENT_TYPE_META[key as EventType]?.label ?? key) :
+        groupBy === 'week' ? formatWeekKey(key) :
+        key
 
       return {
-        label: groupBy === 'type' ? EVENT_TYPE_META[label as EventType]?.label ?? label : label,
+        label,
         count:      evts.length,
         avgSev:     Math.round((evts.reduce((s, e) => s + e.severity, 0) / evts.length) * 10) / 10,
         fatalities: evts.reduce((s, e) => s + e.fatalities, 0),
         dominant,
       }
     })
-    .sort((a, b) => b.count - a.count)
+    .sort((a, b) => groupBy === 'week' ? 0 : b.count - a.count)
     .slice(0, 12)
 }
 
