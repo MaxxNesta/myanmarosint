@@ -12,18 +12,63 @@ import EscalationSignals from '@/components/intel/EscalationSignals'
 import VolatilityTable from '@/components/intel/VolatilityTable'
 import ThreatconBanner from '@/components/shared/ThreatconBanner'
 
-// ── Direct DB helpers (no HTTP round-trip, no BASE URL dependency) ────────────
+// ── ConflictEvent → ProcessedEventDTO adapter ─────────────────────────────────
+// ConflictEvent is the live table populated by cron/extract (Groq + DeepSeek).
+// We map it to ProcessedEventDTO so DailyBrief, RiskOutlook, EventClusters
+// can all read from the same source as VolatilityTable and EscalationSignals.
 
-function toDTO(r: Awaited<ReturnType<typeof prisma.processedEvent.findMany>>[0]): ProcessedEventDTO {
+const CONFLICT_TYPE_TO_EVENT: Record<string, EventType> = {
+  CLASH:                 'ARMED_CONFLICT',
+  AIRSTRIKE:             'ARMED_CONFLICT',
+  ARTILLERY_SHELLING:    'ARMED_CONFLICT',
+  AMBUSH:                'ARMED_CONFLICT',
+  SIEGE_SEIZED:          'ARMED_CONFLICT',
+  RECAPTURED:            'ARMED_CONFLICT',
+  WITHDRAWAL:            'ARMED_CONFLICT',
+  CEASEFIRE:             'POLITICAL_UNREST',
+  ARMED_MOBILIZATION:    'ARMED_CONFLICT',
+  CIVILIAN_HARM:         'HUMANITARIAN_ALERT',
+  DISPLACEMENT:          'HUMANITARIAN_ALERT',
+  HUMANITARIAN_CRISIS:   'HUMANITARIAN_ALERT',
+  POLITICAL_DEVELOPMENT: 'POLITICAL_UNREST',
+}
+
+type ConflictRow = Awaited<ReturnType<typeof prisma.conflictEvent.findMany>>[0]
+
+function conflictToDTO(ev: ConflictRow): ProcessedEventDTO {
+  const type      = CONFLICT_TYPE_TO_EVENT[ev.eventType] ?? 'ARMED_CONFLICT'
+  // Derive severity from fatalities + confidence
+  const severity  =
+    ev.fatalities >= 50 ? 5 :
+    ev.fatalities >= 11 ? 4 :
+    ev.fatalities >= 4  ? 3 :
+    ev.fatalities >= 1  ? 2 :
+    ev.confidence >= 0.7 ? 2 : 1
+  const reliability: ProcessedEventDTO['reliability'] =
+    ev.confidence >= 0.7 ? 'HIGH' : ev.confidence >= 0.4 ? 'MEDIUM' : 'LOW'
+
   return {
-    id: r.id, date: r.date.toISOString(), country: r.country, region: r.region,
-    adminArea: r.adminArea, type: r.type as EventType,
-    severity: r.severity, summary: r.summary, source: r.source,
-    sourceUrl: r.sourceUrl, reliability: r.reliability as ProcessedEventDTO['reliability'],
-    confidence: r.confidence, latitude: r.latitude, longitude: r.longitude,
-    fatalities: r.fatalities, actors: r.actors, tags: r.tags,
+    id:          ev.id,
+    date:        ev.date.toISOString(),
+    country:     'Myanmar',
+    region:      ev.region,
+    adminArea:   ev.adminArea,
+    type,
+    severity,
+    summary:     ev.summary,
+    source:      ev.sourceName,
+    sourceUrl:   ev.sourceUrl,
+    reliability,
+    confidence:  ev.confidence,
+    latitude:    ev.lat,
+    longitude:   ev.lng,
+    fatalities:  ev.fatalities,
+    actors:      ev.actors,
+    tags:        [ev.eventType, ev.biasFlag].filter(Boolean),
   }
 }
+
+// ── Data fetchers ─────────────────────────────────────────────────────────────
 
 async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
   try {
@@ -32,25 +77,30 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
     const week2 = subDays(now, 14)
 
     const [currRows, prevRows] = await Promise.all([
-      prisma.processedEvent.findMany({ where: { date: { gte: week1 } }, orderBy: { date: 'desc' } }),
-      prisma.processedEvent.findMany({ where: { date: { gte: week2, lt: week1 } } }),
+      prisma.conflictEvent.findMany({
+        where:   { date: { gte: week1 }, isActiveIntelligence: true },
+        orderBy: { date: 'desc' },
+      }),
+      prisma.conflictEvent.findMany({
+        where: { date: { gte: week2, lt: week1 }, isActiveIntelligence: true },
+      }),
     ])
 
-    const curr = currRows.map(toDTO)
-    const prev = prevRows.map(toDTO)
+    const curr = currRows.map(conflictToDTO)
+    const prev = prevRows.map(conflictToDTO)
 
     const riskScores = buildRegionRiskScores(curr, prev)
     const threatcon  = scoresToThreatcon(riskScores)
 
     const keyEvents = curr
-      .filter(e => e.severity >= 3 && e.confidence >= 0.4)
+      .filter(e => e.severity >= 3)
       .slice(0, 8)
 
     const regionSummary: RegionSummary[] = riskScores
       .sort((a, b) => b.score - a.score)
       .map(s => {
-        const regionEvents = curr.filter(e => e.region === s.region)
-        const typeCounts   = regionEvents.reduce<Record<string, number>>((acc, e) => {
+        const regionEvents  = curr.filter(e => e.region === s.region)
+        const typeCounts    = regionEvents.reduce<Record<string, number>>((acc: Record<string, number>, e: ProcessedEventDTO) => {
           acc[e.type] = (acc[e.type] ?? 0) + 1
           return acc
         }, {})
@@ -68,7 +118,7 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
       : 0
 
     return {
-      generatedAt:  now.toISOString(),
+      generatedAt:    now.toISOString(),
       threatcon,
       threatconLabel: THREATCON_LABELS[threatcon],
       keyEvents,
@@ -89,28 +139,16 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
 
 async function getRiskScores(): Promise<RiskScoreDTO[]> {
   try {
-    // Try cached scores first
-    const cached = await prisma.riskScore.findMany({
-      where:   { date: { gte: subDays(new Date(), 2) } },
-      orderBy: [{ date: 'desc' }, { score: 'desc' }],
-    })
-    if (cached.length > 0) {
-      return cached.map(s => ({
-        region: s.region, date: s.date.toISOString().split('T')[0],
-        score: s.score, conflictScore: s.conflictScore, protestScore: s.protestScore,
-        disruptionScore: s.disruptionScore, humanScore: s.humanScore,
-        eventCount: s.eventCount, trend: s.trend as RiskScoreDTO['trend'],
-        calculatedAt: s.calculatedAt.toISOString(),
-      }))
-    }
-
-    // Compute live from ProcessedEvent
     const cutoff = subDays(new Date(), 30)
     const [currRows, prevRows] = await Promise.all([
-      prisma.processedEvent.findMany({ where: { date: { gte: cutoff } } }),
-      prisma.processedEvent.findMany({ where: { date: { gte: subDays(new Date(), 60), lt: cutoff } } }),
+      prisma.conflictEvent.findMany({
+        where: { date: { gte: cutoff }, isActiveIntelligence: true },
+      }),
+      prisma.conflictEvent.findMany({
+        where: { date: { gte: subDays(new Date(), 60), lt: cutoff }, isActiveIntelligence: true },
+      }),
     ])
-    return buildRegionRiskScores(currRows.map(toDTO), prevRows.map(toDTO))
+    return buildRegionRiskScores(currRows.map(conflictToDTO), prevRows.map(conflictToDTO))
   } catch (err) {
     console.error('[intel] getRiskScores error:', err)
     return []
@@ -119,12 +157,12 @@ async function getRiskScores(): Promise<RiskScoreDTO[]> {
 
 async function getRecentEvents(): Promise<ProcessedEventDTO[]> {
   try {
-    const rows = await prisma.processedEvent.findMany({
-      where:   { date: { gte: subDays(new Date(), 30) } },
+    const rows = await prisma.conflictEvent.findMany({
+      where:   { date: { gte: subDays(new Date(), 30) }, isActiveIntelligence: true },
       orderBy: { date: 'desc' },
       take:    200,
     })
-    return rows.map(toDTO)
+    return rows.map(conflictToDTO)
   } catch (err) {
     console.error('[intel] getRecentEvents error:', err)
     return []
@@ -177,7 +215,6 @@ export default async function IntelPage() {
             <VolatilityTable />
           </div>
         </div>
-
       </div>
     </div>
   )
