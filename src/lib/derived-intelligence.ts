@@ -75,12 +75,15 @@ export async function getRegionVolatility(
 ): Promise<RegionVolatility[]> {
   const since = effectiveStart(new Date(Date.now() - days * 864e5))
 
+  const SKIP_REGIONS = new Set(['Myanmar', 'Burma', '', 'unknown'])
+
   const events = await prisma.conflictEvent.findMany({
     where: { date: { gte: since }, isActiveIntelligence: true },
   })
 
   const byRegion = new Map<string, ConflictEvent[]>()
   for (const ev of events) {
+    if (SKIP_REGIONS.has(ev.region)) continue
     const list = byRegion.get(ev.region) ?? []
     list.push(ev)
     byRegion.set(ev.region, list)
@@ -198,8 +201,11 @@ export async function detectEscalation(
     }),
   ])
 
+  const SKIP_REGIONS = new Set(['Myanmar', 'Burma', '', 'unknown'])
+
   const windowByRegion = new Map<string, ConflictEvent[]>()
   for (const ev of windowEvs) {
+    if (SKIP_REGIONS.has(ev.region)) continue
     const list = windowByRegion.get(ev.region) ?? []
     list.push(ev)
     windowByRegion.set(ev.region, list)
@@ -207,6 +213,7 @@ export async function detectEscalation(
 
   const priorByRegion = new Map<string, number>()
   for (const ev of priorEvs) {
+    if (SKIP_REGIONS.has(ev.region)) continue
     priorByRegion.set(ev.region, (priorByRegion.get(ev.region) ?? 0) + 1)
   }
 

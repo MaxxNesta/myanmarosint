@@ -76,13 +76,14 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
     const week1 = subDays(now, 7)
     const week2 = subDays(now, 14)
 
+    const regionFilter = { notIn: ['Myanmar', 'Burma', '', 'unknown'] }
     const [currRows, prevRows] = await Promise.all([
       prisma.conflictEvent.findMany({
-        where:   { date: { gte: week1 }, isActiveIntelligence: true },
+        where:   { date: { gte: week1 }, isActiveIntelligence: true, region: regionFilter },
         orderBy: { date: 'desc' },
       }),
       prisma.conflictEvent.findMany({
-        where: { date: { gte: week2, lt: week1 }, isActiveIntelligence: true },
+        where: { date: { gte: week2, lt: week1 }, isActiveIntelligence: true, region: regionFilter },
       }),
     ])
 
@@ -139,13 +140,14 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
 
 async function getRiskScores(): Promise<RiskScoreDTO[]> {
   try {
-    const cutoff = subDays(new Date(), 30)
+    const cutoff       = subDays(new Date(), 30)
+    const regionFilter = { notIn: ['Myanmar', 'Burma', '', 'unknown'] }
     const [currRows, prevRows] = await Promise.all([
       prisma.conflictEvent.findMany({
-        where: { date: { gte: cutoff }, isActiveIntelligence: true },
+        where: { date: { gte: cutoff }, isActiveIntelligence: true, region: regionFilter },
       }),
       prisma.conflictEvent.findMany({
-        where: { date: { gte: subDays(new Date(), 60), lt: cutoff }, isActiveIntelligence: true },
+        where: { date: { gte: subDays(new Date(), 60), lt: cutoff }, isActiveIntelligence: true, region: regionFilter },
       }),
     ])
     return buildRegionRiskScores(currRows.map(conflictToDTO), prevRows.map(conflictToDTO))
@@ -158,7 +160,7 @@ async function getRiskScores(): Promise<RiskScoreDTO[]> {
 async function getRecentEvents(): Promise<ProcessedEventDTO[]> {
   try {
     const rows = await prisma.conflictEvent.findMany({
-      where:   { date: { gte: subDays(new Date(), 30) }, isActiveIntelligence: true },
+      where:   { date: { gte: subDays(new Date(), 30) }, isActiveIntelligence: true, region: { notIn: ['Myanmar', 'Burma', '', 'unknown'] } },
       orderBy: { date: 'desc' },
       take:    200,
     })
