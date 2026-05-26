@@ -11,7 +11,7 @@ import { resolveCoordinates } from '@/lib/geocoding'
 import { getBaseReliability } from '@/lib/confidence'
 import { subDays } from 'date-fns'
 
-const BATCH = 15
+const BATCH = 20
 const INTEL_START = new Date('2023-01-01T00:00:00Z')
 
 export async function GET(req: NextRequest) {
@@ -20,20 +20,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Skip articles already used to create a ConflictEvent
+  const extractedRows = await prisma.conflictEvent.findMany({
+    where:  { rawArticleId: { not: null } },
+    select: { rawArticleId: true },
+  })
+  const alreadyExtracted = new Set(extractedRows.map(e => e.rawArticleId!))
+
   const articles = await prisma.rawArticle.findMany({
     where: {
-      ingestedAt: { gte: subDays(new Date(), 2) },
+      ingestedAt: { gte: subDays(new Date(), 7) },
+      ...(alreadyExtracted.size > 0 ? { id: { notIn: [...alreadyExtracted] } } : {}),
       OR: [
         { publishedAt: { gte: INTEL_START } },
         { publishedAt: null },
       ],
     },
     orderBy: { publishedAt: 'desc' },
-    take: BATCH,
+    take:    BATCH,
   })
 
   if (articles.length === 0) {
-    return NextResponse.json({ message: 'No recent articles to extract', extracted: 0 })
+    return NextResponse.json({ message: 'No unextracted articles in window', extracted: 0 })
   }
 
   let saved = 0, skipped = 0

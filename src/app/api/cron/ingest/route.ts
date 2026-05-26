@@ -50,12 +50,18 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Step 3 — Extract ConflictEvents from recent articles (populates the conflict map)
-  try {
-    const extractRes = await fetch(`${BASE}/api/cron/extract`, { cache: 'no-store', headers })
-    results.extract  = await extractRes.json()
-  } catch (err) {
-    results.extract = { error: String(err) }
+  // Step 3 — Extract ConflictEvents (loop until all unextracted articles in 7-day window are done)
+  results.extract = []
+  for (let i = 0; i < 4; i++) {
+    try {
+      const extractRes = await fetch(`${BASE}/api/cron/extract`, { cache: 'no-store', headers })
+      const data       = await extractRes.json() as { message?: string; articles?: number }
+      ;(results.extract as unknown[]).push(data)
+      if (data.message || (data.articles ?? 0) === 0) break
+    } catch (err) {
+      ;(results.extract as unknown[]).push({ error: String(err) })
+      break
+    }
   }
 
   return NextResponse.json({ ok: true, ...results })
