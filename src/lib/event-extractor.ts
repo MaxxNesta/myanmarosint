@@ -18,10 +18,10 @@ export interface ExtractedEvent {
   biasFlag:      'neutral' | 'pro_resistance' | 'pro_junta' | 'unverified_claim'
 }
 
-// Only direct battle event types — no analysis, political, or humanitarian
 export const BATTLE_EVENT_TYPES: ConflictEventType[] = [
-  'CLASH', 'AIRSTRIKE', 'ARTILLERY_SHELLING', 'AMBUSH',
-  'SIEGE_SEIZED', 'RECAPTURED', 'WITHDRAWAL', 'CEASEFIRE',
+  'CLASH', 'AIRSTRIKE', 'ARTILLERY_SHELLING',
+  'SIEGE_SEIZED', 'RECAPTURED',
+  'DISPLACEMENT', 'HUMANITARIAN_CRISIS', 'POLITICAL_DEVELOPMENT',
 ]
 
 const BATTLE_SET = new Set<string>(BATTLE_EVENT_TYPES)
@@ -52,10 +52,9 @@ interface RawExtractedEvent {
   biasFlag?:       string
 }
 
-// Highest priority wins when multiple event types apply
 const EVENT_TYPE_PRIORITY: ConflictEventType[] = [
-  'AIRSTRIKE', 'ARTILLERY_SHELLING', 'AMBUSH', 'SIEGE_SEIZED', 'RECAPTURED',
-  'WITHDRAWAL', 'CEASEFIRE', 'CLASH',
+  'AIRSTRIKE', 'ARTILLERY_SHELLING', 'SIEGE_SEIZED', 'RECAPTURED',
+  'DISPLACEMENT', 'HUMANITARIAN_CRISIS', 'POLITICAL_DEVELOPMENT', 'CLASH',
 ]
 
 function pickEventType(types: string[]): ConflictEventType | null {
@@ -73,70 +72,62 @@ function toBiasFlag(raw?: string): ExtractedEvent['biasFlag'] {
 
 // ── Gemini system prompt ──────────────────────────────────────────────────────
 
-const EXTRACTION_SYSTEM = `You are a Myanmar conflict OSINT analyst specialising in direct battle reporting. Analyze articles in both English and Myanmar (Burmese) script.
+const EXTRACTION_SYSTEM = `You are a Myanmar conflict OSINT analyst. Analyze articles in English and Myanmar (Burmese) script.
 
-IMPORTANT: Extract ONLY direct kinetic battle events. Skip articles that are:
-- Political commentary or analysis
-- Diplomatic statements or peace talks (unless a ceasefire was actually declared)
-- Humanitarian aid reports or casualty statistics summaries
-- Protest or civil disobedience
-- Economic or governance news
+## SKIP ENTIRELY — return {"events":[]} for these topics:
+- Business, economy, trade, investment, GDP, sanctions (economic)
+- Military conscription / drafting / forced recruitment / labour
+- Workers, wages, strikes, factories, industry
+- Diplomatic meetings, peace talks (unless fighting actually occurred)
+- Sports, entertainment, tourism
+- General governance, elections, administration without violence
 
-## Actor codes — ALWAYS use these exact short codes
-TATMADAW  = Myanmar military / Tatmadaw / SAC / စစ်တပ် / တပ်မတော် / စစ်ကောင်စီ / junta / regime
-PDF       = People's Defence Force / ပြည်သူ့ကာကွယ်ရေးတပ် / resistance
-TNLA      = Ta'ang National Liberation Army / တအာင်း / တအောင်း
-MNDAA     = Myanmar National Democratic Alliance Army / Kokang / ကိုးကန့်
-AA        = Arakan Army / ရခိုင်တပ်မတော် / ရခိုင်တပ်တော်
-KIA       = Kachin Independence Army / ကချင်လွတ်မြောက်ရေးတပ်မတော် / ကချင်
-NUG       = National Unity Government
-KNU       = Karen National Union
-KNLA      = Karen National Liberation Army
-CNF       = Chin National Front
-RCSS      = Restoration Council of Shan State / SSA-S
-UWSA      = United Wa State Army
+## EXTRACT ONLY these 8 event types:
+CLASH              — armed clash / battle / firefight / တိုက်ပွဲ / တိုက်ခိုက်
+AIRSTRIKE          — airstrike / bombing / drone strike / လေကြောင်းတိုက်ခိုက်
+ARTILLERY_SHELLING — artillery / mortar / shelling / ဒုံးကျည် / မော်တာ / အမြောက်
+SIEGE_SEIZED       — town or base seized / captured / fell / သိမ်းပိုက် / ကျဆုံး
+RECAPTURED         — town or base retaken / recaptured / ပြန်သိမ်း
+DISPLACEMENT       — civilians forced to flee / internally displaced / ဒုက္ခသည်
+HUMANITARIAN_CRISIS — civilian casualties / aid blocked / mass arrests / atrocity
+POLITICAL_DEVELOPMENT — significant political event directly affecting the conflict
 
-## Battle event types ONLY — return [] for anything else
-CLASH              — armed clash / battle / firefight / gun battle / တိုက်ပွဲ / တိုက်ခိုက်
-AIRSTRIKE          — air strike / bombing / drone strike / လေကြောင်းတိုက်ခိုက် / လေတိုက်
-ARTILLERY_SHELLING — artillery / mortar / rocket shelling / ဒုံးကျည် / မော်တာ / အမြောက်
-AMBUSH             — ambush attack / ချုံခိုတိုက်ခိုက် / ချောင်းမြောင်းတိုက်ခိုက် / အလစ်တိုက်ခိုက်
-SIEGE_SEIZED       — town / base seized / captured / fell to / သိမ်းပိုက် / သိမ်းယူ / ကျဆုံး
-RECAPTURED         — town / base recaptured / retaken / ပြန်သိမ်း / ပြန်ယူ
-WITHDRAWAL         — military withdrawal / strategic retreat / ဆုတ်ခွာ / ရုတ်သိမ်း
-CEASEFIRE          — ceasefire declared / truce agreed / အပစ်ရပ် / ငြိမ်းချမ်းရေးကြေညာ
+## Actor codes
+TATMADAW | PDF | TNLA | MNDAA | AA | KIA | NUG | KNU | KNLA | CNF | RCSS | UWSA
 
-## Output format (JSON array, max 3 events per article)
-[{
+## Output format
+{"events":[{
   "date": "YYYY-MM-DD",
   "actors": ["TATMADAW", "PDF"],
-  "event_types": ["AIRSTRIKE", "CLASH"],
+  "event_types": ["AIRSTRIKE"],
+  "attacker_actor": "TATMADAW",
+  "defender_actor": "PDF",
   "location": { "name_en": "Kale", "name_mm": "ကလေး" },
   "region": "Sagaing Region",
   "admin_area": "Kale Township",
-  "summary": "Factual English battle summary, max 200 chars",
+  "summary": "[Action] in [location]. [Attacker] vs [Defender]. Max 180 chars.",
   "fatalities": 5,
   "fatalities_min": 3,
   "fatalities_max": 7,
   "bias_flag": "neutral"
-}]
+}]}
 
 ## Rules
-- location.name_en must be a real Myanmar town name; omit location if unknown
-- bias_flag: neutral | pro_resistance | pro_junta | unverified_claim
-- Return [] if no direct battle events found (analysis, politics, humanitarian → return [])`
+- Return {"events":[]} for irrelevant articles (business, economy, drafting, workers, etc.)
+- location.name_en must be a real Myanmar town name
+- bias_flag: neutral | pro_resistance | pro_junta | unverified_claim`
 
 // ── Fallback patterns (regex, English + Burmese) ──────────────────────────────
 
 const FALLBACK_TYPE_MAP: [RegExp, ConflictEventType][] = [
-  [/airstrike|air.?strike|bomb(?:ing|ed)|drone.?strike|လေကြောင်းတိုက်ခိုက်|လေတိုက်/i,                                              'AIRSTRIKE'],
-  [/artillery|mortar|shelling|shell(?:ed|ing)\b|ဒုံးကျည်|မော်တာ|အမြောက်/i,                                                        'ARTILLERY_SHELLING'],
-  [/\bambush(?:ed)?\b|ချုံခိုတိုက်ခိုက်|ချောင်းမြောင်းတိုက်ခိုက်|အလစ်တိုက်ခိုက်/i,                                               'AMBUSH'],
-  [/seize[sd]?|captur|overrun|fell\s+to|taken\s+by|storm(?:ed)?|သိမ်းပိုက်|သိမ်းယူ|ကျဆုံး/i,                                     'SIEGE_SEIZED'],
-  [/recaptur|retook|retaken|liberat|ပြန်သိမ်း|ပြန်ယူ/i,                                                                           'RECAPTURED'],
-  [/withdraw|retreat|pull.?back|ဆုတ်ခွာ|ရုတ်သိမ်း/i,                                                                              'WITHDRAWAL'],
-  [/ceasefire|cease-fire|truce|အပစ်ရပ်|ငြိမ်းချမ်းရေးကြေညာ/i,                                                                    'CEASEFIRE'],
-  [/clash|battle|fight|combat|gun.?fight|firefight|skirmish|တိုက်ပွဲ|တိုက်ခိုက်|စစ်ဆင်ရေး/i,                                     'CLASH'],
+  [/airstrike|air.?strike|bomb(?:ing|ed)|drone.?strike|လေကြောင်းတိုက်ခိုက်|လေတိုက်/i,          'AIRSTRIKE'],
+  [/artillery|mortar|shelling|shell(?:ed|ing)\b|ဒုံးကျည်|မော်တာ|အမြောက်/i,                    'ARTILLERY_SHELLING'],
+  [/seize[sd]?|captur|overrun|fell\s+to|taken\s+by|storm(?:ed)?|သိမ်းပိုက်|သိမ်းယူ|ကျဆုံး/i, 'SIEGE_SEIZED'],
+  [/recaptur|retook|retaken|liberat|ပြန်သိမ်း|ပြန်ယူ/i,                                        'RECAPTURED'],
+  [/displace[sd]?|flee|fled|evacuat|refugee|ဒုက္ခသည်|ထွက်ပြေး/i,                              'DISPLACEMENT'],
+  [/humanitarian|civilian.{0,20}kill|atrocit|massacre|aid.{0,10}block/i,                       'HUMANITARIAN_CRISIS'],
+  [/political\s+develop|NUG|NLD|CRPH|parliament|government.{0,20}form/i,                       'POLITICAL_DEVELOPMENT'],
+  [/clash|battle|fight|combat|gun.?fight|firefight|skirmish|တိုက်ပွဲ|တိုက်ခိုက်/i,            'CLASH'],
 ]
 
 const REGION_MAP: [RegExp, string][] = [
@@ -175,7 +166,7 @@ const RANGE_PATTERN = /(\d+)\s*(?:to|-)\s*(\d+)\s*(?:soldiers?|troops?|people|ci
 
 // Battle signal — must match at least one for fallback to trigger
 const BATTLE_SIGNAL =
-  /clash|battle|fight|airstrike|bomb|shell|seize|captur|ambush|withdraw|ceasefire|truce|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ဆုတ်ခွာ|အပစ်ရပ်|ကျဆုံး/i
+  /clash|battle|fight|airstrike|bomb|shell|seize|captur|displace|flee|fled|humanitarian|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ကျဆုံး|ဒုက္ခသည်/i
 
 const ACTOR_PATTERNS: [RegExp, string][] = [
   [/\btatmadaw\b|myanmar\s+(?:military|army|air\s+force)|state\s+administration\s+council|\bsac\b(?!\w)|\bjunta\b|\bregime\b|military\s+council|စစ်တပ်|တပ်မတော်|စစ်ကောင်စီ/i, 'Tatmadaw'],

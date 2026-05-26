@@ -22,20 +22,15 @@ const BATCH = 20
 
 function mapEventType(t: string): EventType {
   switch (t) {
-    case 'armed_clash':
+    case 'clash':
     case 'airstrike':
-    case 'artillery':
-    case 'ambush':
-    case 'raid':
-    case 'assassination':
-    case 'surrender_defection': return 'ARMED_CONFLICT'
-    case 'arrest_detention':
-    case 'execution':
-    case 'displacement':        return 'HUMANITARIAN_ALERT'
-    case 'infrastructure':
-    case 'supply_interdiction': return 'INFRASTRUCTURE_DISRUPTION'
-    case 'protest':             return 'POLITICAL_UNREST'
-    default:                    return 'ARMED_CONFLICT'
+    case 'shelling':
+    case 'seized':
+    case 'recaptured':   return 'ARMED_CONFLICT'
+    case 'displacement':
+    case 'humanitarian': return 'HUMANITARIAN_ALERT'
+    case 'political':    return 'POLITICAL_UNREST'
+    default:             return 'ARMED_CONFLICT'
   }
 }
 
@@ -75,29 +70,26 @@ type ClaudeEvent = {
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
-const OSINT_SYSTEM_PROMPT = `You are an advanced OSINT intelligence processing system specializing in Myanmar conflict analysis.
+const OSINT_SYSTEM_PROMPT = `You are an OSINT system for Myanmar conflict analysis.
 
-## ACTOR REFERENCE
-Resistance: PDF, NUG, CRPH, KIA/KIO (Kachin), KNLA/KNU/KNDO (Karen), RCSS/SSA-S (S.Shan), TNLA (N.Shan), MNDAA (Kokang), AA/Arakan Army (Rakhine), CNF/CNA (Chin), KnPP/Karenni Army (Kayah), BPLA (Bamar), 3BHA (AA+TNLA+MNDAA).
-Junta: SAC, Tatmadaw, BGF, Pyu Saw Htee, UWSA.
+## SKIP — return {"events":[]} for:
+Business / economy / trade / investment / sanctions (economic context)
+Military conscription / drafting / forced recruitment / labour / workers
+Diplomatic talks without active fighting
+Sports, tourism, governance without violence
 
-## OUTPUT RULES
-- Return ONLY valid JSON. No markdown, no explanation.
-- One event per discrete incident. If multiple articles describe the same event, produce ONE merged event and list all contributing article indices.
-- Coordinates must be within Myanmar bounding box: lng 92.2–101.2, lat 9.8–28.5.
-- Casualties must be a min–max range, not a single number. If only one figure is given use it for both min and max.
+## EXTRACT ONLY these 8 event types:
+clash | airstrike | shelling | seized | recaptured | displacement | humanitarian | political
 
-## EVENT TYPES
-armed_clash | airstrike | artillery | ambush | raid | assassination | arrest_detention | execution | displacement | infrastructure | supply_interdiction | surrender_defection | protest | other
+## ACTORS
+Resistance: PDF, NUG, KIA, KNLA/KNU, TNLA, MNDAA, AA, CNF, RCSS, UWSA
+Junta: Tatmadaw, SAC, BGF, Pyu Saw Htee
 
 ## SEVERITY 1–5
-1=minor skirmish/unconfirmed, 2=1-3 killed, 3=4-10 killed or significant damage, 4=11-50 killed or 1k-10k displaced, 5=50+ killed or 10k+ displaced
+1=unconfirmed, 2=1-3 killed, 3=4-10 killed or town seized, 4=11-50 killed or 1k+ displaced, 5=50+ killed or 10k+ displaced
 
 ## NATO RELIABILITY A–F
-A=multiple confirmed, B=one trusted, C=single open source, D=unverified single, E=contradicted, F=unknown
-
-## BIAS FLAG
-neutral | pro_resistance | pro_junta | unverified_claim
+A=multiple confirmed, B=one trusted source, C=single open source, D=unverified, E=contradicted, F=unknown
 
 ## JSON SCHEMA
 {
@@ -105,15 +97,15 @@ neutral | pro_resistance | pro_junta | unverified_claim
     {
       "id": "evt_<8-char-hex>",
       "date": "YYYY-MM-DD",
-      "event_type": "<type>",
+      "event_type": "<one of the 8 types>",
       "severity": <1-5>,
       "reliability": "<A-F>",
-      "bias_flag": "<flag>",
+      "bias_flag": "neutral|pro_resistance|pro_junta|unverified_claim",
       "perpetrator": "<actor>",
-      "target": "<actor or target>",
-      "source_article_indices": [<1-based article numbers that describe this event>],
+      "target": "<actor or civilian>",
+      "source_article_indices": [<1-based>],
       "location": {
-        "township": "<standard Myanmar township name>",
+        "township": "<Myanmar township name>",
         "district": "<district>",
         "state_region": "<state or region>",
         "coordinates": [<lng>, <lat>]
@@ -126,10 +118,10 @@ neutral | pro_resistance | pro_junta | unverified_claim
       "displacement": <int|null>,
       "source_name": "<outlet>",
       "source_url": <"url"|null>,
-      "summary": "<1-2 sentence factual summary>"
+      "summary": "<factual summary max 200 chars>"
     }
   ],
-  "meta": { "processed_at": "<ISO timestamp>", "event_count": <int>, "source_articles": <int> }
+  "meta": { "processed_at": "<ISO>", "event_count": <int>, "source_articles": <int> }
 }`
 
 // ─── Groq call ────────────────────────────────────────────────────────────────
