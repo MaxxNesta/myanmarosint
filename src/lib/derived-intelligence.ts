@@ -105,7 +105,7 @@ export async function getRegionVolatility(
     const ageDays     = (Date.now() - lastAct.getTime()) / 864e5
     const recencyNorm = Math.exp(-ageDays / 7)
     const score       = Math.min(100, Math.round(
-      (countNorm * 40 + actorNorm * 20 + fatalNorm * 25 + recencyNorm * 15) * 100
+      countNorm * 40 + actorNorm * 20 + fatalNorm * 25 + recencyNorm * 15
     ))
 
     results.push({
