@@ -74,12 +74,13 @@ export default function EscalationSignals() {
 }
 
 function EscalationRow({ signal: s }: { signal: EscalationSignal }) {
-  const pct      = s.deltaPercent
-  const isUp     = pct > 0
-  const isDown   = pct < 0
-  const color    = s.isEscalating ? '#ef4444' : isUp ? '#f59e0b' : isDown ? '#22c55e' : '#64748b'
-  const arrow    = isUp ? '↑' : isDown ? '↓' : '→'
-  const pctLabel = `${isUp ? '+' : ''}${pct}%`
+  const noBaseline = s.priorEvents === 0
+  const pct        = s.deltaPercent
+  const isUp       = pct > 0
+  const isDown     = pct < 0
+  const color      = s.isEscalating ? '#ef4444' : noBaseline ? '#64748b' : isUp ? '#f59e0b' : isDown ? '#22c55e' : '#64748b'
+  const arrow      = noBaseline ? '·' : isUp ? '↑' : isDown ? '↓' : '→'
+  const pctLabel   = noBaseline ? 'new' : `${isUp ? '+' : ''}${pct}%`
 
   return (
     <div className={`flex items-start gap-3 px-2.5 py-2 rounded ${s.isEscalating ? 'bg-red-500/[0.07] border border-red-500/20' : 'bg-white/[0.02]'}`}>
@@ -90,7 +91,7 @@ function EscalationRow({ signal: s }: { signal: EscalationSignal }) {
           <span className="text-[10px] font-mono font-bold shrink-0" style={{ color }}>{pctLabel}</span>
         </div>
         <div className="text-[9px] font-mono text-slate-500 mt-0.5">
-          {s.windowEvents} this week · {s.priorEvents} prior
+          {s.windowEvents} this week{noBaseline ? ' · no prior baseline' : ` · ${s.priorEvents} prior`}
         </div>
         {s.topActors.length > 0 && (
           <div className="text-[9px] font-mono text-slate-600 mt-0.5 truncate">

@@ -219,17 +219,20 @@ export async function detectEscalation(
 
   const results: EscalationSignal[] = []
   for (const [region, evs] of windowByRegion) {
-    const wCount  = evs.length
-    const pCount  = priorByRegion.get(region) ?? 0
-    const delta   = pCount === 0
-      ? (wCount > 0 ? 100 : 0)
-      : Math.round(((wCount - pCount) / pCount) * 100)
-    const actors  = [...new Set(evs.flatMap(e => e.actors))].slice(0, 5)
+    const wCount     = evs.length
+    const pCount     = priorByRegion.get(region) ?? 0
+    const hasBaseline = pCount > 0
+    const delta      = hasBaseline
+      ? Math.round(((wCount - pCount) / pCount) * 100)
+      : 0   // no baseline — can't compute a meaningful delta
+    const actors     = [...new Set(evs.flatMap(e => e.actors))].slice(0, 5)
 
     results.push({
       region, windowEvents: wCount, priorEvents: pCount,
-      deltaPercent: delta, topActors: actors,
-      isEscalating: delta >= 25 && wCount >= 3,
+      deltaPercent:  delta,
+      topActors:     actors,
+      // Only flag escalating when we have a prior baseline to compare against
+      isEscalating:  hasBaseline && delta >= 25 && wCount >= 3,
     })
   }
 
