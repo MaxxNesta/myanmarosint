@@ -44,6 +44,13 @@ export const CONFLICT_EVENT_META: Record<ConflictEventType, { color: string; lab
   POLITICAL_DEVELOPMENT: { color: '#8b5cf6', label: 'Political'      },
 }
 
+// The 8 active categories produced by the pipeline (legacy types kept for DB compat)
+export const ACTIVE_EVENT_TYPES: ConflictEventType[] = [
+  'CLASH', 'AIRSTRIKE', 'ARTILLERY_SHELLING',
+  'SIEGE_SEIZED', 'RECAPTURED',
+  'DISPLACEMENT', 'HUMANITARIAN_CRISIS', 'POLITICAL_DEVELOPMENT',
+]
+
 // Groups used for sidebar filter toggles
 export const CONFLICT_TYPE_GROUP: Record<ConflictEventType, 'combat' | 'territorial' | 'humanitarian' | 'political'> = {
   CLASH:                 'combat',

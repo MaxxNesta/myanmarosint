@@ -10,7 +10,7 @@ interface Props {
   events: ConflictEventDTO[]
 }
 
-const SHOWN_TYPES = ['CLASH', 'AIRSTRIKE', 'ARTILLERY_SHELLING', 'AMBUSH', 'SIEGE_SEIZED'] as const
+const SHOWN_TYPES = ['CLASH', 'AIRSTRIKE', 'ARTILLERY_SHELLING', 'SIEGE_SEIZED', 'RECAPTURED', 'DISPLACEMENT', 'HUMANITARIAN_CRISIS', 'POLITICAL_DEVELOPMENT'] as const
 
 export default function ConflictTimeline({ events }: Props) {
   const data = useMemo(() => {

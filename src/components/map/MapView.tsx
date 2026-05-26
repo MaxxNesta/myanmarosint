@@ -102,76 +102,80 @@ function conflictPopupHTML(p: Record<string, unknown>): string {
   const eventType = p.eventType as string
   const meta   = CONFLICT_EVENT_META[eventType as keyof typeof CONFLICT_EVENT_META] ?? { color: '#94a3b8', label: eventType }
   const date   = format(new Date(p.date as string), 'dd MMM yyyy')
-  const conf   = ((p.confidence as number) * 100).toFixed(0)
   const fat    = p.fatalities as number
   const fatMin = p.fatalitiesMin as number
   const fatMax = p.fatalitiesMax as number
-  const fatStr = fat > 0
-    ? `${fatMin === fatMax ? fat : `${fatMin}–${fatMax}`} KIA`
-    : ''
-  const actors = safeActorsStr(p)
+  const fatStr = fat > 0 ? `${fatMin === fatMax ? fat : `${fatMin}–${fatMax}`} KIA` : ''
+
+  // Location: only show if there's a specific place (not generic "Myanmar" fallback)
+  const adminArea = (p.adminArea as string | null) ?? ''
+  const location  = (p.location  as string | null) ?? ''
+  const region    = (p.region    as string) ?? ''
+  const GENERIC   = new Set(['myanmar', 'burma', '', 'unknown'])
+  const locParts  = [location, adminArea].filter(s => s && !GENERIC.has(s.toLowerCase()))
+  const locLine   = locParts.length ? locParts[0] + (region ? ', ' + region : '') : (GENERIC.has(region.toLowerCase()) ? '' : region)
+
+  // Attacker / Defender — only render if actually known
+  const attacker = (p.attackerActor as string | null)?.trim() || ''
+  const defender = (p.defenderActor as string | null)?.trim() || ''
+
+  const attackerRow = attacker ? `
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:5px 8px;flex:1">
+      <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Attacker</div>
+      <div style="color:#fca5a5;font-size:0.70rem;font-weight:600">${attacker}</div>
+    </div>` : ''
+
+  const defenderRow = defender ? `
+    <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:4px;padding:5px 8px;flex:1">
+      <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Defender</div>
+      <div style="color:#93c5fd;font-size:0.70rem;font-weight:600">${defender}</div>
+    </div>` : ''
+
+  const combatantRow = (attackerRow || defenderRow)
+    ? `<div style="display:flex;gap:6px;margin-bottom:8px">${attackerRow}${defenderRow}</div>` : ''
 
   return `
     <div style="padding:14px 16px;font-size:0.8rem;line-height:1.5;max-width:320px">
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px">
-        <span style="
-          background:${meta.color}22;color:${meta.color};border:1px solid ${meta.color}55;
-          border-radius:4px;padding:2px 6px;font-size:0.65rem;font-weight:700;
-          font-family:monospace;white-space:nowrap;margin-top:2px
-        ">${meta.label.toUpperCase()}</span>
-        <div>
-          <div style="font-weight:700;color:#e2e8f0;font-size:0.85rem">${p.region}</div>
-          <div style="color:#64748b;font-size:0.72rem;font-family:monospace">
-            ${date}${p.adminArea ? ' · ' + p.adminArea : ''}
-          </div>
-        </div>
+
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="background:${meta.color}22;color:${meta.color};border:1px solid ${meta.color}55;border-radius:4px;padding:2px 7px;font-size:0.65rem;font-weight:700;font-family:monospace">${meta.label.toUpperCase()}</span>
       </div>
-      <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 10px;margin-bottom:10px;color:#cbd5e1;font-size:0.78rem">
+
+      <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 10px;margin-bottom:8px;color:#cbd5e1;font-size:0.78rem;line-height:1.45">
         ${p.summary}
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
-        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:5px 8px">
-          <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Attacker</div>
-          <div style="color:#fca5a5;font-size:0.70rem;font-weight:600">${p.attackerActor || (actors ? actors.split(',')[0]?.trim() : '—')}</div>
-        </div>
-        <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:4px;padding:5px 8px">
-          <div style="color:#64748b;font-size:0.60rem;font-family:monospace;text-transform:uppercase;margin-bottom:2px">Defender</div>
-          <div style="color:#93c5fd;font-size:0.70rem;font-weight:600">${p.defenderActor || (actors ? actors.split(',')[1]?.trim() : '—') || '—'}</div>
-        </div>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-        ${fatStr ? `<span style="background:rgba(239,68,68,0.12);color:#f87171;border-radius:4px;padding:2px 7px;font-size:0.68rem;font-weight:600">${fatStr}</span>` : ''}
-        <span style="background:rgba(255,255,255,0.06);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.68rem">
-          CONF ${conf}%
-        </span>
-        <span style="background:rgba(255,255,255,0.06);color:#64748b;border-radius:4px;padding:2px 7px;font-size:0.68rem">
-          ${p.sourceName}
-        </span>
-        ${p.biasFlag ? `<span style="background:rgba(234,179,8,0.12);color:#fbbf24;border-radius:4px;padding:2px 7px;font-size:0.68rem">${p.biasFlag}</span>` : ''}
-      </div>
-      <div style="color:#475569;font-size:0.68rem;font-family:monospace">
-        ${p.sourceUrl ? `<a href="${p.sourceUrl}" target="_blank" rel="noopener" style="color:#3b9fd8">View source →</a>` : ''}
+
+      ${locLine ? `<div style="color:#94a3b8;font-size:0.70rem;margin-bottom:8px;font-family:monospace">📍 ${locLine}</div>` : ''}
+
+      ${combatantRow}
+
+      <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+        <span style="color:#64748b;font-size:0.68rem;font-family:monospace">${date}</span>
+        ${fatStr ? `<span style="background:rgba(239,68,68,0.12);color:#f87171;border-radius:4px;padding:2px 6px;font-size:0.68rem;font-weight:600">${fatStr}</span>` : ''}
+        <span style="background:rgba(255,255,255,0.06);color:#64748b;border-radius:4px;padding:2px 6px;font-size:0.65rem">${p.sourceName}</span>
+        ${p.sourceUrl ? `<a href="${p.sourceUrl}" target="_blank" rel="noopener" style="color:#3b9fd8;font-size:0.65rem;font-family:monospace">source →</a>` : ''}
       </div>
     </div>`
 }
 
-// Mapbox match expression colors for all ConflictEventType values
+// Mapbox match expression — 8 active categories + legacy types mapped to nearest color
 const CONFLICT_COLOR_EXPR: any = [
   'match', ['get', 'eventType'],
   'CLASH',                 '#ef4444',
   'AIRSTRIKE',             '#f97316',
   'ARTILLERY_SHELLING',    '#fb923c',
-  'AMBUSH',                '#dc2626',
   'SIEGE_SEIZED',          '#7c3aed',
   'RECAPTURED',            '#10b981',
-  'WITHDRAWAL',            '#6b7280',
-  'CEASEFIRE',             '#22c55e',
-  'ARMED_MOBILIZATION',    '#3b82f6',
-  'CIVILIAN_HARM',         '#b91c1c',
   'DISPLACEMENT',          '#f59e0b',
   'HUMANITARIAN_CRISIS',   '#06b6d4',
   'POLITICAL_DEVELOPMENT', '#8b5cf6',
-  '#94a3b8',
+  // legacy / fallback types kept for backward-compat with old DB rows
+  'AMBUSH',                '#ef4444',   // → clash color
+  'CIVILIAN_HARM',         '#b91c1c',
+  'WITHDRAWAL',            '#6b7280',
+  'CEASEFIRE',             '#22c55e',
+  'ARMED_MOBILIZATION',    '#3b82f6',
+  '#94a3b8',  // default gray
 ]
 
 export default function MapView({ events, conflictEvents, showHeatmap, showConflict, sidebarOpen }: Props) {

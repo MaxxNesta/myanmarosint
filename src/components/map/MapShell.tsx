@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import type { ProcessedEventDTO, RiskScoreDTO, EventType, ConflictEventDTO } from '@/lib/types'
-import { EVENT_TYPE_META, CONFLICT_EVENT_META } from '@/lib/types'
+import { EVENT_TYPE_META, CONFLICT_EVENT_META, ACTIVE_EVENT_TYPES } from '@/lib/types'
 import LayerToggle from './LayerToggle'
 import TimelineSlider from './TimelineSlider'
 import RiskPanel from '../shared/RiskPanel'
@@ -245,12 +245,12 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
           {filteredConflict.length > 0 && (
             <div className="absolute bottom-4 right-4 z-20 bg-surface-1/90 backdrop-blur border border-white/[0.10] rounded px-3 py-2 shadow-lg max-h-48 overflow-y-auto">
               <div className="text-[9px] font-mono text-slate-500 tracking-widest mb-1.5 uppercase">Incident Type</div>
-              {(Object.entries(CONFLICT_EVENT_META) as [string, { color: string; label: string }][]).map(([k, m]) => (
+              {ACTIVE_EVENT_TYPES.map(k => { const m = CONFLICT_EVENT_META[k]; return (
                 <div key={k} className="flex items-center gap-2 mb-1 last:mb-0">
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color }} />
                   <span className="text-[9px] font-mono text-slate-400">{m.label}</span>
                 </div>
-              ))}
+              )})}
             </div>
           )}
 

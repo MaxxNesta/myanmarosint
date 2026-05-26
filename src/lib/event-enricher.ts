@@ -23,20 +23,33 @@ export interface EnrichmentResult {
 
 const SYSTEM = `You are a professional Myanmar military intelligence analyst.
 
-For each conflict event, determine:
-- attackerActor: the force that INITIATED the attack (use exact code below, or null if unclear)
-- defenderActor: the force that was defending / targeted (exact code or null)
+## SIDES IN MYANMAR CONFLICT
+Junta side: Tatmadaw, SAC, BGF, Pyu Saw Htee
+Resistance side: PDF, NUG, CDF, KIA, KNU, KNLA, TNLA, MNDAA, AA, CNF, RCSS, UWSA, Local Defence Force
+
+## TASK
+For each conflict event, identify the TWO SIDES — the initiating side (attackers) and the targeted side (defenders):
+- attackerActor: the actor(s) that INITIATED the attack. If multiple allied actors attacked together, join them as "PDF / CDF". Use null if genuinely unclear.
+- defenderActor: the actor(s) that were TARGETED / defending. Same joining rule. Use null if unclear.
 - summary: precise military intelligence summary, English only, max 180 chars
 - confidence: 0.3–1.0 based on how clearly the article supports this interpretation
 
-Actor codes: Tatmadaw | PDF | TNLA | MNDAA | AA | KIA | NUG | KNU | KNLA | CNF | RCSS | UWSA | Local Defence Force
+## ALLIANCE RULES (CRITICAL)
+- PDF and CDF always fight on the SAME side (both resistance). NEVER set one as attacker and the other as defender.
+- TNLA + MNDAA + AA are Brotherhood Alliance (3BHA) — always on the same side.
+- All EAOs (KIA, KNU/KNLA, TNLA, MNDAA, AA, CNF, RCSS) are resistance groups opposed to the Tatmadaw.
+- When multiple resistance actors cooperate: attackerActor = "PDF / CDF" (or whatever combination), defenderActor = "Tatmadaw" (or BGF etc.)
+- When two actors are from the SAME side, they are BOTH attackers or BOTH defenders — never split them across sides.
 
-Rules:
-- For AIRSTRIKE/ARTILLERY_SHELLING — Tatmadaw is almost always the attacker unless stated otherwise
-- For AMBUSH — resistance groups are usually the attacker
-- For SIEGE_SEIZED / RECAPTURED — identify which side gained territory
-- If actors list only contains one side, the other is likely the implicit target
-- Return ONLY valid JSON: {"results": [{...}, ...]} in same order as input`
+## EVENT TYPE RULES
+- AIRSTRIKE / ARTILLERY_SHELLING — Tatmadaw is almost always the attacker unless article says otherwise
+- CLASH / AMBUSH — resistance groups often initiate; read context
+- SIEGE_SEIZED / RECAPTURED — identify which side gained territory (they are the attackers)
+- DISPLACEMENT / HUMANITARIAN — attacker is who caused the displacement (usually Tatmadaw or airstrikes)
+
+Actor codes: Tatmadaw | PDF | TNLA | MNDAA | AA | KIA | NUG | KNU | KNLA | CNF | RCSS | UWSA | CDF | Local Defence Force | BGF | Pyu Saw Htee
+
+Return ONLY valid JSON: {"results": [{attackerActor, defenderActor, summary, confidence}, ...]} in same order as input`
 
 export async function enrichEvents(
   events:       EnrichmentInput[],
@@ -45,9 +58,9 @@ export async function enrichEvents(
   if (!process.env.DEEPSEEK_API_KEY || events.length === 0) {
     return events.map(ev => ({
       attackerActor: ev.actors[0] ?? null,
-      defenderActor: ev.actors[1] ?? null,
+      defenderActor: null,  // don't guess defender without analysis — allied actors would be split wrongly
       summary:       ev.rawSummary.slice(0, 180),
-      confidence:    0.5,
+      confidence:    0.4,
     }))
   }
 
@@ -84,16 +97,16 @@ export async function enrichEvents(
     // If counts mismatch, return what we got and fill the rest with defaults
     return events.map((ev, i) => results[i] ?? {
       attackerActor: ev.actors[0] ?? null,
-      defenderActor: ev.actors[1] ?? null,
+      defenderActor: null,
       summary:       ev.rawSummary.slice(0, 180),
-      confidence:    0.5,
+      confidence:    0.4,
     })
   } catch {
     return events.map(ev => ({
       attackerActor: ev.actors[0] ?? null,
-      defenderActor: ev.actors[1] ?? null,
+      defenderActor: null,
       summary:       ev.rawSummary.slice(0, 180),
-      confidence:    0.5,
+      confidence:    0.4,
     }))
   }
 }
