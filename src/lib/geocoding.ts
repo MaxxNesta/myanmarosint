@@ -3,6 +3,7 @@ export type CoordPrecision = 'exact' | 'township' | 'district' | 'region'
 export interface GeoResult {
   coords:    [number, number]  // [lng, lat]
   precision: CoordPrecision
+  region?:   string            // authoritative region name derived from township lookup
 }
 
 // Myanmar township centroids — covers the primary conflict zones
@@ -302,6 +303,110 @@ const REGION_CENTROIDS: Record<string, [number, number]> = {
   'naypyidaw union territory':        [96.1, 19.8],
 }
 
+// Authoritative township → region mapping (prevents AI region hallucinations)
+const TOWNSHIP_REGION: Record<string, string> = {
+  // Kachin State
+  'myitkyina': 'Kachin State', 'bhamo': 'Kachin State', 'hpakant': 'Kachin State',
+  'mogaung': 'Kachin State', 'putao': 'Kachin State', 'tanai': 'Kachin State',
+  'waingmaw': 'Kachin State', 'chipwi': 'Kachin State', 'mansi': 'Kachin State',
+  'momauk': 'Kachin State', 'laiza': 'Kachin State', 'pansai': 'Kachin State',
+  // Sagaing Region
+  'shwebo': 'Sagaing Region', 'monywa': 'Sagaing Region', 'kale': 'Sagaing Region',
+  'kalay': 'Sagaing Region', 'tamu': 'Sagaing Region', 'ye-u': 'Sagaing Region',
+  'yeu': 'Sagaing Region', 'indaw': 'Sagaing Region', 'kanbalu': 'Sagaing Region',
+  'kawlin': 'Sagaing Region', 'wuntho': 'Sagaing Region', 'pinlebu': 'Sagaing Region',
+  'banmauk': 'Sagaing Region', 'tigyaing': 'Sagaing Region', 'sagaing': 'Sagaing Region',
+  'myaung': 'Sagaing Region', 'pale': 'Sagaing Region', 'mingin': 'Sagaing Region',
+  'chaung-u': 'Sagaing Region', 'mawlaik': 'Sagaing Region', 'homlin': 'Sagaing Region',
+  'hkamti': 'Sagaing Region', 'nanyun': 'Sagaing Region', 'khampat': 'Sagaing Region',
+  'kalewa': 'Sagaing Region', 'gangaw': 'Sagaing Region', 'kyunhla': 'Sagaing Region',
+  'wetlet': 'Sagaing Region', 'ayadaw': 'Sagaing Region', 'budalin': 'Sagaing Region',
+  'yinmarbin': 'Sagaing Region', 'rhamo': 'Sagaing Region', 'taze': 'Sagaing Region',
+  'depayin': 'Sagaing Region',
+  // Magway Region
+  'magway': 'Magway Region', 'minbu': 'Magway Region', 'pakokku': 'Magway Region',
+  'tilin': 'Magway Region', 'htilin': 'Magway Region', 'saw': 'Magway Region',
+  'sidoktaya': 'Magway Region', 'myaing': 'Magway Region', 'pauk': 'Magway Region',
+  'seikphyu': 'Magway Region', 'yesagyo': 'Magway Region', 'natmauk': 'Magway Region',
+  'taungdwingyi': 'Magway Region', 'myothit': 'Magway Region', 'pwintbyu': 'Magway Region',
+  'sinbaungwe': 'Magway Region', 'aunglan': 'Magway Region', 'kamma': 'Magway Region',
+  // Mandalay Region
+  'mandalay': 'Mandalay Region', 'pyin oo lwin': 'Mandalay Region',
+  'kyaukse': 'Mandalay Region', 'meiktila': 'Mandalay Region',
+  'myingyan': 'Mandalay Region', 'natogyi': 'Mandalay Region', 'ngazun': 'Mandalay Region',
+  'taungtha': 'Mandalay Region', 'mahlaing': 'Mandalay Region',
+  'pyigyitagon': 'Mandalay Region', 'amarapura': 'Mandalay Region',
+  'patheingyi': 'Mandalay Region', 'sintgaing': 'Mandalay Region',
+  'myittha': 'Mandalay Region', 'wundwin': 'Mandalay Region',
+  // Chin State
+  'hakha': 'Chin State', 'falam': 'Chin State', 'tedim': 'Chin State',
+  'mindat': 'Chin State', 'paletwa': 'Chin State', 'thantlang': 'Chin State',
+  'matupi': 'Chin State', 'kanpetlet': 'Chin State', 'rezua': 'Chin State',
+  'tongzang': 'Chin State', 'tiddim': 'Chin State',
+  // Kayin/Karen State
+  'hpa-an': 'Kayin State', 'pa-an': 'Kayin State', 'myawaddy': 'Kayin State',
+  'kawkareik': 'Kayin State', 'kyainseikgyi': 'Kayin State', 'hlaingbwe': 'Kayin State',
+  'thandaunggyi': 'Kayin State', 'pharpon': 'Kayin State', 'bilin': 'Kayin State',
+  'three pagodas pass': 'Kayin State', 'kyaukkyi': 'Kayin State', 'shwegyin': 'Kayin State',
+  // Kayah State
+  'loikaw': 'Kayah State', 'demoso': 'Kayah State', 'hpruso': 'Kayah State',
+  'bawlakhe': 'Kayah State', 'mese': 'Kayah State', 'shadaw': 'Kayah State',
+  'kholam': 'Kayah State', 'hpasawng': 'Kayah State',
+  // Mon State
+  'mawlamyine': 'Mon State', 'moulmein': 'Mon State', 'thaton': 'Mon State',
+  'ye': 'Mon State', 'kyaikto': 'Mon State', 'thanbyuzayat': 'Mon State',
+  'kyaikmaraw': 'Mon State', 'mudon': 'Mon State', 'chaungzon': 'Mon State',
+  // Rakhine State
+  'sittwe': 'Rakhine State', 'buthidaung': 'Rakhine State', 'maungdaw': 'Rakhine State',
+  'kyauktaw': 'Rakhine State', 'mrauk-u': 'Rakhine State', 'rathedaung': 'Rakhine State',
+  'myebon': 'Rakhine State', 'minbya': 'Rakhine State', 'pauktaw': 'Rakhine State',
+  'toungup': 'Rakhine State', 'gwa': 'Rakhine State', 'thandwe': 'Rakhine State',
+  'an': 'Rakhine State', 'kyaukphyu': 'Rakhine State', 'ramree': 'Rakhine State',
+  'taungup': 'Rakhine State', 'ponnagyun': 'Rakhine State', 'yanbye': 'Rakhine State',
+  'munaung': 'Rakhine State',
+  // Shan State
+  'taunggyi': 'Shan State', 'lashio': 'Shan State', 'kengtung': 'Shan State',
+  'hsipaw': 'Shan State', 'namhkam': 'Shan State', 'muse': 'Shan State',
+  'kyaukme': 'Shan State', 'mongmit': 'Shan State', 'mogok': 'Shan State',
+  'namtu': 'Shan State', 'kutkai': 'Shan State', 'loilen': 'Shan State',
+  'hopang': 'Shan State', 'panglong': 'Shan State', 'pinlaung': 'Shan State',
+  'pekon': 'Shan State', 'langkho': 'Shan State', 'kokang': 'Shan State',
+  'nawnghkio': 'Shan State', 'hseni': 'Shan State', 'tangyan': 'Shan State',
+  'kyethi': 'Shan State', 'mongshu': 'Shan State', 'laukkaing': 'Shan State',
+  'matman': 'Shan State', 'mongla': 'Shan State', 'tachileik': 'Shan State',
+  'mong hsat': 'Shan State', 'nyaungshwe': 'Shan State', 'kalaw': 'Shan State',
+  'heho': 'Shan State', 'aungban': 'Shan State',
+  // Bago Region
+  'bago': 'Bago Region', 'toungoo': 'Bago Region', 'taungoo': 'Bago Region',
+  'pyay': 'Bago Region', 'thayarwady': 'Bago Region', 'letpadan': 'Bago Region',
+  'pyu': 'Bago Region', 'oktwin': 'Bago Region', 'nyaunglebin': 'Bago Region',
+  'phyu': 'Bago Region', 'daik-u': 'Bago Region', 'thanatpin': 'Bago Region',
+  // Tanintharyi Region
+  'dawei': 'Tanintharyi Region', 'myeik': 'Tanintharyi Region',
+  'kawthoung': 'Tanintharyi Region', 'palaw': 'Tanintharyi Region',
+  'yebyu': 'Tanintharyi Region', 'thayetchaung': 'Tanintharyi Region',
+  'launglon': 'Tanintharyi Region', 'kyunsu': 'Tanintharyi Region',
+  // Yangon Region
+  'yangon': 'Yangon Region', 'rangoon': 'Yangon Region',
+  'hlaing tharyar': 'Yangon Region', 'shwepyitha': 'Yangon Region',
+  'north okkalapa': 'Yangon Region', 'south okkalapa': 'Yangon Region',
+  'thanlyin': 'Yangon Region', 'insein': 'Yangon Region',
+  'mingaladon': 'Yangon Region', 'hmawbi': 'Yangon Region',
+  // Ayeyarwady Region
+  'pathein': 'Ayeyarwady Region', 'bassein': 'Ayeyarwady Region',
+  'hinthada': 'Ayeyarwady Region', 'myanaung': 'Ayeyarwady Region',
+  'maubin': 'Ayeyarwady Region', 'labutta': 'Ayeyarwady Region',
+  'pyapon': 'Ayeyarwady Region', 'dedaye': 'Ayeyarwady Region',
+  'bogale': 'Ayeyarwady Region', 'ngapudaw': 'Ayeyarwady Region',
+  'wakema': 'Ayeyarwady Region', 'mawgyun': 'Ayeyarwady Region',
+  // Naypyidaw Union Territory
+  'naypyidaw': 'Naypyidaw Union Territory', 'nay pyi taw': 'Naypyidaw Union Territory',
+  'pyinmana': 'Naypyidaw Union Territory', 'lewe': 'Naypyidaw Union Territory',
+  'tatkon': 'Naypyidaw Union Territory', 'ottarathiri': 'Naypyidaw Union Territory',
+  'dekkhina': 'Naypyidaw Union Territory', 'pobbathiri': 'Naypyidaw Union Territory',
+  'zabuthiri': 'Naypyidaw Union Territory',
+}
+
 function normalize(name: string): string {
   return name
     .toLowerCase()
@@ -315,13 +420,17 @@ function normalize(name: string): string {
     .trim()
 }
 
-function tryLookup(name: string): [number, number] | null {
+interface TownshipHit {
+  coords: [number, number]
+  region: string | undefined
+}
+
+function tryLookup(name: string): TownshipHit | null {
   const key = normalize(name)
   if (!key) return null
-  if (TOWNSHIP_COORDS[key]) return TOWNSHIP_COORDS[key]
-  // partial match — find first key that contains the query
+  if (TOWNSHIP_COORDS[key]) return { coords: TOWNSHIP_COORDS[key], region: TOWNSHIP_REGION[key] }
   for (const [k, v] of Object.entries(TOWNSHIP_COORDS)) {
-    if (k.includes(key) || key.includes(k)) return v
+    if (k.includes(key) || key.includes(k)) return { coords: v, region: TOWNSHIP_REGION[k] }
   }
   return null
 }
@@ -330,23 +439,21 @@ export function resolveCoordinates(
   township:    string,
   district:    string,
   stateRegion: string,
-  // Coordinates suggested by Claude — used as a cross-check
   suggested?: [number, number],
 ): GeoResult {
-  // 1. Exact or partial township match
+  // 1. Exact or partial township match — region from lookup overrides AI-extracted region
   const fromTownship = tryLookup(township)
   if (fromTownship) {
-    return { coords: fromTownship, precision: 'township' }
+    return { coords: fromTownship.coords, precision: 'township', region: fromTownship.region }
   }
 
-  // 2. Try district name as a township (many districts share the main township name)
+  // 2. Try district name
   const fromDistrict = tryLookup(district)
   if (fromDistrict) {
-    return { coords: fromDistrict, precision: 'district' }
+    return { coords: fromDistrict.coords, precision: 'district', region: fromDistrict.region }
   }
 
-  // 3. Accept Claude's suggestion only when it falls within Myanmar's bounding box
-  //    and is not exactly 0,0 (a clear default)
+  // 3. Accept suggested coords only when within Myanmar bounding box
   if (
     suggested &&
     suggested[0] !== 0 && suggested[1] !== 0 &&

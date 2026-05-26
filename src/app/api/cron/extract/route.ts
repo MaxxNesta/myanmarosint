@@ -4,7 +4,6 @@ export const maxDuration = 60
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { extractEvents } from '@/lib/event-extractor'
-import { enrichEvents } from '@/lib/event-enricher'
 import { normalizeActors, normalizeRegion } from '@/lib/normalizer'
 import { buildDedupHash } from '@/lib/dedup'
 import { resolveCoordinates } from '@/lib/geocoding'
@@ -20,7 +19,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Process articles ingested in the last 2 days — dedupHash prevents true duplicates
   const articles = await prisma.rawArticle.findMany({
     where: {
       ingestedAt: { gte: subDays(new Date(), 2) },
@@ -43,7 +41,7 @@ export async function GET(req: NextRequest) {
     const pubDate = article.publishedAt ?? article.ingestedAt
     if (pubDate < INTEL_START) { skipped++; continue }
 
-    // Stage 1 — Groq: fast bulk event extraction
+    // DeepSeek: classify, categorise, extract single top event with attacker/defender
     let events
     try {
       events = await extractEvents(article.title, article.content, article.sourceName, pubDate)
@@ -51,80 +49,65 @@ export async function GET(req: NextRequest) {
 
     if (events.length === 0) { skipped++; continue }
 
-    // Stage 2 — DeepSeek: military interpretation (attacker/defender/summary/confidence)
-    const enriched = await enrichEvents(
-      events.map(ev => ({
-        eventType:  ev.eventType,
-        actors:     ev.actors,
-        location:   ev.location,
-        region:     normalizeRegion(ev.region),
-        rawSummary: ev.summary,
-        fatalities: ev.fatalities,
-      })),
-      article.title,
+    // Only the top event per article
+    const ev = events[0]
+
+    const actors    = normalizeActors(ev.actors)
+    // Normalise AI-provided region
+    let   region    = normalizeRegion(ev.region)
+    const evDate    = new Date(ev.date)
+    const dedupHash = buildDedupHash({ actors, region, adminArea: ev.adminArea, eventType: ev.eventType, date: evDate })
+
+    // Geocode — township lookup also returns the authoritative region name
+    const geo = resolveCoordinates(
+      ev.location ?? ev.adminArea ?? '',
+      ev.adminArea ?? '',
+      region,
     )
 
-    const baseReliability = getBaseReliability(article.sourceName)
+    // Override AI region with lookup-verified region to prevent mismatches
+    // (e.g. AI says "Rakhine State" but town is Naypyitaw → use "Naypyidaw Union Territory")
+    if (geo.region) region = geo.region
 
-    for (let i = 0; i < events.length; i++) {
-      const ev  = events[i]
-      const enr = enriched[i]
+    const confidence = Math.round(getBaseReliability(article.sourceName) * 100) / 100
 
-      const actors    = normalizeActors(ev.actors)
-      const region    = normalizeRegion(ev.region)
-      const evDate    = new Date(ev.date)
-      const dedupHash = buildDedupHash({ actors, region, adminArea: ev.adminArea, eventType: ev.eventType, date: evDate })
-
-      // Prioritise the specific town name over admin area label for geocoding
-      const geo = resolveCoordinates(
-        ev.location ?? ev.adminArea ?? '',
-        ev.adminArea ?? '',
-        region,
-      )
-
-      const confidence = Math.min(
-        1,
-        Math.round((baseReliability * 0.6 + enr.confidence * 0.4) * 100) / 100,
-      )
-
-      try {
-        await prisma.conflictEvent.upsert({
-          where:  { dedupHash },
-          create: {
-            eventType:            ev.eventType,
-            date:                 evDate,
-            region,
-            adminArea:            ev.adminArea ?? null,
-            location:             ev.location ?? null,
-            lat:                  geo.coords[1],
-            lng:                  geo.coords[0],
-            actors,
-            attackerActor:        enr.attackerActor ? normalizeActors([enr.attackerActor])[0] ?? null : null,
-            defenderActor:        enr.defenderActor ? normalizeActors([enr.defenderActor])[0] ?? null : null,
-            summary:              enr.summary.slice(0, 800),
-            fatalities:           ev.fatalities,
-            fatalitiesMin:        ev.fatalitiesMin,
-            fatalitiesMax:        ev.fatalitiesMax,
-            sourceUrl:            article.url,
-            sourceName:           article.sourceName,
-            sourceType:           article.sourceType,
-            biasFlag:             ev.biasFlag,
-            confidence,
-            dedupHash,
-            isActiveIntelligence: evDate >= INTEL_START,
-            rawArticleId:         article.id,
-          },
-          update: {
-            confidence:    { increment: 0.02 },
-            attackerActor: enr.attackerActor ?? undefined,
-            defenderActor: enr.defenderActor ?? undefined,
-          },
-        })
-        saved++
-      } catch (err) {
-        console.error('extract upsert error:', String(err).slice(0, 200))
-        skipped++
-      }
+    try {
+      await prisma.conflictEvent.upsert({
+        where:  { dedupHash },
+        create: {
+          eventType:            ev.eventType,
+          date:                 evDate,
+          region,
+          adminArea:            ev.adminArea ?? null,
+          location:             ev.location ?? null,
+          lat:                  geo.coords[1],
+          lng:                  geo.coords[0],
+          actors,
+          attackerActor:        ev.attackerActor ? normalizeActors([ev.attackerActor])[0] ?? null : null,
+          defenderActor:        ev.defenderActor ? normalizeActors([ev.defenderActor])[0] ?? null : null,
+          summary:              ev.summary.slice(0, 800),
+          fatalities:           ev.fatalities,
+          fatalitiesMin:        ev.fatalitiesMin,
+          fatalitiesMax:        ev.fatalitiesMax,
+          sourceUrl:            article.url,
+          sourceName:           article.sourceName,
+          sourceType:           article.sourceType,
+          biasFlag:             ev.biasFlag,
+          confidence,
+          dedupHash,
+          isActiveIntelligence: evDate >= INTEL_START,
+          rawArticleId:         article.id,
+        },
+        update: {
+          confidence:    { increment: 0.02 },
+          attackerActor: ev.attackerActor ? normalizeActors([ev.attackerActor])[0] ?? undefined : undefined,
+          defenderActor: ev.defenderActor ? normalizeActors([ev.defenderActor])[0] ?? undefined : undefined,
+        },
+      })
+      saved++
+    } catch (err) {
+      console.error('extract upsert error:', String(err).slice(0, 200))
+      skipped++
     }
   }
 

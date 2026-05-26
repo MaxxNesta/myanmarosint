@@ -36,6 +36,8 @@ interface RawExtractedEvent {
   region?:         string
   admin_area?:     string
   summary:         string
+  attacker_actor?: string
+  defender_actor?: string
   fatalities?:     number
   fatalities_min?: number
   fatalities_max?: number
@@ -310,8 +312,8 @@ function parseResponse(raw: unknown, fullText: string): ExtractedEvent[] {
       adminArea,
       location,
       actors,
-      attackerActor: ev.attackerActor ?? null,
-      defenderActor: ev.defenderActor ?? null,
+      attackerActor: ev.attacker_actor ?? ev.attackerActor ?? null,
+      defenderActor: ev.defender_actor ?? ev.defenderActor ?? null,
       summary:       String(ev.summary ?? '').slice(0, 800),
       fatalities,
       fatalitiesMin,
@@ -321,33 +323,33 @@ function parseResponse(raw: unknown, fullText: string): ExtractedEvent[] {
   })
 }
 
-// ── Groq client (fast bulk extraction) ───────────────────────────────────────
+// ── DeepSeek client (classification + categorisation) ────────────────────────
 
-let _groq: OpenAI | null = null
-function getGroq() {
-  if (!_groq) _groq = new OpenAI({
-    apiKey:  process.env.GROQ_API_KEY!,
-    baseURL: 'https://api.groq.com/openai/v1',
+let _deepseek: OpenAI | null = null
+function getDeepSeek() {
+  if (!_deepseek) _deepseek = new OpenAI({
+    apiKey:  process.env.DEEPSEEK_API_KEY!,
+    baseURL: 'https://api.deepseek.com',
   })
-  return _groq
+  return _deepseek
 }
 
-async function extractWithGroq(
+async function extractWithDeepSeek(
   title:       string,
   content:     string,
   sourceName:  string,
   publishedAt: Date | null,
 ): Promise<ExtractedEvent[]> {
   const prompt =
-    `Source: ${sourceName}\nPublished: ${publishedAt?.toISOString() ?? 'unknown'}\n\nTitle: ${title}\n\nContent:\n${content.slice(0, 4000)}`
+    `Source: ${sourceName}\nPublished: ${publishedAt?.toISOString().slice(0, 10) ?? 'unknown'}\n\nTitle: ${title}\n\nContent:\n${content.slice(0, 3500)}`
 
-  const completion = await getGroq().chat.completions.create({
-    model:           'llama-3.3-70b-versatile',
+  const completion = await getDeepSeek().chat.completions.create({
+    model:           'deepseek-chat',
     response_format: { type: 'json_object' },
-    max_tokens:      1200,
+    max_tokens:      800,
     temperature:     0.1,
     messages: [
-      { role: 'system', content: `${EXTRACTION_SYSTEM}\n\nIMPORTANT: Wrap your JSON array in an object: {"events": [...]}` },
+      { role: 'system', content: `${EXTRACTION_SYSTEM}\n\nCRITICAL: Return {"events":[...]} with EXACTLY ONE event (the most important battle event in the article). Include attacker_actor and defender_actor fields. Summary must be: "[Brief action]. [Attacker] vs [Defender] in [location]." max 180 chars.` },
       { role: 'user',   content: prompt },
     ],
   })
@@ -359,7 +361,7 @@ async function extractWithGroq(
     const parsed = JSON.parse(json)
     const arr    = Array.isArray(parsed) ? parsed : (parsed.events ?? [])
     const events = parseResponse(arr, `${title}\n${content}`)
-    if (events.length > 0) return events
+    if (events.length > 0) return [events[0]]  // always top event only
   } catch { /* fall through to regex */ }
 
   return []
@@ -373,9 +375,9 @@ export async function extractEvents(
   sourceName:  string,
   publishedAt: Date | null,
 ): Promise<ExtractedEvent[]> {
-  if (process.env.GROQ_API_KEY) {
+  if (process.env.DEEPSEEK_API_KEY) {
     try {
-      const events = await extractWithGroq(title, content, sourceName, publishedAt)
+      const events = await extractWithDeepSeek(title, content, sourceName, publishedAt)
       if (events.length > 0) return events
     } catch { /* fall through to regex */ }
   }
