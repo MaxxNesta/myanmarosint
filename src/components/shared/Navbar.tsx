@@ -67,11 +67,15 @@ export default function Navbar() {
         ))}
       </div>
 
-      {/* Status badge */}
-      <div className="hidden md:flex items-center gap-2 ml-auto text-xs font-mono text-slate-600">
-        <span className="live-dot" />
-        <span>OSINT / UNCLASSIFIED</span>
-      </div>
+      {/* Buy me a coffee */}
+      <a
+        href="https://www.buymeacoffee.com/kaunghtet2782001"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hidden md:flex items-center gap-1.5 ml-auto px-3 py-1.5 text-[11px] font-medium text-yellow-400 border border-yellow-500/30 hover:border-yellow-500/60 hover:text-yellow-300 transition-colors"
+      >
+        ☕ Buy me a coffee
+      </a>
 
       {/* Mobile toggle */}
       <button
@@ -114,6 +118,15 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
+          <a
+            href="https://www.buymeacoffee.com/kaunghtet2782001"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-5 py-3 text-sm text-yellow-400 hover:bg-white/[0.04]"
+            onClick={() => setOpen(false)}
+          >
+            ☕ Buy me a coffee
+          </a>
         </div>
       )}
     </nav>
