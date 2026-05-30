@@ -1,162 +1,22 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const metadata = {
   title: 'Myanmar War Map — OSINT Platform',
 }
 
-// ── CSS mockup previews for each dashboard ────────────────────────────────────
+// ── Screenshot preview ────────────────────────────────────────────────────────
 
-function MapPreview() {
+function ScreenshotPreview({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative w-full h-36 rounded overflow-hidden bg-[#0a1628] border border-white/10">
-      {/* grid lines */}
-      <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-      </svg>
-      {/* simulated coastline / region blobs */}
-      <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 280 144" xmlns="http://www.w3.org/2000/svg">
-        <path d="M80,20 C90,15 110,18 120,30 C130,42 125,60 130,75 C135,90 145,100 140,115 C135,130 120,135 110,130 C100,125 88,115 82,100 C76,85 70,70 72,50 Z" fill="#1d4ed8" opacity="0.3"/>
-        <path d="M120,25 C135,20 155,22 160,35 C165,48 155,65 150,80 C145,95 148,110 140,115" fill="none" stroke="#3b82f6" strokeWidth="1.5" opacity="0.5"/>
-      </svg>
-      {/* event dots */}
-      {[
-        { x: '22%', y: '28%', c: '#ef4444', r: 7 },
-        { x: '38%', y: '45%', c: '#f97316', r: 5 },
-        { x: '55%', y: '35%', c: '#ef4444', r: 9 },
-        { x: '48%', y: '62%', c: '#f59e0b', r: 5 },
-        { x: '70%', y: '50%', c: '#ef4444', r: 6 },
-        { x: '30%', y: '70%', c: '#06b6d4', r: 4 },
-        { x: '62%', y: '78%', c: '#8b5cf6', r: 4 },
-        { x: '82%', y: '40%', c: '#f97316', r: 5 },
-      ].map((d, i) => (
-        <div key={i} className="absolute rounded-full opacity-80 ring-1 ring-white/20"
-          style={{ left: d.x, top: d.y, width: d.r*2, height: d.r*2, background: d.c, transform: 'translate(-50%,-50%)' }} />
-      ))}
-      {/* heatmap overlay */}
-      <div className="absolute inset-0 bg-gradient-radial opacity-20" style={{background: 'radial-gradient(ellipse at 55% 38%, #ef444440 0%, transparent 50%)'}} />
-      <div className="absolute bottom-2 left-2 text-[8px] font-mono text-slate-500 uppercase tracking-widest">Live events · Mapbox GL</div>
-    </div>
-  )
-}
-
-function IntelPreview() {
-  const bars = [62, 88, 45, 95, 72, 38, 81]
-  return (
-    <div className="w-full h-36 rounded overflow-hidden bg-[#070b12] border border-white/10 p-2 flex flex-col gap-1.5">
-      <div className="flex gap-1.5">
-        {/* mini risk bars */}
-        <div className="flex-1 bg-[#0d1520] rounded p-1.5">
-          <div className="text-[7px] font-mono text-slate-600 mb-1 uppercase tracking-wider">Region Risk</div>
-          <div className="flex items-end gap-0.5 h-10">
-            {bars.map((h, i) => (
-              <div key={i} className="flex-1 rounded-sm" style={{
-                height: `${h}%`,
-                background: h > 80 ? '#ef4444' : h > 60 ? '#f97316' : h > 40 ? '#f59e0b' : '#22c55e',
-                opacity: 0.8,
-              }}/>
-            ))}
-          </div>
-        </div>
-        {/* mini escalation */}
-        <div className="w-24 bg-[#0d1520] rounded p-1.5 flex flex-col gap-1">
-          <div className="text-[7px] font-mono text-slate-600 mb-0.5 uppercase tracking-wider">Escalation</div>
-          {['Sagaing', 'Rakhine', 'Shan'].map((r, i) => (
-            <div key={r} className="flex items-center justify-between">
-              <span className="text-[7px] font-mono text-slate-400 truncate">{r}</span>
-              <span className="text-[7px] font-mono font-bold" style={{color: i===0 ? '#ef4444' : i===1 ? '#f97316' : '#f59e0b'}}>↑{[32,28,15][i]}%</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      {/* volatility table mini */}
-      <div className="flex-1 bg-[#0d1520] rounded p-1.5">
-        <div className="grid grid-cols-3 gap-1">
-          {[['Sagaing', 47], ['Rakhine', 52], ['Chin', 31]].map(([r, s]) => (
-            <div key={r as string} className="flex items-center gap-1">
-              <div className="w-8 h-1 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full rounded-full bg-orange-500" style={{width: `${s}%`}}/>
-              </div>
-              <span className="text-[7px] font-mono text-slate-500 truncate">{r}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function BasesPreview() {
-  const bases = [
-    { x: '40%', y: '30%', c: '#ef4444', label: 'MIL' },
-    { x: '60%', y: '45%', c: '#ef4444', label: 'MIL' },
-    { x: '25%', y: '55%', c: '#f97316', label: 'AIR' },
-    { x: '72%', y: '35%', c: '#ef4444', label: 'MIL' },
-    { x: '50%', y: '65%', c: '#8b5cf6', label: 'HQ' },
-    { x: '35%', y: '72%', c: '#f97316', label: 'AIR' },
-  ]
-  return (
-    <div className="relative w-full h-36 rounded overflow-hidden bg-[#0a1628] border border-white/10">
-      <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="grid2" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid2)" />
-      </svg>
-      {bases.map((b, i) => (
-        <div key={i} className="absolute flex flex-col items-center" style={{left: b.x, top: b.y, transform: 'translate(-50%,-50%)'}}>
-          <div className="w-3 h-3 rounded-sm border border-white/30 flex items-center justify-center" style={{background: b.c + '40', borderColor: b.c}}>
-            <div className="w-1 h-1 rounded-full" style={{background: b.c}}/>
-          </div>
-        </div>
-      ))}
-      {/* legend */}
-      <div className="absolute bottom-2 left-2 flex gap-2">
-        {[['#ef4444','Military'],['#f97316','Airbase'],['#8b5cf6','Command']].map(([c,l]) => (
-          <div key={l} className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-sm" style={{background: c + '60', border: `1px solid ${c}`}}/>
-            <span className="text-[7px] font-mono text-slate-500">{l}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function OpsPreview() {
-  const ops = [
-    { name: '1027', start: 5, end: 55, c: '#f97316' },
-    { name: 'Anawrahta', start: 20, end: 70, c: '#ef4444' },
-    { name: 'NW Offensive', start: 35, end: 85, c: '#8b5cf6' },
-    { name: 'Rakhine', start: 45, end: 95, c: '#06b6d4' },
-  ]
-  return (
-    <div className="w-full h-36 rounded overflow-hidden bg-[#070b12] border border-white/10 p-2.5 flex flex-col gap-2">
-      <div className="flex justify-between items-center mb-0.5">
-        <span className="text-[7px] font-mono text-slate-600 uppercase tracking-wider">Operations Timeline</span>
-        <div className="flex gap-1 text-[7px] font-mono text-slate-600">
-          <span>2023</span><span>2024</span><span>2025</span>
-        </div>
-      </div>
-      {ops.map(op => (
-        <div key={op.name} className="flex items-center gap-2">
-          <span className="text-[8px] font-mono text-slate-400 w-20 truncate shrink-0">{op.name}</span>
-          <div className="flex-1 h-3 bg-white/5 rounded-sm relative overflow-hidden">
-            <div className="absolute h-full rounded-sm opacity-70"
-              style={{left: `${op.start}%`, width: `${op.end - op.start}%`, background: op.c}}/>
-          </div>
-        </div>
-      ))}
-      <div className="flex items-center gap-1 mt-auto">
-        <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse opacity-70"/>
-        <span className="text-[7px] font-mono text-slate-600">Ongoing operations highlighted</span>
-      </div>
+    <div className="relative w-full rounded overflow-hidden border border-white/10 bg-[#0a0e17]" style={{ aspectRatio: '16/9' }}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover object-top"
+        sizes="(max-width: 1024px) 100vw, 50vw"
+      />
     </div>
   )
 }
@@ -171,7 +31,7 @@ const DASHBOARDS = [
     title:   'Live Conflict Map',
     tagline: 'Where is the fighting happening right now?',
     color:   '#3b82f6',
-    preview: <MapPreview />,
+    preview: <ScreenshotPreview src="/screenshots/map.png" alt="Conflict Map" />,
     what: 'Plots every conflict event extracted from news sources — airstrikes, clashes, sieges, displacement — as colour-coded circles on a live map of Myanmar.',
     features: [
       'Click any dot to see the event brief, attacker/defender, date, and fatality count',
@@ -197,7 +57,7 @@ const DASHBOARDS = [
     title:   'Intelligence Dashboard',
     tagline: 'How dangerous is each region, and is it getting worse?',
     color:   '#8b5cf6',
-    preview: <IntelPreview />,
+    preview: <ScreenshotPreview src="/screenshots/intel.png" alt="Intel Dashboard" />,
     what: 'Aggregates all conflict data into regional risk scores, escalation trends, and volatility analysis. Powered by the same pipeline that feeds the map.',
     features: [
       'Daily Brief: total events this week vs last week, top active region',
@@ -220,7 +80,7 @@ const DASHBOARDS = [
     title:   'Military Installations',
     tagline: 'Where are the military bases, airbases, and command posts?',
     color:   '#ef4444',
-    preview: <BasesPreview />,
+    preview: <ScreenshotPreview src="/screenshots/bases.png" alt="Military Bases" />,
     what: 'Maps known Tatmadaw military bases, airbases, naval posts, and command headquarters across Myanmar sourced from open-source intelligence.',
     features: [
       'Filter by base type: Army, Air Force, Navy, Command HQ',
@@ -242,7 +102,7 @@ const DASHBOARDS = [
     title:   'Operations Timeline',
     tagline: 'What major offensives have shaped the war?',
     color:   '#f97316',
-    preview: <OpsPreview />,
+    preview: <ScreenshotPreview src="/screenshots/operations.png" alt="Operations Timeline" />,
     what: 'Chronological view of major military operations since the 2021 coup — resistance offensives, junta counter-offensives, territorial control changes.',
     features: [
       'Gantt-style bars show operation duration and overlap',
