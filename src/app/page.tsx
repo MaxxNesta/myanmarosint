@@ -11,7 +11,7 @@ const DASHBOARDS = [
     label: 'CONFLICT MAP',
     title: 'Live Conflict Events',
     color: '#3b82f6',
-    src:   '/screenshots/map.png',
+    src:   '/screenshots/map.jpg',
     desc:  'Every conflict event extracted from news — airstrikes, clashes, sieges, displacement — plotted as a geocoded marker on a live map of Myanmar.',
     features: [
       'Click any marker to see the event brief, attacker, defender, and fatality count',
@@ -35,7 +35,7 @@ const DASHBOARDS = [
     label: 'INTEL DASHBOARD',
     title: 'Regional Intelligence',
     color: '#8b5cf6',
-    src:   '/screenshots/intel.png',
+    src:   '/screenshots/intel.jpg',
     desc:  'Aggregated risk scores, escalation detection, and volatility analysis across all states and regions — updated each time the pipeline runs.',
     features: [
       'Daily Brief — event count vs prior week, top active region',
@@ -55,7 +55,7 @@ const DASHBOARDS = [
     label: 'MILITARY BASES',
     title: 'Known Installations',
     color: '#ef4444',
-    src:   '/screenshots/bases.png',
+    src:   '/screenshots/bases.jpg',
     desc:  'Open-source mapped Tatmadaw military bases, airbases, naval posts, and command headquarters. Sourced from ACLED, NeatoGeo, and satellite imagery.',
     features: [
       'Filter by installation type — Army, Air Force, Navy, Command HQ',
@@ -74,7 +74,7 @@ const DASHBOARDS = [
     label: 'OPS TIMELINE',
     title: 'Major Operations',
     color: '#f97316',
-    src:   '/screenshots/operations.png',
+    src:   '/screenshots/operations.jpg',
     desc:  'Chronological record of major offensives since the 2021 coup — resistance operations, junta counter-offensives, territorial control shifts.',
     features: [
       'Gantt-style bars show operation duration and overlap',
