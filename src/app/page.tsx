@@ -109,71 +109,89 @@ function DashboardRow({
   index: number
 }) {
   const reversed = index % 2 === 1
+
   const textBlock = (
-    <div className="flex flex-col justify-center py-10 px-8 lg:px-12">
+    <div className="flex flex-col justify-center py-14 px-10 lg:px-14">
+      {/* label */}
       <div
-        className="text-[9px] font-mono tracking-[0.2em] uppercase mb-3"
+        className="text-[9px] font-mono tracking-[0.22em] uppercase mb-4"
         style={{ color: d.color }}
       >
         {d.label}
       </div>
-      <h2 className="text-xl font-semibold text-slate-100 mb-3 leading-snug">
+
+      {/* title */}
+      <h2 className="text-2xl font-bold text-white mb-3 leading-snug" style={{ fontFamily: 'var(--font-inter), Arial, sans-serif' }}>
         {d.title}
       </h2>
-      <p className="text-sm text-slate-400 leading-relaxed mb-5">{d.desc}</p>
 
-      <ul className="space-y-2 mb-6">
+      {/* description */}
+      <p className="text-sm text-slate-400 leading-relaxed mb-7">{d.desc}</p>
+
+      {/* usage list — white, bigger, sans-serif */}
+      <ul className="space-y-3 mb-8">
         {d.features.map((f, i) => (
-          <li key={i} className="flex gap-2.5 text-xs text-slate-500 leading-relaxed">
-            <span className="text-slate-700 shrink-0 mt-px">›</span>
+          <li key={i} className="flex gap-3 leading-relaxed" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.875rem', color: '#e2e8f0' }}>
+            <span className="shrink-0 mt-0.5" style={{ color: d.color }}>›</span>
             {f}
           </li>
         ))}
       </ul>
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-6">
+      {/* legend */}
+      <div className="flex flex-wrap gap-x-5 gap-y-2 mb-8">
         {d.legend.map(l => (
           <div key={l.label} className="flex items-center gap-1.5">
-            <div className="w-2 h-2 shrink-0" style={{ background: l.color }} />
-            <span className="text-[9px] font-mono text-slate-600">{l.label}</span>
+            <div className="w-2.5 h-2.5 shrink-0" style={{ background: l.color }} />
+            <span className="text-[10px] font-mono text-slate-500">{l.label}</span>
           </div>
         ))}
       </div>
 
+      {/* open link */}
       <Link
         href={d.href}
-        className="self-start text-xs font-mono text-slate-400 hover:text-slate-200 transition-colors border border-white/10 hover:border-white/20 px-4 py-2"
+        className="self-start text-sm font-medium text-slate-300 hover:text-white transition-colors border border-white/[0.12] hover:border-white/25 px-5 py-2.5"
+        style={{ fontFamily: 'Arial, sans-serif' }}
       >
-        Open {d.label} →
+        Open {d.title} →
       </Link>
     </div>
   )
 
+  // Screenshot: 3/5 columns, natural 16:9 ratio, no cropping
   const imageBlock = (
-    <div className="relative bg-[#0a0e17]">
+    <div className="lg:col-span-3 bg-[#0a0e17]">
       <Image
         src={d.src}
         alt={d.label}
-        width={1200}
-        height={675}
-        className="w-full h-full object-cover object-top"
-        style={{ display: 'block' }}
+        width={1920}
+        height={1080}
+        className="w-full h-auto block"
+        quality={90}
       />
+    </div>
+  )
+
+  // Text: 2/5 columns
+  const textCol = (
+    <div className="lg:col-span-2">
+      {textBlock}
     </div>
   )
 
   return (
     <div className="border-b border-white/[0.06]">
-      <div className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-2">
+      <div className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-5">
         {reversed ? (
           <>
-            {textBlock}
+            {textCol}
             {imageBlock}
           </>
         ) : (
           <>
             {imageBlock}
-            {textBlock}
+            {textCol}
           </>
         )}
       </div>
