@@ -45,7 +45,7 @@ export default function Navbar() {
       </div>
 
       {/* Brand */}
-      <Link href="/map" className="flex items-center gap-2 mr-6 shrink-0">
+      <Link href="/" className="flex items-center gap-2 mr-6 shrink-0">
         <span className="text-sm font-bold tracking-widest text-slate-100">MYANMAR WAR MAP</span>
       </Link>
 
