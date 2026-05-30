@@ -159,15 +159,15 @@ function DashboardRow({
     </div>
   )
 
-  // Screenshot: 3/5 columns, natural 16:9 ratio, no cropping
+  // Screenshot: 3/5 columns, fills column height exactly, crops if needed
   const imageBlock = (
-    <div className="lg:col-span-3 bg-[#0a0e17]">
+    <div className="lg:col-span-3 relative overflow-hidden min-h-[280px] self-stretch">
       <Image
         src={d.src}
         alt={d.label}
-        width={1920}
-        height={1080}
-        className="w-full h-auto block"
+        fill
+        className="object-cover object-top"
+        sizes="(max-width: 1024px) 100vw, 60vw"
         quality={90}
       />
     </div>
