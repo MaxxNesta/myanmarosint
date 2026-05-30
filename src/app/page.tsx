@@ -133,9 +133,9 @@ function DashboardRow({
       <p className="text-sm text-slate-400 leading-relaxed mb-7">{d.desc}</p>
 
       {/* usage list — white, bigger, sans-serif */}
-      <ul className="space-y-3 mb-8">
+      <ul className="space-y-2 mb-7">
         {d.features.map((f, i) => (
-          <li key={i} className="flex gap-3 leading-relaxed" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.875rem', color: '#e2e8f0' }}>
+          <li key={i} className="flex gap-2.5 leading-snug" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.8rem', color: '#cbd5e1' }}>
             <span className="shrink-0 mt-0.5" style={{ color: d.color }}>›</span>
             {f}
           </li>
