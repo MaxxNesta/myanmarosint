@@ -9,10 +9,10 @@ const TATMADAW_URL = process.env.NEXT_PUBLIC_TATMADAW_URL ?? '/tatmadaw'
 const EAOS_URL     = process.env.NEXT_PUBLIC_EAOS_URL     ?? '/eaos'
 
 const NAV_LINKS = [
-  { href: '/map',        label: '🗺 Conflict Map'      },
-  { href: '/intel',      label: '📡 Intel Dashboard'   },
-  { href: '/bases',      label: '🛡 Military Bases'    },
-  { href: '/operations', label: '⚔ Ops Timeline'      },
+  { href: '/map',        label: 'Conflict Map'      },
+  { href: '/intel',      label: 'Intel Dashboard'   },
+  { href: '/bases',      label: 'Military Bases'    },
+  { href: '/operations', label: 'Ops Timeline'      },
 ]
 
 export default function Navbar() {
@@ -31,7 +31,7 @@ export default function Navbar() {
             className="text-[10px] font-mono text-slate-400 hover:text-slate-200 transition-colors tracking-wide"
             title="Tatmadaw Portal"
           >
-            🪖 Tatmadaw
+            Tatmadaw
           </a>
           <span className="text-slate-700 text-[10px]">|</span>
           <a
@@ -39,7 +39,7 @@ export default function Navbar() {
             className="text-[10px] font-mono text-orange-600 hover:text-orange-400 transition-colors tracking-wide"
             title="EAO Portal"
           >
-            ⚔ EAOs
+            EAOs
           </a>
         </div>
       </div>
@@ -93,14 +93,14 @@ export default function Navbar() {
                 className="text-sm text-slate-400 hover:text-slate-200"
                 onClick={() => setOpen(false)}
               >
-                🪖 Tatmadaw
+                Tatmadaw
               </a>
               <a
                 href={`${EAOS_URL}/index.html`}
                 className="text-sm text-orange-600 hover:text-orange-400"
                 onClick={() => setOpen(false)}
               >
-                ⚔ EAOs
+                EAOs
               </a>
             </div>
           </div>
