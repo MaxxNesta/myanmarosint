@@ -112,7 +112,7 @@ export default function HomePage() {
       {/* ── Classification header ── */}
       <div className="border-b border-white/[0.07] px-6 py-2.5 flex items-center justify-between">
         <span className="text-[9px] font-mono text-slate-600 tracking-[0.18em] uppercase">
-          // Myanmar Civil War · Open-Source Intelligence //
+          {'// Myanmar Civil War · Open-Source Intelligence //'}
         </span>
         <span className="text-[9px] font-mono text-slate-700 tracking-widest uppercase">
           Unclassified / Public Domain
