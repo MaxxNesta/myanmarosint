@@ -20,28 +20,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Skip articles already used to create a ConflictEvent
-  const extractedRows = await prisma.conflictEvent.findMany({
+  // Skip articles already extracted into a ConflictEvent
+  const extractedIds = await prisma.conflictEvent.findMany({
     where:  { rawArticleId: { not: null } },
     select: { rawArticleId: true },
   })
-  const alreadyExtracted = new Set(extractedRows.map(e => e.rawArticleId!))
+  const alreadyExtracted = new Set(extractedIds.map(e => e.rawArticleId!))
 
   const articles = await prisma.rawArticle.findMany({
     where: {
       ingestedAt: { gte: subDays(new Date(), 7) },
       ...(alreadyExtracted.size > 0 ? { id: { notIn: [...alreadyExtracted] } } : {}),
-      OR: [
-        { publishedAt: { gte: INTEL_START } },
-        { publishedAt: null },
-      ],
+      OR: [{ publishedAt: { gte: INTEL_START } }, { publishedAt: null }],
     },
     orderBy: { publishedAt: 'desc' },
     take:    BATCH,
   })
 
   if (articles.length === 0) {
-    return NextResponse.json({ message: 'No unextracted articles in window', extracted: 0 })
+    return NextResponse.json({ message: 'No unextracted articles', extracted: 0 })
   }
 
   let saved = 0, skipped = 0
@@ -50,18 +47,16 @@ export async function GET(req: NextRequest) {
     const pubDate = article.publishedAt ?? article.ingestedAt
     if (pubDate < INTEL_START) { skipped++; continue }
 
-    // Stage 1 — Groq: fast extraction of top battle event
+    // Stage 1 — Groq extraction
     let events
     try {
-      events = await extractEvents(article.title, article.content, article.sourceName, pubDate)
+      events = await extractEvents(article.title, article.content, article.channelName, pubDate)
     } catch { skipped++; continue }
-
     if (events.length === 0) { skipped++; continue }
 
-    // Only the top event per article
     const ev = events[0]
 
-    // Stage 2 — DeepSeek: interpret attacker/defender, write structured summary
+    // Stage 2 — DeepSeek analysis (always produces a result via Option A fallback)
     const [enr] = await enrichEvents(
       [{ eventType: ev.eventType, actors: ev.actors, location: ev.location, region: normalizeRegion(ev.region), rawSummary: ev.summary, fatalities: ev.fatalities }],
       article.title,
@@ -72,55 +67,65 @@ export async function GET(req: NextRequest) {
     const evDate    = new Date(ev.date)
     const dedupHash = buildDedupHash({ actors, region, adminArea: ev.adminArea, eventType: ev.eventType, date: evDate })
 
-    // Geocode — township lookup returns the authoritative region, overriding AI value
-    const geo = resolveCoordinates(
-      ev.location ?? ev.adminArea ?? '',
-      ev.adminArea ?? '',
-      region,
-    )
+    const geo = resolveCoordinates(ev.location ?? ev.adminArea ?? '', ev.adminArea ?? '', region)
     if (geo.region) region = geo.region
 
     const confidence = Math.round(
-      (getBaseReliability(article.sourceName) * 0.6 + enr.confidence * 0.4) * 100,
+      (getBaseReliability(article.channelName) * 0.6 + enr.confidence * 0.4) * 100,
     ) / 100
 
     try {
-      await prisma.conflictEvent.upsert({
-        where:  { dedupHash },
-        create: {
-          eventType:            ev.eventType,
-          date:                 evDate,
-          region,
-          adminArea:            ev.adminArea ?? null,
-          location:             ev.location ?? null,
-          lat:                  geo.coords[1],
-          lng:                  geo.coords[0],
-          actors,
-          attackerActor:        enr.attackerActor ? normalizeActors([enr.attackerActor])[0] ?? null : null,
-          defenderActor:        enr.defenderActor ? normalizeActors([enr.defenderActor])[0] ?? null : null,
-          summary:              enr.summary.slice(0, 800),
-          fatalities:           ev.fatalities,
-          fatalitiesMin:        ev.fatalitiesMin,
-          fatalitiesMax:        ev.fatalitiesMax,
-          sourceUrl:            article.url,
-          sourceName:           article.sourceName,
-          sourceType:           article.sourceType,
-          biasFlag:             ev.biasFlag,
-          confidence,
-          dedupHash,
-          isActiveIntelligence: evDate >= INTEL_START,
-          rawArticleId:         article.id,
-        },
-        update: {
-          confidence:    { increment: 0.02 },
-          attackerActor: enr.attackerActor ? normalizeActors([enr.attackerActor])[0] ?? undefined : undefined,
-          defenderActor: enr.defenderActor ? normalizeActors([enr.defenderActor])[0] ?? undefined : undefined,
-          summary:       enr.summary.slice(0, 800),
-        },
+      // Upsert ConflictEvent, then upsert AnalysedEvent in a transaction
+      await prisma.$transaction(async (tx) => {
+        const conflict = await tx.conflictEvent.upsert({
+          where:  { dedupHash },
+          create: {
+            rawArticleId:  article.id,
+            eventType:     ev.eventType,
+            date:          evDate,
+            region,
+            adminArea:     ev.adminArea ?? null,
+            location:      ev.location ?? null,
+            lat:           geo.coords[1],
+            lng:           geo.coords[0],
+            summary:       ev.summary.slice(0, 800),
+            fatalities:    ev.fatalities,
+            fatalitiesMin: ev.fatalitiesMin,
+            fatalitiesMax: ev.fatalitiesMax,
+            biasFlag:      ev.biasFlag,
+            dedupHash,
+          },
+          update: {
+            // on duplicate, update location precision if better
+            lat:      geo.coords[1],
+            lng:      geo.coords[0],
+            region,
+          },
+        })
+
+        // Always upsert AnalysedEvent (Option A — fallback to nulls if DeepSeek failed)
+        await tx.analysedEvent.upsert({
+          where:  { conflictEventId: conflict.id },
+          create: {
+            conflictEventId:      conflict.id,
+            attackerActor:        enr.attackerActor ? normalizeActors([enr.attackerActor])[0] ?? null : null,
+            defenderActor:        enr.defenderActor ? normalizeActors([enr.defenderActor])[0] ?? null : null,
+            actors,
+            confidence,
+            summary:              enr.summary.slice(0, 800),
+            isActiveIntelligence: evDate >= INTEL_START,
+          },
+          update: {
+            attackerActor: enr.attackerActor ? normalizeActors([enr.attackerActor])[0] ?? undefined : undefined,
+            defenderActor: enr.defenderActor ? normalizeActors([enr.defenderActor])[0] ?? undefined : undefined,
+            confidence:    { increment: 0.02 },
+            summary:       enr.summary.slice(0, 800),
+          },
+        })
       })
       saved++
     } catch (err) {
-      console.error('extract upsert error:', String(err).slice(0, 200))
+      console.error('extract error:', String(err).slice(0, 200))
       skipped++
     }
   }

@@ -67,7 +67,12 @@
       "WebFetch(domain:docs.browsermcp.io)",
       "Bash(grep -n \"function galleryStep\\\\|function galleryGoto\\\\|function esc\\\\|function \\\\$\\\\b\\\\|function \\\\$\\\\$\\\\b\\\\|renderEquipment\\\\\\(\\\\\\)\\\\|renderCaptured\\\\|initEquip\\\\|DOMContentLoaded\\\\|window.onload\" public/tatmadaw/app.js)",
       "Bash(powershell -command \"Get-Content 'C:\\\\Users\\\\MSI\\\\.claude\\\\projects\\\\c--Users-MSI-Downloads-myanmarosint\\\\fa20b8f1-06b5-4247-9317-905b85a6b06c.jsonl' | Select-Object -Index 1346 | ConvertFrom-Json | Select-Object -ExpandProperty message | Select-Object -ExpandProperty content\")",
-      "Bash(powershell -command ' *)"
+      "Bash(powershell -command ' *)",
+      "Bash(Get-ChildItem -Path . -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Find c:\\\\Users\\\\MSI\\\\Downloads\\\\myanmarosint\\\\src -name \"*ingest*\" -o -name \"*process*\")",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(.\\\\node_modules\\\\.bin\\\\next build *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\MSI\\MiroFish\\myanmar-risk-platform",

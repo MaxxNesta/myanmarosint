@@ -5,6 +5,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { fetchAllFeeds } from '@/lib/rss'
 
+const KEYWORDS = [
+  'myanmar','burma','tatmadaw','junta','pdf','nug','sagaing','arakan',
+  'kachin','shan','chin','karenni','kayah','rakhine','karen','tedim','tiddim','mandalay',
+]
+
 export async function GET(req: NextRequest) {
   const secret = req.headers.get('authorization')?.replace('Bearer ', '')
   if (process.env.NODE_ENV === 'production' && secret !== process.env.CRON_SECRET) {
@@ -12,9 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   const items = await fetchAllFeeds()
-
-  let saved   = 0
-  let skipped = 0
+  let saved = 0, skipped = 0
 
   for (const item of items) {
     if (!item.url || !item.title) { skipped++; continue }
@@ -22,37 +25,17 @@ export async function GET(req: NextRequest) {
     const exists = await prisma.rawArticle.findUnique({ where: { url: item.url } })
     if (exists) { skipped++; continue }
 
-    // Only save articles that mention Myanmar conflict keywords
     const text = `${item.title} ${item.content}`.toLowerCase()
-    const relevant =
-      text.includes('myanmar') ||
-      text.includes('burma')   ||
-      text.includes('tatmadaw') ||
-      text.includes('junta')   ||
-      text.includes('pdf')     ||
-      text.includes('nug')     ||
-      text.includes('sagaing') ||
-      text.includes('arakan')  ||
-      text.includes('kachin')  ||
-      text.includes('shan')    ||
-      text.includes('chin')    ||
-      text.includes('karenni') ||
-      text.includes('kayah')   ||
-      text.includes('rakhine') ||
-      text.includes('karen')   ||
-      text.includes('tedim')   ||
-      text.includes('tiddim')  ||
-      text.includes('mandalay')
-
-    if (!relevant) { skipped++; continue }
+    if (!KEYWORDS.some(k => text.includes(k))) { skipped++; continue }
 
     await prisma.rawArticle.create({
       data: {
         url:         item.url,
+        channelName: item.sourceName,
         title:       item.title,
         content:     `${item.title}\n\n${item.content}`,
-        sourceName:  item.sourceName,
         publishedAt: item.publishedAt ?? undefined,
+        sourceType:  'RSS',
       },
     })
     saved++

@@ -33,38 +33,39 @@ const CONFLICT_TYPE_TO_EVENT: Record<string, EventType> = {
   POLITICAL_DEVELOPMENT: 'POLITICAL_UNREST',
 }
 
-type ConflictRow = Awaited<ReturnType<typeof prisma.conflictEvent.findMany>>[0]
+// AnalysedEvent joined with ConflictEvent — the shape returned by include: { conflictEvent: true }
+type AnalysedRow = Awaited<ReturnType<typeof prisma.analysedEvent.findMany<{ include: { conflictEvent: true } }>>>[0]
 
-function conflictToDTO(ev: ConflictRow): ProcessedEventDTO {
-  const type      = CONFLICT_TYPE_TO_EVENT[ev.eventType] ?? 'ARMED_CONFLICT'
-  // Derive severity from fatalities + confidence
-  const severity  =
+function analysedToDTO(row: AnalysedRow): ProcessedEventDTO {
+  const ev         = row.conflictEvent
+  const type       = CONFLICT_TYPE_TO_EVENT[ev.eventType] ?? 'ARMED_CONFLICT'
+  const severity   =
     ev.fatalities >= 50 ? 5 :
     ev.fatalities >= 11 ? 4 :
     ev.fatalities >= 4  ? 3 :
     ev.fatalities >= 1  ? 2 :
-    ev.confidence >= 0.7 ? 2 : 1
+    row.confidence >= 0.7 ? 2 : 1
   const reliability: ProcessedEventDTO['reliability'] =
-    ev.confidence >= 0.7 ? 'HIGH' : ev.confidence >= 0.4 ? 'MEDIUM' : 'LOW'
+    row.confidence >= 0.7 ? 'HIGH' : row.confidence >= 0.4 ? 'MEDIUM' : 'LOW'
 
   return {
-    id:          ev.id,
-    date:        ev.date.toISOString(),
-    country:     'Myanmar',
-    region:      ev.region,
-    adminArea:   ev.adminArea,
+    id:         ev.id,
+    date:       ev.date.toISOString(),
+    country:    'Myanmar',
+    region:     ev.region,
+    adminArea:  ev.adminArea,
     type,
     severity,
-    summary:     ev.summary,
-    source:      ev.sourceName,
-    sourceUrl:   ev.sourceUrl,
+    summary:    row.summary,
+    source:     '',
+    sourceUrl:  null,
     reliability,
-    confidence:  ev.confidence,
-    latitude:    ev.lat,
-    longitude:   ev.lng,
-    fatalities:  ev.fatalities,
-    actors:      ev.actors,
-    tags:        [ev.eventType, ev.biasFlag].filter(Boolean),
+    confidence: row.confidence,
+    latitude:   ev.lat,
+    longitude:  ev.lng,
+    fatalities: ev.fatalities,
+    actors:     row.actors,
+    tags:       [ev.eventType, ev.biasFlag].filter(Boolean),
   }
 }
 
@@ -78,17 +79,19 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
 
     const regionFilter = { notIn: ['Myanmar', 'Burma', '', 'unknown'] }
     const [currRows, prevRows] = await Promise.all([
-      prisma.conflictEvent.findMany({
-        where:   { date: { gte: week1 }, isActiveIntelligence: true, region: regionFilter },
-        orderBy: { date: 'desc' },
+      prisma.analysedEvent.findMany({
+        where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: week1 }, region: regionFilter } },
+        include: { conflictEvent: true },
+        orderBy: { conflictEvent: { date: 'desc' } },
       }),
-      prisma.conflictEvent.findMany({
-        where: { date: { gte: week2, lt: week1 }, isActiveIntelligence: true, region: regionFilter },
+      prisma.analysedEvent.findMany({
+        where: { isActiveIntelligence: true, conflictEvent: { date: { gte: week2, lt: week1 }, region: regionFilter } },
+        include: { conflictEvent: true },
       }),
     ])
 
-    const curr = currRows.map(conflictToDTO)
-    const prev = prevRows.map(conflictToDTO)
+    const curr = currRows.map(analysedToDTO)
+    const prev = prevRows.map(analysedToDTO)
 
     const riskScores = buildRegionRiskScores(curr, prev)
     const threatcon  = scoresToThreatcon(riskScores)
@@ -143,14 +146,16 @@ async function getRiskScores(): Promise<RiskScoreDTO[]> {
     const cutoff       = subDays(new Date(), 30)
     const regionFilter = { notIn: ['Myanmar', 'Burma', '', 'unknown'] }
     const [currRows, prevRows] = await Promise.all([
-      prisma.conflictEvent.findMany({
-        where: { date: { gte: cutoff }, isActiveIntelligence: true, region: regionFilter },
+      prisma.analysedEvent.findMany({
+        where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: cutoff }, region: regionFilter } },
+        include: { conflictEvent: true },
       }),
-      prisma.conflictEvent.findMany({
-        where: { date: { gte: subDays(new Date(), 60), lt: cutoff }, isActiveIntelligence: true, region: regionFilter },
+      prisma.analysedEvent.findMany({
+        where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: subDays(new Date(), 60), lt: cutoff }, region: regionFilter } },
+        include: { conflictEvent: true },
       }),
     ])
-    return buildRegionRiskScores(currRows.map(conflictToDTO), prevRows.map(conflictToDTO))
+    return buildRegionRiskScores(currRows.map(analysedToDTO), prevRows.map(analysedToDTO))
   } catch (err) {
     console.error('[intel] getRiskScores error:', err)
     return []
@@ -159,12 +164,13 @@ async function getRiskScores(): Promise<RiskScoreDTO[]> {
 
 async function getRecentEvents(): Promise<ProcessedEventDTO[]> {
   try {
-    const rows = await prisma.conflictEvent.findMany({
-      where:   { date: { gte: subDays(new Date(), 30) }, isActiveIntelligence: true, region: { notIn: ['Myanmar', 'Burma', '', 'unknown'] } },
-      orderBy: { date: 'desc' },
+    const rows = await prisma.analysedEvent.findMany({
+      where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: subDays(new Date(), 30) }, region: { notIn: ['Myanmar', 'Burma', '', 'unknown'] } } },
+      include: { conflictEvent: true },
+      orderBy: { conflictEvent: { date: 'desc' } },
       take:    200,
     })
-    return rows.map(conflictToDTO)
+    return rows.map(analysedToDTO)
   } catch (err) {
     console.error('[intel] getRecentEvents error:', err)
     return []

@@ -26,7 +26,14 @@
       "Bash(git pull *)",
       "Bash(git stash *)",
       "Bash(git push *)",
-      "WebFetch(domain:shareyougo.com)"
+      "WebFetch(domain:shareyougo.com)",
+      "Bash(python3 -c ' *)",
+      "Bash(powershell -Command ' *)",
+      "Bash(curl.exe -I https://www.myanmarcivilwar.com)",
+      "Bash(curl.exe -I https://www.myanmarcivilwar.com/map)",
+      "Bash(git checkout *)",
+      "Bash(findstr prisma *)",
+      "PowerShell(Test-NetConnection -ComputerName \"ep-aged-silence-am1f7p5p.c-5.us-east-1.aws.neon.tech\" -Port 5432 -WarningAction SilentlyContinue)"
     ],
     "additionalDirectories": [
       "\\tmp"

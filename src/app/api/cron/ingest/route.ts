@@ -36,21 +36,7 @@ export async function GET(req: NextRequest) {
     results.scrape = { error: String(err) }
   }
 
-  // Step 2 — Process with Claude (up to 3 batches per tick to stay within 300s budget)
-  results.process = []
-  for (let i = 0; i < 3; i++) {
-    try {
-      const processRes = await fetch(`${BASE}/api/cron/process`, { cache: 'no-store', headers })
-      const data       = await processRes.json() as { message?: string; articles?: number }
-      ;(results.process as unknown[]).push(data)
-      if (data.message === 'No unprocessed articles' || (data.articles ?? 0) === 0) break
-    } catch (err) {
-      ;(results.process as unknown[]).push({ error: String(err) })
-      break
-    }
-  }
-
-  // Step 3 — Extract ConflictEvents (loop until all unextracted articles in 7-day window are done)
+  // Step 2 — Extract ConflictEvents + AnalysedEvents (loop to drain 7-day backlog)
   results.extract = []
   for (let i = 0; i < 4; i++) {
     try {
