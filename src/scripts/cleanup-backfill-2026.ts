@@ -128,14 +128,9 @@ async function backfill() {
     for (const article of articles) {
       processed++
       const pubDate = article.publishedAt ?? article.ingestedAt
-      if (pubDate < INTEL_START) {
-        // Mark as "processed" by inserting a dummy skip — easier: just log
-        skipped++
-        // We can't mark it without a ConflictEvent; skip re-query will keep seeing it.
-        // Workaround: update ingestedAt so it falls out of our window? No — just break
-        // the loop if everything keeps being pre-2023. Skip by moving on.
-        continue
-      }
+
+      // Pre-2023 articles: still extract them (stored with isActiveIntelligence=false)
+      // but create a skip marker if no event found so they don't loop infinitely
 
       // Stage 1 — Groq extraction
       let events
@@ -152,6 +147,7 @@ async function backfill() {
 
       if (events.length === 0) {
         skipped++
+        process.stdout.write(`\r  [${processed}/${total}] skip — ${article.title.slice(0, 50).padEnd(50)}`)
         await createSkipMarker(article.id, article.title, pubDate)
         await sleep(500)
         continue
