@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
 
   // Skip articles already extracted into a ConflictEvent
   const extractedIds = await prisma.conflictEvent.findMany({
-    where:  { rawArticleId: { not: null } },
     select: { rawArticleId: true },
   })
   const alreadyExtracted = new Set(extractedIds.map(e => e.rawArticleId!))
