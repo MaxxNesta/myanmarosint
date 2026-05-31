@@ -33,8 +33,9 @@ const CONFLICT_TYPE_TO_EVENT: Record<string, EventType> = {
   POLITICAL_DEVELOPMENT: 'POLITICAL_UNREST',
 }
 
-// AnalysedEvent joined with ConflictEvent — the shape returned by include: { conflictEvent: true }
-type AnalysedRow = Awaited<ReturnType<typeof prisma.analysedEvent.findMany<{ include: { conflictEvent: true } }>>>[0]
+// Infer return type from a typed helper so it works with generated Prisma client
+const _analysedQuery = () => prisma.analysedEvent.findMany({ include: { conflictEvent: true } })
+type AnalysedRow = Awaited<ReturnType<typeof _analysedQuery>>[0]
 
 function analysedToDTO(row: AnalysedRow): ProcessedEventDTO {
   const ev         = row.conflictEvent
