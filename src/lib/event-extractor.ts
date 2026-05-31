@@ -81,6 +81,9 @@ const EXTRACTION_SYSTEM = `You are a Myanmar conflict OSINT analyst. Analyze art
 - Diplomatic meetings, peace talks (unless fighting actually occurred)
 - Sports, entertainment, tourism
 - General governance, elections, administration without violence
+- Drug enforcement, anti-drug operations, gambling crackdowns, crime without armed combat
+- Infrastructure events: bridge openings/closings, road construction, border crossing status changes
+- Any article that explicitly states "no conflict", "no fighting", or "peaceful" with no battle described
 
 ## EXTRACT ONLY these 8 event types:
 CLASH              — armed clash / battle / firefight / တိုက်ပွဲ / တိုက်ခိုက်

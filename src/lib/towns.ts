@@ -74,10 +74,11 @@ export const TOWNS: Town[] = [
   { name_en: 'Ann',          name_mm: 'အမ်း',              lat: 19.77, lng: 94.03, region: 'Rakhine State' },
 
   // Kayin (Karen)
-  { name_en: 'Hpa-An',       name_mm: 'ဘားအံ',             lat: 16.89, lng: 97.63, region: 'Kayin State' },
-  { name_en: 'Myawaddy',     name_mm: 'မြဝတီ',             lat: 16.68, lng: 98.51, region: 'Kayin State' },
-  { name_en: 'Kawkareik',    name_mm: 'ကော်ကရိတ်',          lat: 16.54, lng: 98.24, region: 'Kayin State' },
-  { name_en: 'Kyainseikgyi', name_mm: 'ကျိုင်းဆိပ်ကြီး',    lat: 16.09, lng: 98.46, region: 'Kayin State' },
+  { name_en: 'Hpa-An',        name_mm: 'ဘားအံ',              lat: 16.89, lng: 97.63, region: 'Kayin State' },
+  { name_en: 'Myawaddy',      name_mm: 'မြဝတီ',              lat: 16.68, lng: 98.51, region: 'Kayin State' },
+  { name_en: 'Kawkareik',     name_mm: 'ကော်ကရိတ်',           lat: 16.54, lng: 98.24, region: 'Kayin State' },
+  { name_en: 'Kyainseikgyi',  name_mm: 'ကျိုင်းဆိပ်ကြီး',     lat: 16.09, lng: 98.46, region: 'Kayin State' },
+  { name_en: 'Thandaunggyi',  name_mm: 'သံတောင်ကြီး',         lat: 18.38, lng: 97.52, region: 'Kayin State', aliases: ['thandaung'] },
 
   // Kayah
   { name_en: 'Loikaw',       name_mm: 'လွိုင်ကော်',          lat: 19.67, lng: 97.21, region: 'Kayah State' },
