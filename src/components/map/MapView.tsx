@@ -327,6 +327,12 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
       map.on('mouseleave', 'conflict-circles', () => { map.getCanvas().style.cursor = '' })
 
       mapReadyRef.current = true
+
+      // Flush any conflict events that loaded from the API before the map was ready
+      if (conflictEventsRef.current?.length) {
+        const src = map.getSource('conflict-events') as mapboxgl.GeoJSONSource | undefined
+        src?.setData(conflictToGeoJSON(conflictEventsRef.current))
+      }
     })
 
     mapRef.current = map
