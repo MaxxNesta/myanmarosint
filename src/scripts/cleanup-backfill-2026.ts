@@ -96,16 +96,23 @@ async function cleanup() {
 // Optional: --channel <name>  to process only one channel
 
 async function backfill() {
-  const channelFilter = (() => {
-    const idx = process.argv.indexOf('--channel')
+  const arg = (flag: string) => {
+    const idx = process.argv.indexOf(flag)
     return idx !== -1 ? process.argv[idx + 1] : null
-  })()
+  }
 
-  const label = channelFilter ? `channel: ${channelFilter}` : 'all channels'
+  const channelFilter = arg('--channel')
+  const fromDate      = arg('--from') ? new Date(arg('--from')!) : BACKFILL_START
+  const toDate        = arg('--to')   ? new Date(arg('--to')!)   : new Date()
+
+  const label = [
+    channelFilter ? `channel: ${channelFilter}` : 'all channels',
+    `${fromDate.toISOString().slice(0, 10)} → ${toDate.toISOString().slice(0, 10)}`,
+  ].join(' | ')
   console.log(`\n=== STEP 2: BACKFILL (${label}) ===`)
 
   const where = {
-    publishedAt:    { gte: BACKFILL_START },
+    publishedAt:    { gte: fromDate, lte: toDate },
     conflictEvents: { none: {} },
     ...(channelFilter ? { channelName: channelFilter } : {}),
   }
