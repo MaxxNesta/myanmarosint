@@ -2191,7 +2191,9 @@ footer {
   }
   .nav-links a:last-child { border-bottom: none; }
   .nav-toggle { display: block; }
+  .nav-mobile-only { display: flex !important; }
 }
+.nav-mobile-only { display: none; }
 
 /* Tablet + mobile: key facts narrower grid */
 @media (max-width: 900px) {
