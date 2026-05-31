@@ -149,10 +149,12 @@ export async function getActorActivity(
 
   const byActor = new Map<string, { regions: Set<string>; types: Set<string>; count: number; fatals: number; last: Date }>()
 
+  const SKIP_R = new Set(['Myanmar', 'Burma', '', 'unknown'])
+
   for (const row of rows) {
     for (const actor of row.actors) {
       const entry = byActor.get(actor) ?? { regions: new Set(), types: new Set(), count: 0, fatals: 0, last: row.conflictEvent.date }
-      entry.regions.add(row.conflictEvent.region)
+      if (!SKIP_R.has(row.conflictEvent.region)) entry.regions.add(row.conflictEvent.region)
       entry.types.add(row.conflictEvent.eventType)
       entry.count++
       entry.fatals += row.conflictEvent.fatalities

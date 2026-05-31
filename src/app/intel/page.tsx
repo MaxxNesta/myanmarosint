@@ -34,7 +34,7 @@ const CONFLICT_TYPE_TO_EVENT: Record<string, EventType> = {
 }
 
 // Infer return type from a typed helper so it works with generated Prisma client
-const _analysedQuery = () => prisma.analysedEvent.findMany({ include: { conflictEvent: true } })
+const _analysedQuery = () => prisma.analysedEvent.findMany({ include: { conflictEvent: { include: { rawArticle: true } } } })
 type AnalysedRow = Awaited<ReturnType<typeof _analysedQuery>>[0]
 
 function analysedToDTO(row: AnalysedRow): ProcessedEventDTO {
@@ -58,8 +58,8 @@ function analysedToDTO(row: AnalysedRow): ProcessedEventDTO {
     type,
     severity,
     summary:    row.summary,
-    source:     '',
-    sourceUrl:  null,
+    source:     ev.rawArticle?.channelName ?? '',
+    sourceUrl:  ev.rawArticle?.url ?? null,
     reliability,
     confidence: row.confidence,
     latitude:   ev.lat,
@@ -82,12 +82,12 @@ async function getIntelSummary(): Promise<IntelSummaryDTO | null> {
     const [currRows, prevRows] = await Promise.all([
       prisma.analysedEvent.findMany({
         where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: week1 }, region: regionFilter } },
-        include: { conflictEvent: true },
+        include: { conflictEvent: { include: { rawArticle: true } } },
         orderBy: { conflictEvent: { date: 'desc' } },
       }),
       prisma.analysedEvent.findMany({
         where: { isActiveIntelligence: true, conflictEvent: { date: { gte: week2, lt: week1 }, region: regionFilter } },
-        include: { conflictEvent: true },
+        include: { conflictEvent: { include: { rawArticle: true } } },
       }),
     ])
 
@@ -149,11 +149,11 @@ async function getRiskScores(): Promise<RiskScoreDTO[]> {
     const [currRows, prevRows] = await Promise.all([
       prisma.analysedEvent.findMany({
         where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: cutoff }, region: regionFilter } },
-        include: { conflictEvent: true },
+        include: { conflictEvent: { include: { rawArticle: true } } },
       }),
       prisma.analysedEvent.findMany({
         where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: subDays(new Date(), 60), lt: cutoff }, region: regionFilter } },
-        include: { conflictEvent: true },
+        include: { conflictEvent: { include: { rawArticle: true } } },
       }),
     ])
     return buildRegionRiskScores(currRows.map(analysedToDTO), prevRows.map(analysedToDTO))
