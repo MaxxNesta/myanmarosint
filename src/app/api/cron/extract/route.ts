@@ -55,19 +55,41 @@ export async function GET(req: NextRequest) {
 
     const ev = events[0]
 
-    // Stage 2 — DeepSeek analysis (always produces a result via Option A fallback)
+    // Stage 2 — DeepSeek: attacker/defender analysis + location validation
     const [enr] = await enrichEvents(
-      [{ eventType: ev.eventType, actors: ev.actors, location: ev.location, region: normalizeRegion(ev.region), rawSummary: ev.summary, fatalities: ev.fatalities }],
+      [{
+        eventType:      ev.eventType,
+        actors:         ev.actors,
+        location:       ev.location,
+        region:         normalizeRegion(ev.region),
+        rawSummary:     ev.summary,
+        fatalities:     ev.fatalities,
+        articleContent: article.content.slice(0, 500),
+      }],
       article.title,
     )
 
-    const actors    = normalizeActors(ev.actors)
-    let   region    = normalizeRegion(ev.region)
-    const evDate    = new Date(ev.date)
-    const dedupHash = buildDedupHash({ actors, region, adminArea: ev.adminArea, eventType: ev.eventType, date: evDate })
+    const actors  = normalizeActors(ev.actors)
+    const evDate  = new Date(ev.date)
 
-    const geo = resolveCoordinates(ev.location ?? ev.adminArea ?? '', ev.adminArea ?? '', region)
+    // Location resolution: prefer DeepSeek-validated > township lookup > Groq extraction
+    const rawRegion   = normalizeRegion(ev.region)
+    const rawLocation = ev.location ?? ev.adminArea ?? ''
+    const rawAdmin    = ev.adminArea ?? null
+
+    // Use DeepSeek's corrected location if provided
+    const dsLocation  = enr.location  ?? rawLocation
+    const dsAdmin     = enr.adminArea ?? rawAdmin
+    let   region      = enr.region    ? normalizeRegion(enr.region) : rawRegion
+
+    // Township lookup can still override if it finds an authoritative match
+    const geo = resolveCoordinates(dsLocation, dsAdmin ?? '', region)
     if (geo.region) region = geo.region
+
+    const finalLocation = dsLocation || null
+    const finalAdmin    = dsAdmin || null
+
+    const dedupHash = buildDedupHash({ actors, region, adminArea: finalAdmin, eventType: ev.eventType, date: evDate })
 
     const confidence = Math.round(
       (getBaseReliability(article.channelName) * 0.6 + enr.confidence * 0.4) * 100,
@@ -83,8 +105,8 @@ export async function GET(req: NextRequest) {
             eventType:     ev.eventType,
             date:          evDate,
             region,
-            adminArea:     ev.adminArea ?? null,
-            location:      ev.location ?? null,
+            adminArea:     finalAdmin,
+            location:      finalLocation,
             lat:           geo.coords[1],
             lng:           geo.coords[0],
             summary:       ev.summary.slice(0, 800),
