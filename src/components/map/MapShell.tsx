@@ -123,7 +123,7 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
     [conflictEvents, dateRange],
   )
 
-  const isEmpty = events.length === 0
+  const isEmpty = conflictEvents.length === 0
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)]">
@@ -189,7 +189,7 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
         <div className="panel-header flex items-center justify-between px-3 py-2 border-b border-white/[0.07] shrink-0">
           <span className="text-xs font-bold tracking-widest text-slate-300 font-mono">LAYERS</span>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-mono">{filteredEvents.length} events</span>
+            <span className="text-xs text-slate-500 font-mono">{filteredConflict.length} events</span>
             <button onClick={() => setSidebarOpen(false)} className="text-slate-500 hover:text-slate-300 text-lg leading-none px-1">×</button>
           </div>
         </div>
