@@ -143,14 +143,29 @@ async function main() {
     console.log(`TELEGRAM_SESSION="${sessionStr}"\n`)
   }
 
-  console.log(`\n📡 Importing ${TELEGRAM_SOURCES.length} channels  |  from: ${MIN_DATE.toDateString()}  |  to: now`)
+  // Optional: --channel <username>  to import a single channel for testing
+  const channelFilter = (() => {
+    const idx = process.argv.indexOf('--channel')
+    return idx !== -1 ? process.argv[idx + 1]?.toLowerCase() : null
+  })()
+
+  const sources = channelFilter
+    ? TELEGRAM_SOURCES.filter(s => s.username.toLowerCase() === channelFilter)
+    : TELEGRAM_SOURCES
+
+  if (channelFilter && sources.length === 0) {
+    console.error(`❌ Channel "${channelFilter}" not found in TELEGRAM_SOURCES`)
+    process.exit(1)
+  }
+
+  console.log(`\n📡 Importing ${sources.length} channel(s)  |  from: ${MIN_DATE.toDateString()}  |  to: now`)
   console.log('─'.repeat(60))
 
   let totalSaved = 0
   let totalSkipped = 0
 
-  for (let i = 0; i < TELEGRAM_SOURCES.length; i++) {
-    const source = TELEGRAM_SOURCES[i]
+  for (let i = 0; i < sources.length; i++) {
+    const source = sources[i]
     process.stdout.write(`[${i + 1}/${TELEGRAM_SOURCES.length}] ${source.name.padEnd(26)} `)
 
     const { saved, skipped, errors } = await importChannel(client, source.username, source.name)
@@ -160,7 +175,7 @@ async function main() {
     totalSkipped += skipped
 
     // 2-second pause between channels
-    if (i < TELEGRAM_SOURCES.length - 1) await sleep(2000)
+    if (i < sources.length - 1) await sleep(2000)
   }
 
   console.log('─'.repeat(60))
@@ -172,7 +187,7 @@ async function main() {
       change:   `Telegram import: ${totalSaved} messages from ${TELEGRAM_SOURCES.length} channels`,
       reason:   'npm run telegram:import',
       source:   'Telegram MTProto API',
-      metadata: { totalSaved, totalSkipped, channels: TELEGRAM_SOURCES.length },
+      metadata: { totalSaved, totalSkipped, channels: sources.length },
     },
   })
 
