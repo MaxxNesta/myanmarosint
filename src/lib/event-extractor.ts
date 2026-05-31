@@ -361,6 +361,24 @@ async function extractWithGroq(
   return []
 }
 
+// ── Hard pre-filter (runs before any API call) ───────────────────────────────
+// These patterns block non-conflict articles that LLMs misclassify despite the
+// SKIP prompt — matched against the title only for precision.
+
+const TITLE_SKIP_PATTERNS: RegExp[] = [
+  /(crack\s*down|crackdown)\s+on\s+(drug|gambl)/i,
+  /\banti[-\s]?drug\b/i,
+  /\bdrug\s+(enforcement|crackdown|bust|seiz)/i,
+  /\bgambling\s+(crackdown|ban|raid|bust)/i,
+  /friendship\s+bridge.*(open|reopen|close|closure)/i,
+  /bridge.*(reopen|open|closed|closure).*no\s+conflict/i,
+  /border\s+crossing.*(reopen|open|close|status)/i,
+]
+
+function isTitleSkipped(title: string): boolean {
+  return TITLE_SKIP_PATTERNS.some(rx => rx.test(title))
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export async function extractEvents(
@@ -369,6 +387,9 @@ export async function extractEvents(
   sourceName:  string,
   publishedAt: Date | null,
 ): Promise<ExtractedEvent[]> {
+  // Hard gate — block known non-conflict article types before calling any API
+  if (isTitleSkipped(title)) return []
+
   if (process.env.GROQ_API_KEY) {
     try {
       const events = await extractWithGroq(title, content, sourceName, publishedAt)

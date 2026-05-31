@@ -22,7 +22,8 @@
     "db:migrate": "tsx --env-file=.env.local src/scripts/db-migrate.ts",
     "backfill": "tsx --env-file=.env.local src/scripts/backfill-source-types.ts",
     "delete:source": "tsx --env-file=.env.local src/scripts/delete-source.ts",
-    "ingest:neatogeo": "tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts"
+    "ingest:neatogeo": "tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts",
+    "cleanup:backfill": "tsx --env-file=.env.local src/scripts/cleanup-backfill-2026.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
