@@ -1,26 +1,27 @@
 /**
- * Import geo-confirmed conflict events from neatogeo_Myanmar War Map.geojson
- * into ConflictEvent + AnalysedEvent tables.
+ * Import geo-confirmed conflict events from neatogeo_Myanmar War Map.geojson.
+ * Each event links to a RawArticle with the ACTUAL source URL from the feature
+ * description (e.g. Narinjara, DVB, Shan News, Twitter/X) so the map shows
+ * real, clickable source links instead of a generic NeatoGeo entry.
  *
- * Uses one synthetic RawArticle (channelName='NeatoGeo') shared by all events.
- * Safe to re-run — deletes previous NeatoGeo events first.
+ * Re-run safe: deletes existing NeatoGeo-sourced events by dedupHash before
+ * inserting, so source links update on re-import.
  *
  * Run: tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts
  */
-import * as fs   from 'fs'
-import * as path from 'path'
+import * as fs     from 'fs'
+import * as path   from 'path'
 import * as crypto from 'crypto'
 import type { ConflictEventType } from '@prisma/client'
-import { makePrisma }       from './make-prisma'
-import { parseNeatogeo }    from '../lib/parse-neatogeo'
+import { makePrisma }                   from './make-prisma'
+import { parseNeatogeo }                from '../lib/parse-neatogeo'
 import { normalizeRegion, normalizeActors } from '../lib/normalizer'
 
-const prisma = makePrisma()
-
+const prisma      = makePrisma()
 const INTEL_START = new Date('2023-01-01T00:00:00Z')
-const CHUNK = 100
+const CHUNK       = 50
 
-// Map NeatoGeo extended types → Prisma enum (which lacks AMBUSH, CIVILIAN_HARM, etc.)
+// Map NeatoGeo extended types → Prisma ConflictEventType enum
 const TYPE_REMAP: Record<string, ConflictEventType> = {
   AMBUSH:             'CLASH',
   CIVILIAN_HARM:      'HUMANITARIAN_CRISIS',
@@ -28,59 +29,108 @@ const TYPE_REMAP: Record<string, ConflictEventType> = {
   CEASEFIRE:          'POLITICAL_DEVELOPMENT',
   ARMED_MOBILIZATION: 'CLASH',
 }
+const remapType = (t: string): ConflictEventType =>
+  (TYPE_REMAP[t] ?? t) as ConflictEventType
 
-function remapType(t: string): ConflictEventType {
-  return (TYPE_REMAP[t] ?? t) as ConflictEventType
+// Deterministic dedupHash for NeatoGeo events
+function neatoHash(lat: number | null, lng: number | null, date: string, actors: string[]): string {
+  return crypto
+    .createHash('sha256')
+    .update(`neatogeo-${lat?.toFixed(5)}-${lng?.toFixed(5)}-${date}-${actors.join('+')}`)
+    .digest('hex')
+    .slice(0, 32)
+}
+
+// RawArticle cache: url → id  (avoids redundant DB lookups for repeated URLs)
+const articleCache = new Map<string, string>()
+
+async function getOrCreateArticle(
+  sourceUrl:   string,
+  sourceName:  string,
+  publishedAt: Date,
+  fallbackId:  string,
+): Promise<string> {
+  if (!sourceUrl) return fallbackId
+
+  if (articleCache.has(sourceUrl)) return articleCache.get(sourceUrl)!
+
+  // Try existing (could have been ingested by RSS pipeline too)
+  const existing = await prisma.rawArticle.findUnique({ where: { url: sourceUrl } })
+  if (existing) {
+    articleCache.set(sourceUrl, existing.id)
+    return existing.id
+  }
+
+  try {
+    const created = await prisma.rawArticle.create({
+      data: {
+        url:         sourceUrl,
+        channelName: sourceName,
+        title:       `NeatoGeo event — ${sourceName}`,
+        content:     '',
+        sourceType:  'EXTERNAL',
+        publishedAt,
+      },
+    })
+    articleCache.set(sourceUrl, created.id)
+    return created.id
+  } catch {
+    // Race condition or URL too long — fall back
+    return fallbackId
+  }
 }
 
 async function main() {
-  // ── Load GeoJSON ────────────────────────────────────────────────────────────
+  // ── Load files ────────────────────────────────────────────────────────────────
   const geojsonPath = path.join(process.cwd(), 'neatogeo_Myanmar War Map.geojson')
   console.log('Reading:', geojsonPath)
   const geojson = JSON.parse(fs.readFileSync(geojsonPath, 'utf8'))
 
-  // State polygon file for accurate region lookup
   const stateGeoPath = path.join(process.cwd(), 'map data/dist/geojson/state-regions.geojson')
   let stateFeatures: unknown[] | undefined
   if (fs.existsSync(stateGeoPath)) {
     stateFeatures = JSON.parse(fs.readFileSync(stateGeoPath, 'utf8')).features
-    console.log('Loaded state polygons for region lookup')
-  } else {
-    console.warn('state-regions.geojson not found — using bounding-box fallback')
+    console.log('Loaded state polygons')
   }
 
   const parsed = parseNeatogeo(geojson, stateFeatures as Parameters<typeof parseNeatogeo>[1])
-  console.log(`Parsed ${parsed.length} valid Point features from ${geojson.features.length} total`)
+  console.log(`Parsed ${parsed.length} valid features from ${geojson.features.length} total`)
 
-  // ── Upsert synthetic NeatoGeo RawArticle ────────────────────────────────────
-  let neatoArticle = await prisma.rawArticle.findFirst({ where: { channelName: 'NeatoGeo' } })
-  if (!neatoArticle) {
-    neatoArticle = await prisma.rawArticle.create({
+  // ── Fallback RawArticle for events without a source URL ───────────────────────
+  let fallback = await prisma.rawArticle.findFirst({ where: { channelName: 'NeatoGeo', url: null } })
+  if (!fallback) {
+    fallback = await prisma.rawArticle.create({
       data: {
         url:         null,
         channelName: 'NeatoGeo',
         title:       'NeatoGeo Myanmar War Map — Geo-confirmed Events',
-        content:     'External geo-confirmed conflict events from NeatoGeo Myanmar War Map.',
+        content:     'Geo-confirmed conflict events from NeatoGeo Myanmar War Map.',
         sourceType:  'EXTERNAL',
         publishedAt: new Date('2024-01-01'),
       },
     })
-    console.log('Created NeatoGeo synthetic RawArticle:', neatoArticle.id)
-  } else {
-    console.log('Reusing NeatoGeo RawArticle:', neatoArticle.id)
   }
+  const fallbackId = fallback.id
+  console.log('Fallback RawArticle:', fallbackId)
 
-  // ── Delete previous NeatoGeo ConflictEvents ──────────────────────────────────
-  const existing = await prisma.conflictEvent.findMany({
-    where:  { rawArticleId: neatoArticle.id },
-    select: { id: true },
-  })
-  if (existing.length > 0) {
-    await prisma.conflictEvent.deleteMany({ where: { rawArticleId: neatoArticle.id } })
-    console.log(`Deleted ${existing.length} previous NeatoGeo events`)
+  // ── Collect all dedupHashes to delete existing records cleanly ────────────────
+  const allHashes = parsed
+    .map(ev => neatoHash(ev.lat, ev.lng, ev.date, ev.actors))
+    .filter(Boolean)
+
+  // Delete in chunks (IN clause has limits)
+  const HASH_CHUNK = 500
+  let deleted = 0
+  for (let i = 0; i < allHashes.length; i += HASH_CHUNK) {
+    const batch = allHashes.slice(i, i + HASH_CHUNK)
+    const result = await prisma.conflictEvent.deleteMany({
+      where: { dedupHash: { in: batch } },
+    })
+    deleted += result.count
   }
+  if (deleted > 0) console.log(`Deleted ${deleted} previous NeatoGeo events`)
 
-  // ── Build insert batches ─────────────────────────────────────────────────────
+  // ── Insert ────────────────────────────────────────────────────────────────────
   let inserted = 0, skipped = 0
 
   for (let i = 0; i < parsed.length; i += CHUNK) {
@@ -88,24 +138,21 @@ async function main() {
 
     for (const ev of chunk) {
       const region = normalizeRegion(ev.region)
-      if (region === 'Myanmar') { skipped++; continue }   // no useful location
+      if (region === 'Myanmar') { skipped++; continue }
 
       const eventType  = remapType(ev.eventType)
       const actors     = normalizeActors(ev.actors)
       const evDate     = new Date(`${ev.date}T12:00:00Z`)
       if (isNaN(evDate.getTime())) { skipped++; continue }
 
-      const dedupHash = crypto
-        .createHash('sha256')
-        .update(`neatogeo-${ev.lat?.toFixed(5)}-${ev.lng?.toFixed(5)}-${ev.date}-${ev.actors.join('+')}`)
-        .digest('hex')
-        .slice(0, 32)
+      const dedupHash = neatoHash(ev.lat, ev.lng, ev.date, ev.actors)
+      const articleId = await getOrCreateArticle(ev.sourceUrl, ev.sourceName, evDate, fallbackId)
 
       try {
         const conflict = await prisma.conflictEvent.upsert({
           where:  { dedupHash },
           create: {
-            rawArticleId:  neatoArticle!.id,
+            rawArticleId:  articleId,
             eventType,
             date:          evDate,
             region,
@@ -121,8 +168,9 @@ async function main() {
             dedupHash,
           },
           update: {
-            lat:    ev.lat,
-            lng:    ev.lng,
+            rawArticleId: articleId,   // update source link on re-import
+            lat:          ev.lat,
+            lng:          ev.lng,
             region,
           },
         })
@@ -144,27 +192,27 @@ async function main() {
         inserted++
       } catch (err) {
         skipped++
-        if (skipped <= 5) console.error('  insert error:', String(err).slice(0, 120))
+        if (skipped <= 5) console.error('  err:', String(err).slice(0, 100))
       }
     }
 
     process.stdout.write(`\r  ${Math.min(i + CHUNK, parsed.length)}/${parsed.length} — inserted: ${inserted}, skipped: ${skipped}`)
   }
 
-  console.log(`\n\n✓ NeatoGeo import complete — inserted: ${inserted}, skipped: ${skipped}`)
+  console.log(`\n\n✓ Done — inserted: ${inserted}, skipped: ${skipped}`)
 
-  // Summary by year
-  const byYear = await prisma.conflictEvent.groupBy({
-    by:      ['date'],
-    where:   { rawArticleId: neatoArticle!.id },
-    _count:  { date: true },
+  // Source breakdown
+  const breakdown = await prisma.rawArticle.groupBy({
+    by:      ['channelName'],
+    where:   { conflictEvents: { some: {} } },
+    _count:  { channelName: true },
+    orderBy: { _count: { channelName: 'desc' } },
+    take:    15,
   })
-  const yearCounts: Record<string, number> = {}
-  for (const r of byYear) {
-    const y = new Date(r.date).getFullYear().toString()
-    yearCounts[y] = (yearCounts[y] || 0) + r._count.date
+  console.log('\nTop source channels for NeatoGeo events:')
+  for (const r of breakdown) {
+    console.log(`  ${r.channelName.padEnd(28)} ${r._count.channelName}`)
   }
-  console.log('\nEvents by year:', JSON.stringify(yearCounts, null, 2))
 }
 
 main()
