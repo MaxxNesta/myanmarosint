@@ -78,9 +78,9 @@ async function importChannel(
         await prisma.rawArticle.create({
           data: {
             url,
+            channelName: sourceName,
             title,
             content:     `${title}\n\n${text}`.slice(0, 8000),
-            sourceName,
             sourceType:  'TELEGRAM',
             publishedAt: new Date(message.date * 1000),
           },
@@ -165,7 +165,7 @@ async function main() {
 
   console.log('─'.repeat(60))
   console.log(`✅ Done — ${totalSaved} new messages imported, ${totalSkipped} duplicates skipped`)
-  console.log('👉 Run: npm run process   (to classify the imported articles)')
+  console.log('👉 Run: npm run cleanup:backfill   (to extract conflict events from imported messages)')
 
   await prisma.updateLog.create({
     data: {

@@ -15,7 +15,7 @@ import { resolveCoordinates } from '../lib/geocoding'
 import { getBaseReliability } from '../lib/confidence'
 
 const prisma         = makePrisma()
-const BACKFILL_START = new Date('2025-01-01T00:00:00Z')
+const BACKFILL_START = new Date('2021-02-01T00:00:00Z')
 const INTEL_START    = new Date('2023-01-01T00:00:00Z')
 const BATCH          = 10
 const DELAY_MS       = 1500
