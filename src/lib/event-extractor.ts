@@ -84,6 +84,8 @@ const EXTRACTION_SYSTEM = `You are a Myanmar conflict OSINT analyst. Analyze art
 - Drug enforcement, anti-drug operations, gambling crackdowns, crime without armed combat
 - Infrastructure events: bridge openings/closings, road construction, border crossing status changes
 - Any article that explicitly states "no conflict", "no fighting", or "peaceful" with no battle described
+- Opinion pieces, analysis, commentary, editorial, strategy essays — any article arguing WHAT SHOULD happen rather than reporting WHAT DID happen
+- Articles without a specific dated event (e.g. "Myanmar revolution must...", "resistance should...", "how to win...")
 
 ## EXTRACT ONLY these 8 event types:
 CLASH              — armed clash / battle / firefight / တိုက်ပွဲ / တိုက်ခိုက်
@@ -130,7 +132,7 @@ const FALLBACK_TYPE_MAP: [RegExp, ConflictEventType][] = [
   [/displace[sd]?|flee|fled|evacuat|refugee|ဒုက္ခသည်|ထွက်ပြေး/i,                              'DISPLACEMENT'],
   [/humanitarian|civilian.{0,20}kill|atrocit|massacre|aid.{0,10}block/i,                       'HUMANITARIAN_CRISIS'],
   [/political\s+develop|NUG|NLD|CRPH|parliament|government.{0,20}form/i,                       'POLITICAL_DEVELOPMENT'],
-  [/clash|battle|fight|combat|gun.?fight|firefight|skirmish|တိုက်ပွဲ|တိုက်ခိုက်/i,            'CLASH'],
+  [/clash|battle|\bfight\b|\bfighting\b|combat|gun.?fight|firefight|skirmish|တိုက်ပွဲ|တိုက်ခိုက်/i, 'CLASH'],
 ]
 
 const REGION_MAP: [RegExp, string][] = [
@@ -168,8 +170,9 @@ const FATAL_PATTERNS = [
 const RANGE_PATTERN = /(\d+)\s*(?:to|-)\s*(\d+)\s*(?:soldiers?|troops?|people|civilians?)?\s*killed/i
 
 // Battle signal — must match at least one for fallback to trigger
+// Use \b around "fight" so "outfight", "gunfight" compounds don't false-trigger
 const BATTLE_SIGNAL =
-  /clash|battle|fight|airstrike|bomb|shell|seize|captur|displace|flee|fled|humanitarian|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ကျဆုံး|ဒုက္ခသည်/i
+  /clash|battle|\bfight\b|\bfighting\b|airstrike|bomb|shell|seize|captur|displace|flee|fled|humanitarian|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းယူ|ဒုံး|လေကြောင်း|ကျဆုံး|ဒုက္ခသည်/i
 
 const ACTOR_PATTERNS: [RegExp, string][] = [
   [/\btatmadaw\b|myanmar\s+(?:military|army|air\s+force)|state\s+administration\s+council|\bsac\b(?!\w)|\bjunta\b|\bregime\b|military\s+council|စစ်တပ်|တပ်မတော်|စစ်ကောင်စီ/i, 'Tatmadaw'],
@@ -366,13 +369,22 @@ async function extractWithGroq(
 // SKIP prompt — matched against the title only for precision.
 
 const TITLE_SKIP_PATTERNS: RegExp[] = [
+  // Drug / crime enforcement
   /(crack\s*down|crackdown)\s+on\s+(drug|gambl)/i,
   /\banti[-\s]?drug\b/i,
   /\bdrug\s+(enforcement|crackdown|bust|seiz)/i,
   /\bgambling\s+(crackdown|ban|raid|bust)/i,
+  // Infrastructure / border
   /friendship\s+bridge.*(open|reopen|close|closure)/i,
   /bridge.*(reopen|open|closed|closure).*no\s+conflict/i,
   /border\s+crossing.*(reopen|open|close|status)/i,
+  // Opinion / analysis pieces (argue what "should" happen, not what did happen)
+  /\b(must|should)\s+(out\w+|win|lose|fight\s+back|strat)/i,
+  /\b(opinion|editorial|commentary|analysis|column)\b/i,
+  /\bhow\s+to\s+(win|defeat|stop|end)\b/i,
+  /\bwinning\s+ground\s+but\s+losing\b/i,
+  /\blosing\s+the\s+narrative\b/i,
+  /outthink|outsmart|outmaneuver/i,
 ]
 
 function isTitleSkipped(title: string): boolean {

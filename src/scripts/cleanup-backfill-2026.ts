@@ -34,17 +34,34 @@ async function cleanup() {
         { rawArticle: { title: { contains: 'DKBA',             mode: 'insensitive' } } },
         { rawArticle: { title: { contains: 'Friendship Bridge', mode: 'insensitive' } } },
         { rawArticle: { title: { contains: 'crack down',        mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'outthink',          mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'outfight',          mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'losing the narrat', mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'winning ground',    mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'must not forsake',  mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'crossroads',        mode: 'insensitive' } } },
       ]
     },
     include: { rawArticle: { select: { title: true } } },
   })
 
-  const bad = candidates.filter(ev => {
-    const t = ev.rawArticle.title.toLowerCase()
-    const isDKBACrackdown  = t.includes('dkba') && (t.includes('drug') || t.includes('gambling') || t.includes('crack down'))
-    const isBridgeReopening = t.includes('friendship bridge') && (t.includes('reopen') || t.includes('open') || t.includes('no conflict'))
-    return isDKBACrackdown || isBridgeReopening
-  })
+  const OPINION_PATTERNS = [
+    /(crack\s*down|crackdown)\s+on\s+(drug|gambl)/i,
+    /\banti[-\s]?drug\b/i,
+    /friendship\s+bridge.*(open|reopen|close)/i,
+    /outthink|outsmart|outmaneuver|outfight/i,
+    /winning\s+ground\s+but\s+losing/i,
+    /losing\s+the\s+narrative/i,
+    /must\s+not\s+forsake/i,
+    /\bcrossroads\b.*world\s+must/i,
+    /\b(opinion|editorial|commentary|analysis)\b/i,
+    /built\s+to\s+win.*civil\s+war/i,
+    /new\s+resistance\s+alliance\s+built/i,
+  ]
+
+  const bad = candidates.filter(ev =>
+    OPINION_PATTERNS.some(rx => rx.test(ev.rawArticle.title))
+  )
 
   if (bad.length === 0) {
     console.log('No bad events found — already clean.')
