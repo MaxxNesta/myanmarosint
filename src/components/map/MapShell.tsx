@@ -95,10 +95,10 @@ export default function MapShell({ initialEvents, initialRiskScores }: Props) {
   const fetchLatestEvents = useCallback(async () => {
     setPolling(true)
     try {
-      const res  = await fetch('/api/events?limit=500', { cache: 'no-store' })
+      const res  = await fetch('/api/conflict-events?limit=5000', { cache: 'no-store' })
       if (!res.ok) return
-      const data = await res.json() as { events?: ProcessedEventDTO[] }
-      if (data.events?.length) { setEvents(data.events); setLastUpdated(new Date()) }
+      const data = await res.json() as { events?: ConflictEventDTO[] }
+      if (data.events?.length) { setConflict(data.events); setLastUpdated(new Date()) }
     } catch { /* keep stale */ } finally { setPolling(false) }
   }, [])
 
