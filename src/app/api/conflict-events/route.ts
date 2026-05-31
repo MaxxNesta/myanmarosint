@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
     }))
 
     return NextResponse.json({ events, total, limit }, {
-      headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=3600' },
+      headers: { 'Cache-Control': 's-maxage=30, stale-while-revalidate=60' },
     })
   } catch (err) {
     console.error('GET /api/conflict-events error:', err)
