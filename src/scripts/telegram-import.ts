@@ -24,8 +24,17 @@ const API_ID   = Number(process.env.TELEGRAM_API_ID)
 const API_HASH = process.env.TELEGRAM_API_HASH ?? ''
 const SESSION  = process.env.TELEGRAM_SESSION  ?? ''
 
-const MIN_DATE     = new Date('2021-02-01')
+const MIN_DATE      = new Date('2021-02-01')
 const MIN_DATE_UNIX = Math.floor(MIN_DATE.getTime() / 1000)
+
+// Only store messages that contain conflict-related signals.
+// This keeps DB size manageable — filters out ~90% of general news posts.
+const CONFLICT_SIGNAL =
+  /clash|battle|attack|airstrike|air.?strike|artillery|mortar|shelling|bomb|killed|troops|soldiers|seized|captured|offensive|ambush|firefight|drone|strike|ceasefire|displaced|casualties|fatalities|တိုက်ပွဲ|တိုက်ခိုက်|သိမ်းပိုက်|ကျဆုံး|လေကြောင်း|ဒုံး|မော်တာ|ဒုက္ခသည်|သေဆုံး|ထိခိုက်|ရာဇဝတ်မှု|စစ်တပ်|တပ်မတော်/i
+
+function isConflictRelevant(text: string): boolean {
+  return CONFLICT_SIGNAL.test(text)
+}
 
 const prisma = makePrisma()
 
@@ -63,6 +72,9 @@ async function importChannel(
 
       // Skip anything before our cutoff (API sometimes returns a few earlier)
       if (message.date < MIN_DATE_UNIX) continue
+
+      // Skip non-conflict messages to keep DB size manageable
+      if (!isConflictRelevant(message.message)) { skipped++; continue }
 
       const url = `https://t.me/${username}/${message.id}`
 
