@@ -187,8 +187,16 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
   // returns false whenever tiles are still loading (i.e. almost always while dragging)
   const mapReadyRef         = useRef(false)
 
-  useEffect(() => { conflictEventsRef.current = conflictEvents }, [conflictEvents])
-  useEffect(() => { eventsRef.current         = events         }, [events])
+  useEffect(() => {
+    conflictEventsRef.current = conflictEvents
+    // If map is already ready, push immediately — handles the case where
+    // the API responds after the map fires 'load'
+    if (mapReadyRef.current) {
+      const src = mapRef.current?.getSource('conflict-events') as mapboxgl.GeoJSONSource | undefined
+      src?.setData(conflictToGeoJSON(conflictEvents))
+    }
+  }, [conflictEvents])
+  useEffect(() => { eventsRef.current = events }, [events])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -351,12 +359,7 @@ export default function MapView({ events, conflictEvents, showHeatmap, showConfl
     src?.setData(toGeoJSON(events))
   }, [events])
 
-  // ── Update ConflictEvent GeoJSON ──────────────────────
-  useEffect(() => {
-    if (!mapReadyRef.current) return
-    const src = mapRef.current?.getSource('conflict-events') as mapboxgl.GeoJSONSource | undefined
-    src?.setData(conflictToGeoJSON(conflictEvents))
-  }, [conflictEvents])
+  // ConflictEvent GeoJSON is updated in the conflictEventsRef effect above
 
   // ── Toggle heatmap ────────────────────────────��───────
   useEffect(() => {
