@@ -92,29 +92,33 @@ async function cleanup() {
   console.log(`✓ Skip markers created for ${bad.length} article(s).`)
 }
 
-// ─── Step 2: Backfill 2026-01-01 → today ─────────────────────────────────────
+// ─── Step 2: Backfill ────────────────────────────────────────────────────────
+// Optional: --channel <name>  to process only one channel
 
 async function backfill() {
-  console.log('\n=== STEP 2: BACKFILL 2026-01-01 → TODAY ===')
+  const channelFilter = (() => {
+    const idx = process.argv.indexOf('--channel')
+    return idx !== -1 ? process.argv[idx + 1] : null
+  })()
 
-  const total = await prisma.rawArticle.count({
-    where: {
-      publishedAt:    { gte: BACKFILL_START },
-      conflictEvents: { none: {} },
-    },
-  })
+  const label = channelFilter ? `channel: ${channelFilter}` : 'all channels'
+  console.log(`\n=== STEP 2: BACKFILL (${label}) ===`)
+
+  const where = {
+    publishedAt:    { gte: BACKFILL_START },
+    conflictEvents: { none: {} },
+    ...(channelFilter ? { channelName: channelFilter } : {}),
+  }
+
+  const total = await prisma.rawArticle.count({ where })
   console.log(`${total} unprocessed articles in range.\n`)
   if (total === 0) { console.log('Nothing to backfill.'); return }
 
   let saved = 0, skipped = 0, processed = 0
 
   while (true) {
-    // Re-query each batch so already-processed articles are excluded naturally
     const articles = await prisma.rawArticle.findMany({
-      where: {
-        publishedAt:    { gte: BACKFILL_START },
-        conflictEvents: { none: {} },
-      },
+      where,
       orderBy: { publishedAt: 'asc' },
       take: BATCH,
     })
