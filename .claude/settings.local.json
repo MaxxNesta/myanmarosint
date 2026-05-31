@@ -33,7 +33,10 @@
       "Bash(curl.exe -I https://www.myanmarcivilwar.com/map)",
       "Bash(git checkout *)",
       "Bash(findstr prisma *)",
-      "PowerShell(Test-NetConnection -ComputerName \"ep-aged-silence-am1f7p5p.c-5.us-east-1.aws.neon.tech\" -Port 5432 -WarningAction SilentlyContinue)"
+      "PowerShell(Test-NetConnection -ComputerName \"ep-aged-silence-am1f7p5p.c-5.us-east-1.aws.neon.tech\" -Port 5432 -WarningAction SilentlyContinue)",
+      "Bash(curl.exe -s -o /dev/null -w \"%{http_code}\" https://www.myanmarcivilwar.com/api/cron/ingest)",
+      "Bash(curl.exe -s -X GET \"https://www.myanmarcivilwar.com/api/cron/ingest\" -H \"Authorization: Bearer x9Kf2Pq7LmR8zA1sD4wE6tYb3UjN5\")",
+      "Bash(curl.exe -s \"https://www.myanmarcivilwar.com/api/cron/ingest\" -H \"Authorization: Bearer x9Kf2Pq7LmR8zA1sD4wE6tYb3UjN5\")"
     ],
     "additionalDirectories": [
       "\\tmp"
