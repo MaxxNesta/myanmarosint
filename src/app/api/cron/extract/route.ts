@@ -87,7 +87,10 @@ export async function GET(req: NextRequest) {
     if (geo.region) region = geo.region
 
     const finalLocation = dsLocation || null
-    const finalAdmin    = dsAdmin || null
+    const finalAdmin    = dsAdmin    || null
+
+    // Quality gate: skip events with no usable location (country-level only)
+    if (region === 'Myanmar' && !finalLocation && !finalAdmin) { skipped++; continue }
 
     const dedupHash = buildDedupHash({ actors, region, adminArea: finalAdmin, eventType: ev.eventType, date: evDate })
 

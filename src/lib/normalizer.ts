@@ -110,6 +110,8 @@ const REGION_ALIASES: Record<string, string> = {
   'ayeyarwady':          'Ayeyarwady Region',
   'irrawaddy':           'Ayeyarwady Region',
   'naypyidaw':           'Naypyidaw Union Territory',
+  'nay pyi taw':         'Naypyidaw Union Territory',
+  'nay pyi daw':         'Naypyidaw Union Territory',
   'tanintharyi':         'Tanintharyi Region',
   'mergui':              'Tanintharyi Region',
 }

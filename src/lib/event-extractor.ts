@@ -378,17 +378,34 @@ const TITLE_SKIP_PATTERNS: RegExp[] = [
   /friendship\s+bridge.*(open|reopen|close|closure)/i,
   /bridge.*(reopen|open|closed|closure).*no\s+conflict/i,
   /border\s+crossing.*(reopen|open|close|status)/i,
-  // Opinion / analysis pieces (argue what "should" happen, not what did happen)
+  // Opinion / analysis / advocacy pieces
   /\b(must|should)\s+(out\w+|win|lose|fight\s+back|strat)/i,
   /\b(opinion|editorial|commentary|analysis|column)\b/i,
   /\bhow\s+to\s+(win|defeat|stop|end)\b/i,
   /\bwinning\s+ground\s+but\s+losing\b/i,
   /\blosing\s+the\s+narrative\b/i,
-  /outthink|outsmart|outmaneuver/i,
+  /outthink|outsmart|outmaneuver|outfight/i,
+  // Advocacy / campaign titles without specific events
+  /\bbreak\s+the\s+cycle\s+of\b/i,
+  /\bmust\s+not\s+forsake\b/i,
+  /\b(built|designed)\s+to\s+win\b/i,
+  /\bnew\s+.{0,30}alliance\s+built\b/i,
+  /\bworld\s+must\b/i,
+  /\bcalls?\s+on\s+the\s+world\b/i,
+  /\burges\s+(the\s+)?(world|international|un\b)/i,
 ]
+
+// Myanmar relevance check — if the title contains no Myanmar-related terms,
+// the article is off-topic (e.g. Fortify Rights publishing global content)
+const MYANMAR_SIGNAL =
+  /myanmar|burma|tatmadaw|junta|\bpdf\b|\bkia\b|\baa\b|\btnla\b|\bmndaa\b|sagaing|rakhine|kachin|shan|kayin|karen|kayah|chin\s+state|mandalay|yangon|naypyidaw|irrawaddy|arakan|မြန်မာ|ဗမာ/i
 
 function isTitleSkipped(title: string): boolean {
   return TITLE_SKIP_PATTERNS.some(rx => rx.test(title))
+}
+
+function isMyanmarRelevant(title: string, content: string): boolean {
+  return MYANMAR_SIGNAL.test(title) || MYANMAR_SIGNAL.test(content.slice(0, 600))
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -401,6 +418,7 @@ export async function extractEvents(
 ): Promise<ExtractedEvent[]> {
   // Hard gate — block known non-conflict article types before calling any API
   if (isTitleSkipped(title)) return []
+  if (!isMyanmarRelevant(title, content)) return []
 
   if (process.env.GROQ_API_KEY) {
     try {

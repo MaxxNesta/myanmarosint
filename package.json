@@ -23,7 +23,9 @@
     "backfill": "tsx --env-file=.env.local src/scripts/backfill-source-types.ts",
     "delete:source": "tsx --env-file=.env.local src/scripts/delete-source.ts",
     "ingest:neatogeo": "tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts",
-    "cleanup:backfill": "tsx --env-file=.env.local src/scripts/cleanup-backfill-2026.ts"
+    "cleanup:backfill": "tsx --env-file=.env.local src/scripts/cleanup-backfill-2026.ts",
+    "ingest:neatogeo":  "tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts",
+    "db:stats":         "tsx --env-file=.env.local src/scripts/db-stats.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

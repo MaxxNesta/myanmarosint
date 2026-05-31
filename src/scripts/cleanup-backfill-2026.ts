@@ -15,7 +15,7 @@ import { resolveCoordinates } from '../lib/geocoding'
 import { getBaseReliability } from '../lib/confidence'
 
 const prisma         = makePrisma()
-const BACKFILL_START = new Date('2026-01-01T00:00:00Z')
+const BACKFILL_START = new Date('2025-01-01T00:00:00Z')
 const INTEL_START    = new Date('2023-01-01T00:00:00Z')
 const BATCH          = 10
 const DELAY_MS       = 1500
@@ -34,12 +34,16 @@ async function cleanup() {
         { rawArticle: { title: { contains: 'DKBA',             mode: 'insensitive' } } },
         { rawArticle: { title: { contains: 'Friendship Bridge', mode: 'insensitive' } } },
         { rawArticle: { title: { contains: 'crack down',        mode: 'insensitive' } } },
-        { rawArticle: { title: { contains: 'outthink',          mode: 'insensitive' } } },
-        { rawArticle: { title: { contains: 'outfight',          mode: 'insensitive' } } },
-        { rawArticle: { title: { contains: 'losing the narrat', mode: 'insensitive' } } },
-        { rawArticle: { title: { contains: 'winning ground',    mode: 'insensitive' } } },
-        { rawArticle: { title: { contains: 'must not forsake',  mode: 'insensitive' } } },
-        { rawArticle: { title: { contains: 'crossroads',        mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'outthink',           mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'outfight',           mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'losing the narrat',  mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'winning ground',     mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'must not forsake',   mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'crossroads',         mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'break the cycle',    mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'trafficked to fight',mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'alliance built',     mode: 'insensitive' } } },
+        { rawArticle: { title: { contains: 'impunity',           mode: 'insensitive' } } },
       ]
     },
     include: { rawArticle: { select: { title: true } } },
@@ -56,7 +60,10 @@ async function cleanup() {
     /\bcrossroads\b.*world\s+must/i,
     /\b(opinion|editorial|commentary|analysis)\b/i,
     /built\s+to\s+win.*civil\s+war/i,
-    /new\s+resistance\s+alliance\s+built/i,
+    /new\s+.{0,30}alliance\s+built/i,
+    /\bbreak\s+the\s+cycle\s+of\s+impunity/i,
+    /trafficked\s+to\s+fight/i,
+    /\bholds?\s+.{0,30}hostage\b/i,
   ]
 
   const bad = candidates.filter(ev =>

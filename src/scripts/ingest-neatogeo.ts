@@ -1,125 +1,170 @@
-import * as fs from 'fs'
+/**
+ * Import geo-confirmed conflict events from neatogeo_Myanmar War Map.geojson
+ * into ConflictEvent + AnalysedEvent tables.
+ *
+ * Uses one synthetic RawArticle (channelName='NeatoGeo') shared by all events.
+ * Safe to re-run — deletes previous NeatoGeo events first.
+ *
+ * Run: tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts
+ */
+import * as fs   from 'fs'
 import * as path from 'path'
 import * as crypto from 'crypto'
-import { makePrisma } from './make-prisma'
-import { extractSource, inferRegion, parseName } from '../lib/parse-neatogeo'
+import type { ConflictEventType } from '@prisma/client'
+import { makePrisma }       from './make-prisma'
+import { parseNeatogeo }    from '../lib/parse-neatogeo'
+import { normalizeRegion, normalizeActors } from '../lib/normalizer'
 
 const prisma = makePrisma()
 
-// Load actual state/region polygon boundaries for accurate region lookup
-const stateGeoJSON = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), 'map data/dist/geojson/state-regions.geojson'), 'utf8')
-)
-const stateFeatures = stateGeoJSON.features
+const INTEL_START = new Date('2023-01-01T00:00:00Z')
+const CHUNK = 100
 
-type EventType = 'CLASH' | 'AIRSTRIKE' | 'ARTILLERY_SHELLING' | 'AMBUSH' |
-  'SIEGE_SEIZED' | 'RECAPTURED' | 'WITHDRAWAL' | 'CEASEFIRE' |
-  'ARMED_MOBILIZATION' | 'CIVILIAN_HARM' | 'DISPLACEMENT' |
-  'HUMANITARIAN_CRISIS' | 'POLITICAL_DEVELOPMENT'
+// Map NeatoGeo extended types → Prisma enum (which lacks AMBUSH, CIVILIAN_HARM, etc.)
+const TYPE_REMAP: Record<string, ConflictEventType> = {
+  AMBUSH:             'CLASH',
+  CIVILIAN_HARM:      'HUMANITARIAN_CRISIS',
+  WITHDRAWAL:         'CLASH',
+  CEASEFIRE:          'POLITICAL_DEVELOPMENT',
+  ARMED_MOBILIZATION: 'CLASH',
+}
 
-function inferEventType(actorRaw: string, location: string): EventType {
-  const s = (actorRaw + ' ' + location).toLowerCase()
-  if (s.includes('airstrike') || s.includes('air strike')) return 'AIRSTRIKE'
-  if (s.includes('shelling') || s.includes('artillery'))   return 'ARTILLERY_SHELLING'
-  if (s.includes('seized') || s.includes('captured'))      return 'SIEGE_SEIZED'
-  if (s.includes('ambush'))                                 return 'AMBUSH'
-  if (s.includes('burn') || s.includes('war crime'))       return 'CIVILIAN_HARM'
-  if (s.includes('withdraw') || s.includes('retreat'))     return 'WITHDRAWAL'
-  return 'CLASH'
+function remapType(t: string): ConflictEventType {
+  return (TYPE_REMAP[t] ?? t) as ConflictEventType
 }
 
 async function main() {
+  // ── Load GeoJSON ────────────────────────────────────────────────────────────
   const geojsonPath = path.join(process.cwd(), 'neatogeo_Myanmar War Map.geojson')
   console.log('Reading:', geojsonPath)
   const geojson = JSON.parse(fs.readFileSync(geojsonPath, 'utf8'))
-  const features = geojson.features as Array<{
-    type: string
-    properties: { name: string; description?: string }
-    geometry: { type: string; coordinates: number[] }
-  }>
 
-  console.log(`Total features: ${features.length}`)
-
-  // Delete previous import so re-runs cleanly replace with updated source names
-  const deleted = await prisma.conflictEvent.deleteMany({ where: { sourceType: 'GEOCONFIRMED' } })
-  console.log(`Deleted ${deleted.count} previous GEOCONFIRMED records`)
-
-  const records = []
-  let skipped = 0
-
-  for (const feat of features) {
-    if (feat.geometry.type !== 'Point') { skipped++; continue }
-
-    const [lng, lat] = feat.geometry.coordinates
-    if (!lat || !lng || isNaN(lat) || isNaN(lng)) { skipped++; continue }
-
-    const parsed = parseName(feat.properties.name || '')
-    if (!parsed) { skipped++; continue }
-
-    const { actorRaw, date: dateISO, location } = parsed
-    const date = new Date(`${dateISO}T12:00:00Z`)
-    if (isNaN(date.getTime())) { skipped++; continue }
-
-    const actorParts = actorRaw.split(/[\/\+]/).map((s: string) => s.trim()).filter(Boolean)
-    const { sourceName, sourceUrl } = extractSource(feat.properties.description || '')
-
-    const dedupHash = crypto
-      .createHash('sha256')
-      .update(`neatogeo-${lat.toFixed(5)}-${lng.toFixed(5)}-${dateISO}-${actorRaw}`)
-      .digest('hex')
-      .slice(0, 32)
-
-    records.push({
-      eventType:          inferEventType(actorRaw, location),
-      date,
-      region:             inferRegion(lat, lng, stateFeatures),
-      adminArea:          null as string | null,
-      location:           location || actorRaw,
-      lat,
-      lng,
-      actors:             actorParts,
-      attackerActor:      actorParts[0] || null as string | null,
-      defenderActor:      actorParts[1] || null as string | null,
-      summary:            location ? `${actorRaw} — ${location}` : actorRaw,
-      fatalities:         0,
-      fatalitiesMin:      0,
-      fatalitiesMax:      0,
-      sourceUrl,
-      sourceName,
-      sourceType:         'GEOCONFIRMED',
-      biasFlag:           'neutral',
-      confidence:         0.85,
-      dedupHash,
-      isActiveIntelligence: true,
-    })
+  // State polygon file for accurate region lookup
+  const stateGeoPath = path.join(process.cwd(), 'map data/dist/geojson/state-regions.geojson')
+  let stateFeatures: unknown[] | undefined
+  if (fs.existsSync(stateGeoPath)) {
+    stateFeatures = JSON.parse(fs.readFileSync(stateGeoPath, 'utf8')).features
+    console.log('Loaded state polygons for region lookup')
+  } else {
+    console.warn('state-regions.geojson not found — using bounding-box fallback')
   }
 
-  console.log(`Parsed: ${records.length} records, skipped: ${skipped}`)
+  const parsed = parseNeatogeo(geojson, stateFeatures as Parameters<typeof parseNeatogeo>[1])
+  console.log(`Parsed ${parsed.length} valid Point features from ${geojson.features.length} total`)
 
-  // Preview source distribution
-  const srcCount: Record<string, number> = {}
-  records.forEach(r => { srcCount[r.sourceName] = (srcCount[r.sourceName] || 0) + 1 })
-  const topSources = Object.entries(srcCount).sort((a, b) => b[1] - a[1]).slice(0, 10)
-  console.log('Source breakdown:')
-  topSources.forEach(([s, c]) => console.log(`  ${c.toString().padStart(4)}  ${s}`))
-
-  // Batch insert
-  const CHUNK = 200
-  let inserted = 0
-  let dupes    = 0
-
-  for (let i = 0; i < records.length; i += CHUNK) {
-    const chunk = records.slice(i, i + CHUNK)
-    const result = await prisma.conflictEvent.createMany({
-      data:           chunk,
-      skipDuplicates: true,
+  // ── Upsert synthetic NeatoGeo RawArticle ────────────────────────────────────
+  let neatoArticle = await prisma.rawArticle.findFirst({ where: { channelName: 'NeatoGeo' } })
+  if (!neatoArticle) {
+    neatoArticle = await prisma.rawArticle.create({
+      data: {
+        url:         null,
+        channelName: 'NeatoGeo',
+        title:       'NeatoGeo Myanmar War Map — Geo-confirmed Events',
+        content:     'External geo-confirmed conflict events from NeatoGeo Myanmar War Map.',
+        sourceType:  'EXTERNAL',
+        publishedAt: new Date('2024-01-01'),
+      },
     })
-    inserted += result.count
-    dupes    += chunk.length - result.count
-    process.stdout.write(`\r  ${Math.min(i + CHUNK, records.length)}/${records.length} — inserted: ${inserted}, dupes: ${dupes}`)
+    console.log('Created NeatoGeo synthetic RawArticle:', neatoArticle.id)
+  } else {
+    console.log('Reusing NeatoGeo RawArticle:', neatoArticle.id)
   }
 
-  console.log(`\nDone. Inserted: ${inserted}, duplicates skipped: ${dupes}`)
+  // ── Delete previous NeatoGeo ConflictEvents ──────────────────────────────────
+  const existing = await prisma.conflictEvent.findMany({
+    where:  { rawArticleId: neatoArticle.id },
+    select: { id: true },
+  })
+  if (existing.length > 0) {
+    await prisma.conflictEvent.deleteMany({ where: { rawArticleId: neatoArticle.id } })
+    console.log(`Deleted ${existing.length} previous NeatoGeo events`)
+  }
+
+  // ── Build insert batches ─────────────────────────────────────────────────────
+  let inserted = 0, skipped = 0
+
+  for (let i = 0; i < parsed.length; i += CHUNK) {
+    const chunk = parsed.slice(i, i + CHUNK)
+
+    for (const ev of chunk) {
+      const region = normalizeRegion(ev.region)
+      if (region === 'Myanmar') { skipped++; continue }   // no useful location
+
+      const eventType  = remapType(ev.eventType)
+      const actors     = normalizeActors(ev.actors)
+      const evDate     = new Date(`${ev.date}T12:00:00Z`)
+      if (isNaN(evDate.getTime())) { skipped++; continue }
+
+      const dedupHash = crypto
+        .createHash('sha256')
+        .update(`neatogeo-${ev.lat?.toFixed(5)}-${ev.lng?.toFixed(5)}-${ev.date}-${ev.actors.join('+')}`)
+        .digest('hex')
+        .slice(0, 32)
+
+      try {
+        const conflict = await prisma.conflictEvent.upsert({
+          where:  { dedupHash },
+          create: {
+            rawArticleId:  neatoArticle!.id,
+            eventType,
+            date:          evDate,
+            region,
+            adminArea:     ev.adminArea,
+            location:      ev.location,
+            lat:           ev.lat,
+            lng:           ev.lng,
+            summary:       ev.summary.slice(0, 800),
+            fatalities:    ev.fatalities,
+            fatalitiesMin: ev.fatalitiesMin,
+            fatalitiesMax: ev.fatalitiesMax,
+            biasFlag:      ev.biasFlag,
+            dedupHash,
+          },
+          update: {
+            lat:    ev.lat,
+            lng:    ev.lng,
+            region,
+          },
+        })
+
+        await prisma.analysedEvent.upsert({
+          where:  { conflictEventId: conflict.id },
+          create: {
+            conflictEventId:      conflict.id,
+            attackerActor:        actors[0] ?? null,
+            defenderActor:        actors[1] ?? null,
+            actors,
+            confidence:           0.85,
+            summary:              ev.summary.slice(0, 800),
+            isActiveIntelligence: evDate >= INTEL_START,
+          },
+          update: {},
+        })
+
+        inserted++
+      } catch (err) {
+        skipped++
+        if (skipped <= 5) console.error('  insert error:', String(err).slice(0, 120))
+      }
+    }
+
+    process.stdout.write(`\r  ${Math.min(i + CHUNK, parsed.length)}/${parsed.length} — inserted: ${inserted}, skipped: ${skipped}`)
+  }
+
+  console.log(`\n\n✓ NeatoGeo import complete — inserted: ${inserted}, skipped: ${skipped}`)
+
+  // Summary by year
+  const byYear = await prisma.conflictEvent.groupBy({
+    by:      ['date'],
+    where:   { rawArticleId: neatoArticle!.id },
+    _count:  { date: true },
+  })
+  const yearCounts: Record<string, number> = {}
+  for (const r of byYear) {
+    const y = new Date(r.date).getFullYear().toString()
+    yearCounts[y] = (yearCounts[y] || 0) + r._count.date
+  }
+  console.log('\nEvents by year:', JSON.stringify(yearCounts, null, 2))
 }
 
 main()
