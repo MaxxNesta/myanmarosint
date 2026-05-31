@@ -167,7 +167,7 @@ async function getRecentEvents(): Promise<ProcessedEventDTO[]> {
   try {
     const rows = await prisma.analysedEvent.findMany({
       where:   { isActiveIntelligence: true, conflictEvent: { date: { gte: subDays(new Date(), 30) }, region: { notIn: ['Myanmar', 'Burma', '', 'unknown'] } } },
-      include: { conflictEvent: true },
+      include: { conflictEvent: { include: { rawArticle: true } } },
       orderBy: { conflictEvent: { date: 'desc' } },
       take:    200,
     })
