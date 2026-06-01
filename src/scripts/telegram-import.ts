@@ -24,8 +24,16 @@ const API_ID   = Number(process.env.TELEGRAM_API_ID)
 const API_HASH = process.env.TELEGRAM_API_HASH ?? ''
 const SESSION  = process.env.TELEGRAM_SESSION  ?? ''
 
-const MIN_DATE      = new Date('2021-02-01')
+// Date range — overridable via --from / --to CLI args
+const argDate = (flag: string) => {
+  const idx = process.argv.indexOf(flag)
+  return idx !== -1 && process.argv[idx + 1] ? new Date(process.argv[idx + 1]) : null
+}
+
+const MIN_DATE      = argDate('--from') ?? new Date('2021-02-01')
+const MAX_DATE      = argDate('--to')   ?? null   // null = no upper bound
 const MIN_DATE_UNIX = Math.floor(MIN_DATE.getTime() / 1000)
+const MAX_DATE_UNIX = MAX_DATE ? Math.floor(MAX_DATE.getTime() / 1000) : null
 
 // Only store messages that contain conflict-related signals.
 // This keeps DB size manageable — filters out ~90% of general news posts.
@@ -70,8 +78,8 @@ async function importChannel(
       const text = message.message?.trim()
       if (!text) continue
 
-      // Skip anything before our cutoff (API sometimes returns a few earlier)
       if (message.date < MIN_DATE_UNIX) continue
+      if (MAX_DATE_UNIX && message.date > MAX_DATE_UNIX) continue
 
       // Skip non-conflict messages to keep DB size manageable
       if (!isConflictRelevant(message.message)) { skipped++; continue }
@@ -170,7 +178,8 @@ async function main() {
     process.exit(1)
   }
 
-  console.log(`\n📡 Importing ${sources.length} channel(s)  |  from: ${MIN_DATE.toDateString()}  |  to: now`)
+  const toLabel = MAX_DATE ? MAX_DATE.toDateString() : 'now'
+  console.log(`\n📡 Importing ${sources.length} channel(s)  |  from: ${MIN_DATE.toDateString()}  |  to: ${toLabel}`)
   console.log('─'.repeat(60))
 
   let totalSaved = 0
