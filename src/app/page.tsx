@@ -244,36 +244,136 @@ export default function HomePage() {
       </section>
 
       {/* ── Pipeline ── */}
-      <section className="border-t border-white/[0.07] py-12">
+      <section className="border-t border-white/[0.07] py-14">
         <div className="max-w-screen-xl mx-auto px-6">
-          <p className="text-[9px] font-mono text-slate-600 tracking-[0.2em] uppercase mb-6">
-            Data Pipeline
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/[0.06]">
-            {[
-              {
-                step:   '01 — Scrape',
-                engine: 'RSS + HTTP',
-                desc:   'RFA, Irrawaddy, Myanmar Now, BNI, DVB scraped daily. Articles matching conflict keywords saved to the raw article store.',
-              },
-              {
-                step:   '02 — Extract',
-                engine: 'Groq · Llama 3.3 70B',
-                desc:   'Each article parsed for structured events — date, location, type, actors, casualties. Business and economic articles are discarded.',
-              },
-              {
-                step:   '03 — Analyse',
-                engine: 'DeepSeek · deepseek-chat',
-                desc:   'Identifies attacker and defender, detects allied actors, writes a military intelligence summary, assigns a confidence score.',
-              },
-            ].map(s => (
-              <div key={s.step} className="py-4 sm:px-6 sm:first:pl-0 sm:last:pr-0">
-                <div className="text-[9px] font-mono text-slate-400 tracking-widest uppercase mb-1">{s.step}</div>
-                <div className="text-[9px] font-mono text-slate-600 mb-3">{s.engine}</div>
-                <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
+
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <p className="text-[9px] font-mono text-slate-600 tracking-[0.2em] uppercase mb-1">Intelligence Pipeline</p>
+              <h2 className="text-lg font-bold text-slate-200">How raw news becomes a verified conflict event</h2>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-slate-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Runs every 6 hours · automated
+            </div>
+          </div>
+
+          {/* Step flow */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            {/* 01 */}
+            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">01</span>
+                <span className="text-xs font-mono text-blue-400 tracking-wide">INGEST</span>
+                <span className="text-[10px] font-mono text-slate-700 ml-auto">RSS + Telegram</span>
               </div>
+              <p className="text-sm font-medium text-slate-300 mb-2">28 sources scraped</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                28 Myanmar news RSS feeds + 7 Telegram channels (Irrawaddy, DVB, Khit Thit, BBC Burmese, Myanmar Now and more) polled every 6 hours. Each article is checked for Myanmar relevance before storage.
+              </p>
+              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
+                Sources: Irrawaddy · DVB · Myanmar Now · RFA · BNI · Narinjara · Kachin News · Karen News · Mizzima · Al Jazeera · Reuters +17 more
+              </div>
+            </div>
+
+            {/* 02 */}
+            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">02</span>
+                <span className="text-xs font-mono text-yellow-400 tracking-wide">FILTER</span>
+                <span className="text-[10px] font-mono text-slate-700 ml-auto">~90% discarded</span>
+              </div>
+              <p className="text-sm font-medium text-slate-300 mb-2">Conflict keyword gate</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                Articles must match at least one conflict signal in English or Burmese script before being processed. Economy, politics, sports, opinion pieces, and advocacy articles are discarded before any AI call is made.
+              </p>
+              <div className="flex flex-wrap gap-1 border-t border-white/[0.05] pt-3">
+                {['clash','airstrike','shelling','seized','killed','တိုက်ပွဲ','လေကြောင်း','သိမ်းပိုက်','ကျဆုံး','ဒုံး'].map(k => (
+                  <span key={k} className="text-[9px] font-mono text-slate-600 bg-white/[0.04] px-1.5 py-0.5 rounded">{k}</span>
+                ))}
+                <span className="text-[9px] font-mono text-slate-700">+40 more</span>
+              </div>
+            </div>
+
+            {/* 03 */}
+            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">03</span>
+                <span className="text-xs font-mono text-orange-400 tracking-wide">EXTRACT</span>
+                <span className="text-[10px] font-mono text-slate-700 ml-auto">Groq · Llama 3.3 70B</span>
+              </div>
+              <p className="text-sm font-medium text-slate-300 mb-2">Structured event extraction</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                Llama 3.3 70B reads each article (English and Burmese) and extracts a structured conflict event: event type, date, location, actors, attacker, defender, and casualty estimates. Non-conflict articles return empty.
+              </p>
+              <div className="flex flex-wrap gap-1 border-t border-white/[0.05] pt-3">
+                {['CLASH','AIRSTRIKE','SHELLING','SIEGE','RECAPTURED','DISPLACEMENT','HUMANITARIAN','POLITICAL'].map(t => (
+                  <span key={t} className="text-[9px] font-mono text-slate-600 bg-white/[0.04] px-1.5 py-0.5 rounded">{t}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* 04 */}
+            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">04</span>
+                <span className="text-xs font-mono text-purple-400 tracking-wide">VALIDATE</span>
+                <span className="text-[10px] font-mono text-slate-700 ml-auto">DeepSeek · deepseek-chat</span>
+              </div>
+              <p className="text-sm font-medium text-slate-300 mb-2">Location correction + alliance rules</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                DeepSeek corrects common extraction errors — wrong state assignment, source location vs. event location. Enforces alliance rules: PDF/CDF always fight together, 3BHA (TNLA+MNDAA+AA) are never split across sides.
+              </p>
+              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
+                Output: attackerActor · defenderActor · corrected region · confidence 0–1
+              </div>
+            </div>
+
+            {/* 05 */}
+            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">05</span>
+                <span className="text-xs font-mono text-green-400 tracking-wide">GEOCODE</span>
+                <span className="text-[10px] font-mono text-slate-700 ml-auto">200+ township DB</span>
+              </div>
+              <p className="text-sm font-medium text-slate-300 mb-2">Coordinate resolution</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                Location names are matched against a 200+ Myanmar township coordinate database. Falls back to state polygon centroid lookup using GeoJSON boundaries. Events with no resolvable state are discarded — no vague country-level pins.
+              </p>
+              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
+                Precision levels: exact town → township centroid → district → state/region
+              </div>
+            </div>
+
+            {/* 06 */}
+            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">06</span>
+                <span className="text-xs font-mono text-red-400 tracking-wide">STORE</span>
+                <span className="text-[10px] font-mono text-slate-700 ml-auto">Neon PostgreSQL</span>
+              </div>
+              <p className="text-sm font-medium text-slate-300 mb-2">Deduplication + confidence scoring</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                Each event is SHA-256 hashed on actors + region + type + date. Duplicate events from different sources increment confidence rather than creating duplicate pins. Confidence = source reliability × corroboration count × DeepSeek score.
+              </p>
+              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
+                Schema: RawArticle → ConflictEvent → AnalysedEvent · 3-stage pipeline
+              </div>
+            </div>
+
+          </div>
+
+          {/* Flow bar */}
+          <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] font-mono text-slate-700">
+            {['RSS / Telegram','Keyword filter','Llama 3.3 70B','DeepSeek validation','Township geocode','Dedup + score','Mapbox GL map'].map((s, i, arr) => (
+              <span key={s} className="flex items-center gap-2">
+                <span className="text-slate-500">{s}</span>
+                {i < arr.length - 1 && <span className="text-slate-800">→</span>}
+              </span>
             ))}
           </div>
+
         </div>
       </section>
 
