@@ -30,7 +30,7 @@ const config: Config = {
       },
       fontFamily: {
         mono: ['var(--font-mono)', 'JetBrains Mono', 'Fira Code', 'monospace'],
-        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Arial', 'var(--font-inter)', 'Inter', 'Helvetica Neue', 'system-ui', 'sans-serif'],
       },
       borderColor: {
         DEFAULT: 'rgba(255,255,255,0.07)',

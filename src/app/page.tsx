@@ -278,20 +278,20 @@ export default function HomePage() {
                 <div>
                   <div className="text-[72px] font-black leading-none font-mono text-blue-500/25 select-none"
                     style={{ textShadow: '0 0 60px #3b82f620', WebkitTextStroke: '1px #3b82f635' }}>28</div>
-                  <p className="text-[9px] font-mono text-slate-600 mt-0.5">sources monitored</p>
+                  <p className="text-xs text-slate-500 mt-0.5">sources monitored</p>
                   <div className="flex items-baseline gap-1.5 mt-3">
                     <span className="text-[18px] font-bold font-mono text-blue-400/70">312</span>
-                    <span className="text-[9px] text-slate-600">articles/run</span>
+                    <span className="text-xs text-slate-500">articles/run</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-3 uppercase">Active feeds</p>
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-3 uppercase">Active feeds</p>
                   <div className="flex flex-wrap gap-1.5">
                     {['Irrawaddy','DVB','Myanmar Now','RFA Burma','BNI Multimedia','Narinjara','Kachin News','BBC Burmese','Al Jazeera','Reuters','Karen News','SHAN','Mizzima','7Day News','The Diplomat','VOA Burmese','+11 feeds'].map(s => (
                       <span key={s} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-blue-500/15 text-blue-400/60 bg-blue-500/[0.04]">{s}</span>
                     ))}
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-4 leading-relaxed">Each article pre-screened for Myanmar relevance before entering the pipeline. Non-Myanmar content dropped before any AI call.</p>
+                  <p className="text-sm text-slate-500 mt-4 leading-relaxed">Each article pre-screened for Myanmar relevance before entering the pipeline. Non-Myanmar content dropped before any AI call.</p>
                 </div>
                 <div className="rounded border border-blue-500/20 bg-black/50 overflow-hidden">
                   <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-blue-500/10 bg-blue-950/20">
@@ -324,7 +324,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-4 mb-2">
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-[32px] font-black font-mono text-slate-400 leading-none">312</span>
-                    <span className="text-[9px] font-mono text-slate-600">in</span>
+                    <span className="text-xs text-slate-500">in</span>
                   </div>
                   <div className="flex-1 relative h-6">
                     <div className="absolute inset-0 rounded-sm overflow-hidden flex">
@@ -337,21 +337,21 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-[32px] font-black font-mono text-yellow-400 leading-none">31</span>
-                    <span className="text-[9px] font-mono text-slate-600">out</span>
+                    <span className="text-xs text-slate-500">out</span>
                   </div>
                 </div>
-                <p className="text-[9px] font-mono text-slate-700">281 articles discarded · zero LLM calls wasted</p>
+                <p className="text-xs text-slate-600">281 articles discarded · zero LLM calls wasted</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
                 <div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-3 uppercase">Keyword triggers</p>
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-3 uppercase">Keyword triggers</p>
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {['clash','battle','airstrike','shelling','seized','killed','strike','offensive','displaced','တိုက်ပွဲ','လေကြောင်း','သိမ်းပိုက်','ကျဆုံး','ဒုံး','စစ်ဆင်ရေး','+35 more'].map(t => (
                       <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-yellow-500/15 text-yellow-400/60 bg-yellow-500/[0.04]">{t}</span>
                     ))}
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed">Articles must match at least one conflict signal before Groq is called. Opinion pieces, economic news, and elections are rejected here.</p>
+                  <p className="text-sm text-slate-500 leading-relaxed">Articles must match at least one conflict signal before Groq is called. Opinion pieces, economic news, and elections are rejected here.</p>
                 </div>
                 <div className="rounded border border-yellow-500/20 bg-black/50 overflow-hidden">
                   <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-yellow-500/10 bg-yellow-950/20">
@@ -382,7 +382,7 @@ export default function HomePage() {
               {/* Raw → JSON transformation */}
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_28px_1fr] gap-4 items-start mb-6">
                 <div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-2 uppercase">Raw article excerpt</p>
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-2 uppercase">Raw article excerpt</p>
                   <div className="rounded border border-white/[0.05] bg-white/[0.02] p-3 font-mono text-[10px] text-slate-500 leading-relaxed">
                     &ldquo;At least{' '}<span className="bg-orange-500/20 text-orange-300 px-0.5 rounded-sm">4 soldiers killed</span>{' '}in a{' '}
                     <span className="bg-orange-500/20 text-orange-300 px-0.5 rounded-sm">clash</span>{' '}near{' '}
@@ -392,7 +392,7 @@ export default function HomePage() {
                     <span className="bg-purple-500/20 text-purple-300 px-0.5 rounded-sm">Tatmadaw</span>{' '}
                     forces according to local sources...&rdquo;
                   </div>
-                  <div className="flex gap-3 mt-2 font-mono text-[8px] text-slate-700">
+                  <div className="flex gap-3 mt-2 text-[10px] text-slate-600">
                     <span><span className="inline-block w-2 h-2 rounded-sm bg-orange-500/20 mr-1" />event signal</span>
                     <span><span className="inline-block w-2 h-2 rounded-sm bg-blue-500/20 mr-1" />location</span>
                     <span><span className="inline-block w-2 h-2 rounded-sm bg-green-500/20 mr-1" />date</span>
@@ -403,7 +403,7 @@ export default function HomePage() {
                   <span className="text-orange-500/30 text-lg font-mono">→</span>
                 </div>
                 <div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-2 uppercase">Structured output</p>
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-2 uppercase">Structured output</p>
                   <div className="rounded border border-orange-500/20 bg-black/50 overflow-hidden">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-orange-500/10 bg-orange-950/20">
                       <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
@@ -437,29 +437,29 @@ export default function HomePage() {
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
                 <div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-4 uppercase">Corrections applied</p>
-                  <div className="space-y-3 mb-6 font-mono text-[10px]">
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-4 uppercase">Corrections applied</p>
+                  <div className="space-y-3 mb-6 text-sm">
                     {[
                       { label: 'state assignment', before: '"Sagaing"', after: '"Sagaing Region"' },
                       { label: 'location vs source', before: 'mixed up', after: 'event location only' },
                     ].map(d => (
                       <div key={d.label} className="flex items-center gap-3">
-                        <span className="text-slate-700 w-32 shrink-0">{d.label}</span>
+                        <span className="text-slate-500 w-36 shrink-0">{d.label}</span>
                         <span className="text-red-400/40 line-through">{d.before}</span>
                         <span className="text-slate-700">→</span>
                         <span className="text-green-400">{d.after}</span>
                       </div>
                     ))}
                   </div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-3 uppercase">Hard alliance rules</p>
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-3 uppercase">Hard alliance rules</p>
                   <div className="flex flex-wrap gap-2">
                     {[
                       { label: 'PDF + CDF', desc: 'always same side' },
                       { label: '3BHA coalition', desc: 'TNLA + MNDAA + AA never split' },
                     ].map(r => (
-                      <div key={r.label} className="flex items-center gap-2 text-[9px] font-mono px-2.5 py-1.5 rounded border border-purple-500/20 bg-purple-500/[0.04]">
-                        <span className="text-purple-400">{r.label}</span>
-                        <span className="text-slate-700">{r.desc}</span>
+                      <div key={r.label} className="flex items-center gap-2 px-2.5 py-1.5 rounded border border-purple-500/20 bg-purple-500/[0.04]">
+                        <span className="text-[10px] font-mono font-bold text-purple-400">{r.label}</span>
+                        <span className="text-xs text-slate-500">{r.desc}</span>
                       </div>
                     ))}
                   </div>
@@ -493,8 +493,8 @@ export default function HomePage() {
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
                 <div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-4 uppercase">Precision cascade</p>
-                  <div className="space-y-2.5 font-mono text-[10px]">
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-4 uppercase">Precision cascade</p>
+                  <div className="space-y-2.5 text-sm">
                     {[
                       { sym: '●', label: 'exact town', example: 'Sagaing township', coords: '21.8833°N  95.9833°E', color: '#22c55e' },
                       { sym: '◉', label: 'township centroid', example: 'Sagaing District', coords: '21.9°N  96.1°E', color: '#22c55e88' },
@@ -503,10 +503,10 @@ export default function HomePage() {
                       { sym: '✕', label: 'Myanmar only — discard', example: 'no specific state', coords: '— dropped', color: '#ef4444' },
                     ].map(p => (
                       <div key={p.label} className="flex items-center gap-3">
-                        <span className="w-4 shrink-0 text-center text-base leading-none" style={{ color: p.color }}>{p.sym}</span>
-                        <span className="text-slate-600 w-32 shrink-0">{p.label}</span>
-                        <span className="text-slate-700 flex-1">{p.example}</span>
-                        <span className="text-slate-700 hidden sm:block tabular-nums">{p.coords}</span>
+                        <span className="w-4 shrink-0 text-center text-base leading-none font-mono" style={{ color: p.color }}>{p.sym}</span>
+                        <span className="text-slate-500 w-36 shrink-0">{p.label}</span>
+                        <span className="text-slate-600 flex-1">{p.example}</span>
+                        <span className="text-slate-600 hidden sm:block tabular-nums font-mono text-xs">{p.coords}</span>
                       </div>
                     ))}
                   </div>
@@ -539,8 +539,8 @@ export default function HomePage() {
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
                 <div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-4 uppercase">3-stage schema</p>
-                  <div className="flex items-center gap-0 font-mono text-[9px] mb-6 flex-wrap gap-y-2">
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-4 uppercase">3-stage schema</p>
+                  <div className="flex items-center gap-0 text-[9px] mb-6 flex-wrap gap-y-2">
                     {[
                       { table: 'RawArticle', fields: 'url · title · body · fetched_at' },
                       null,
@@ -551,17 +551,17 @@ export default function HomePage() {
                       <span key={i} className="text-red-500/25 px-2 font-mono">→</span>
                     ) : (
                       <div key={i} className="rounded border border-red-500/20 bg-red-500/[0.04] px-3 py-2">
-                        <div className="font-bold text-red-400 mb-1">{item.table}</div>
-                        <div className="text-slate-700 text-[8px]">{item.fields}</div>
+                        <div className="font-bold font-mono text-red-400 mb-1 text-[10px]">{item.table}</div>
+                        <div className="text-slate-500 text-[10px]">{item.fields}</div>
                       </div>
                     ))}
                   </div>
-                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-2 uppercase">Dedup fingerprint</p>
+                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-2 uppercase">Dedup fingerprint</p>
                   <div className="font-mono text-[9px] text-slate-600 mb-1">
                     SHA-256(<span className="text-slate-500">&quot;PDF+Tatmadaw | Sagaing | CLASH | 2026-06-01&quot;</span>)
                   </div>
                   <div className="font-mono text-[9px] text-red-400/40">→ a7f3e9c2...d841f</div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed mt-3">Same clash from multiple outlets → confidence increases, not duplicate pins.</p>
+                  <p className="text-sm text-slate-500 leading-relaxed mt-3">Same clash from multiple outlets → confidence increases, not duplicate pins.</p>
                 </div>
                 <div className="rounded border border-red-500/20 bg-black/50 overflow-hidden">
                   <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-red-500/10 bg-red-950/20">
@@ -609,7 +609,7 @@ export default function HomePage() {
               ) : (
                 <div key={i} className="flex flex-col items-center">
                   <span className="text-[10px] font-mono font-semibold" style={{ color: item.color }}>{item.label}</span>
-                  <span className="text-[8px] font-mono text-slate-700">{item.sub}</span>
+                  <span className="text-[9px] text-slate-600">{item.sub}</span>
                 </div>
               ))}
             </div>
