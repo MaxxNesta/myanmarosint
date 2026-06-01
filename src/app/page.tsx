@@ -244,134 +244,375 @@ export default function HomePage() {
       </section>
 
       {/* ── Pipeline ── */}
-      <section className="border-t border-white/[0.07] py-14">
+      <section className="border-t border-white/[0.07] py-20 overflow-hidden">
         <div className="max-w-screen-xl mx-auto px-6">
 
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <p className="text-[9px] font-mono text-slate-600 tracking-[0.2em] uppercase mb-1">Intelligence Pipeline</p>
-              <h2 className="text-lg font-bold text-slate-200">How raw news becomes a verified conflict event</h2>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-slate-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              Runs every 6 hours · automated
+          {/* Header */}
+          <div className="mb-16">
+            <p className="text-[9px] font-mono text-slate-700 tracking-[0.3em] uppercase mb-4">Intelligence Pipeline</p>
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <h2 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">
+                How 28 sources become<br />
+                <span className="text-slate-600 font-light">one verified event on the map</span>
+              </h2>
+              <div className="flex items-center gap-2 pb-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-mono text-slate-600">automated · every 6h</span>
+              </div>
             </div>
           </div>
 
-          {/* Step flow */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="relative">
+            {/* Spine */}
+            <div className="absolute left-0 top-2 bottom-2 w-px hidden lg:block"
+              style={{ background: 'linear-gradient(to bottom, #3b82f6 0%, #eab308 20%, #f97316 40%, #a855f7 60%, #22c55e 80%, #ef4444 100%)', opacity: 0.18 }} />
 
-            {/* 01 */}
-            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">01</span>
-                <span className="text-xs font-mono text-blue-400 tracking-wide">INGEST</span>
-                <span className="text-[10px] font-mono text-slate-700 ml-auto">RSS + Telegram</span>
+            {/* ── 01 INGEST ── */}
+            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="text-[9px] font-mono text-slate-700">01</span>
+                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-blue-400">INGEST</span>
+                <span className="text-[9px] font-mono text-slate-700 ml-1">RSS · Telegram MTProto · 6h cadence</span>
               </div>
-              <p className="text-sm font-medium text-slate-300 mb-2">28 sources scraped</p>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
-                28 Myanmar news RSS feeds + 7 Telegram channels (Irrawaddy, DVB, Khit Thit, BBC Burmese, Myanmar Now and more) polled every 6 hours. Each article is checked for Myanmar relevance before storage.
-              </p>
-              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
-                Sources: Irrawaddy · DVB · Myanmar Now · RFA · BNI · Narinjara · Kachin News · Karen News · Mizzima · Al Jazeera · Reuters +17 more
+              <div className="grid grid-cols-1 lg:grid-cols-[160px_1fr_280px] gap-8 items-start">
+                <div>
+                  <div className="text-[72px] font-black leading-none font-mono text-blue-500/25 select-none"
+                    style={{ textShadow: '0 0 60px #3b82f620', WebkitTextStroke: '1px #3b82f635' }}>28</div>
+                  <p className="text-[9px] font-mono text-slate-600 mt-0.5">sources monitored</p>
+                  <div className="flex items-baseline gap-1.5 mt-3">
+                    <span className="text-[18px] font-bold font-mono text-blue-400/70">312</span>
+                    <span className="text-[9px] text-slate-600">articles/run</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-3 uppercase">Active feeds</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Irrawaddy','DVB','Myanmar Now','RFA Burma','BNI Multimedia','Narinjara','Kachin News','BBC Burmese','Al Jazeera','Reuters','Karen News','SHAN','Mizzima','7Day News','The Diplomat','VOA Burmese','+11 feeds'].map(s => (
+                      <span key={s} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-blue-500/15 text-blue-400/60 bg-blue-500/[0.04]">{s}</span>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-4 leading-relaxed">Each article pre-screened for Myanmar relevance before entering the pipeline. Non-Myanmar content dropped before any AI call.</p>
+                </div>
+                <div className="rounded border border-blue-500/20 bg-black/50 overflow-hidden">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-blue-500/10 bg-blue-950/20">
+                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
+                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">ingest.log</span>
+                  </div>
+                  <div className="p-3 font-mono text-[10px] space-y-1">
+                    <div><span className="text-green-400">GET</span><span className="text-slate-600"> irrawaddy.com/feed · 200 OK</span></div>
+                    <div><span className="text-green-400">GET</span><span className="text-slate-600"> @theirrawaddy · 47 new</span></div>
+                    <div><span className="text-green-400">GET</span><span className="text-slate-600"> dvb.no/feed · 200 OK</span></div>
+                    <div className="text-slate-700">    ··· +25 more sources</div>
+                    <div className="mt-2 pt-2 border-t border-blue-500/10">
+                      <span className="text-blue-400">→ </span><span className="text-slate-400">312 queued for filter</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 02 */}
-            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">02</span>
-                <span className="text-xs font-mono text-yellow-400 tracking-wide">FILTER</span>
-                <span className="text-[10px] font-mono text-slate-700 ml-auto">~90% discarded</span>
+            {/* ── 02 FILTER ── */}
+            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="text-[9px] font-mono text-slate-700">02</span>
+                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-yellow-400">FILTER</span>
+                <span className="text-[9px] font-mono text-slate-700 ml-1">regex · EN + Burmese · pre-LLM gate</span>
               </div>
-              <p className="text-sm font-medium text-slate-300 mb-2">Conflict keyword gate</p>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
-                Articles must match at least one conflict signal in English or Burmese script before being processed. Economy, politics, sports, opinion pieces, and advocacy articles are discarded before any AI call is made.
-              </p>
-              <div className="flex flex-wrap gap-1 border-t border-white/[0.05] pt-3">
-                {['clash','airstrike','shelling','seized','killed','တိုက်ပွဲ','လေကြောင်း','သိမ်းပိုက်','ကျဆုံး','ဒုံး'].map(k => (
-                  <span key={k} className="text-[9px] font-mono text-slate-600 bg-white/[0.04] px-1.5 py-0.5 rounded">{k}</span>
+
+              {/* Funnel visual */}
+              <div className="mb-8">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[32px] font-black font-mono text-slate-400 leading-none">312</span>
+                    <span className="text-[9px] font-mono text-slate-600">in</span>
+                  </div>
+                  <div className="flex-1 relative h-6">
+                    <div className="absolute inset-0 rounded-sm overflow-hidden flex">
+                      <div className="bg-yellow-500/25 border-r-2 border-yellow-500/40" style={{ width: '10%' }} />
+                      <div className="bg-red-900/20 flex-1" />
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[9px] font-mono text-yellow-500/60 tracking-widest">90% REJECTED</span>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[32px] font-black font-mono text-yellow-400 leading-none">31</span>
+                    <span className="text-[9px] font-mono text-slate-600">out</span>
+                  </div>
+                </div>
+                <p className="text-[9px] font-mono text-slate-700">281 articles discarded · zero LLM calls wasted</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+                <div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-3 uppercase">Keyword triggers</p>
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {['clash','battle','airstrike','shelling','seized','killed','strike','offensive','displaced','တိုက်ပွဲ','လေကြောင်း','သိမ်းပိုက်','ကျဆုံး','ဒုံး','စစ်ဆင်ရေး','+35 more'].map(t => (
+                      <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-yellow-500/15 text-yellow-400/60 bg-yellow-500/[0.04]">{t}</span>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">Articles must match at least one conflict signal before Groq is called. Opinion pieces, economic news, and elections are rejected here.</p>
+                </div>
+                <div className="rounded border border-yellow-500/20 bg-black/50 overflow-hidden">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-yellow-500/10 bg-yellow-950/20">
+                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
+                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">keyword-gate.ts</span>
+                  </div>
+                  <div className="p-3 font-mono text-[10px] space-y-1">
+                    <div className="text-slate-700">{'// article #2847'}</div>
+                    <div><span className="text-yellow-400">test</span><span className="text-slate-500"> &quot;clash&quot;</span><span className="text-green-400">  ✓ MATCH</span></div>
+                    <div className="text-slate-700">test &quot;economic&quot;  skip</div>
+                    <div className="text-slate-700">test &quot;election&quot;  skip</div>
+                    <div className="mt-2 pt-2 border-t border-yellow-500/10">
+                      <span className="text-yellow-400">→ </span><span className="text-slate-400">PASSED · send to Groq</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 03 EXTRACT ── */}
+            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="text-[9px] font-mono text-slate-700">03</span>
+                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-orange-400">EXTRACT</span>
+                <span className="text-[9px] font-mono text-slate-700 ml-1">Groq · Llama 3.3 70B · EN + Burmese</span>
+              </div>
+
+              {/* Raw → JSON transformation */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_28px_1fr] gap-4 items-start mb-6">
+                <div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-2 uppercase">Raw article excerpt</p>
+                  <div className="rounded border border-white/[0.05] bg-white/[0.02] p-3 font-mono text-[10px] text-slate-500 leading-relaxed">
+                    &ldquo;At least{' '}<span className="bg-orange-500/20 text-orange-300 px-0.5 rounded-sm">4 soldiers killed</span>{' '}in a{' '}
+                    <span className="bg-orange-500/20 text-orange-300 px-0.5 rounded-sm">clash</span>{' '}near{' '}
+                    <span className="bg-blue-500/20 text-blue-300 px-0.5 rounded-sm">Sagaing</span>{' '}on{' '}
+                    <span className="bg-green-500/20 text-green-300 px-0.5 rounded-sm">June 1</span>{' '}between{' '}
+                    <span className="bg-purple-500/20 text-purple-300 px-0.5 rounded-sm">PDF</span>{' '}and{' '}
+                    <span className="bg-purple-500/20 text-purple-300 px-0.5 rounded-sm">Tatmadaw</span>{' '}
+                    forces according to local sources...&rdquo;
+                  </div>
+                  <div className="flex gap-3 mt-2 font-mono text-[8px] text-slate-700">
+                    <span><span className="inline-block w-2 h-2 rounded-sm bg-orange-500/20 mr-1" />event signal</span>
+                    <span><span className="inline-block w-2 h-2 rounded-sm bg-blue-500/20 mr-1" />location</span>
+                    <span><span className="inline-block w-2 h-2 rounded-sm bg-green-500/20 mr-1" />date</span>
+                    <span><span className="inline-block w-2 h-2 rounded-sm bg-purple-500/20 mr-1" />actors</span>
+                  </div>
+                </div>
+                <div className="items-center justify-center pt-10 hidden lg:flex">
+                  <span className="text-orange-500/30 text-lg font-mono">→</span>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-2 uppercase">Structured output</p>
+                  <div className="rounded border border-orange-500/20 bg-black/50 overflow-hidden">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-orange-500/10 bg-orange-950/20">
+                      <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
+                      <span className="font-mono text-[9px] text-slate-700 ml-1.5">extraction-output.json</span>
+                    </div>
+                    <div className="p-3 font-mono text-[10px] space-y-0.5">
+                      <div className="text-slate-700">{'{'}</div>
+                      <div className="pl-3"><span className="text-orange-400">&quot;eventType&quot;</span><span className="text-slate-600">: </span><span className="text-green-400">&quot;CLASH&quot;</span></div>
+                      <div className="pl-3"><span className="text-orange-400">&quot;date&quot;</span><span className="text-slate-600">:      </span><span className="text-slate-300">&quot;2026-06-01&quot;</span></div>
+                      <div className="pl-3"><span className="text-orange-400">&quot;location&quot;</span><span className="text-slate-600">:  </span><span className="text-yellow-400">&quot;Sagaing&quot;</span><span className="text-yellow-600/60"> ⚠ unverified</span></div>
+                      <div className="pl-3"><span className="text-orange-400">&quot;actors&quot;</span><span className="text-slate-600">:   </span><span className="text-slate-300">[&quot;PDF&quot;,&quot;Tatmadaw&quot;]</span></div>
+                      <div className="pl-3"><span className="text-orange-400">&quot;fatalities&quot;</span><span className="text-slate-600">: </span><span className="text-slate-300">4</span></div>
+                      <div className="text-slate-700">{'}'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {['CLASH','AIRSTRIKE','SHELLING','SIEGE_SEIZED','RECAPTURED','DISPLACEMENT','HUMANITARIAN','POLITICAL'].map(t => (
+                  <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-orange-500/15 text-orange-400/60 bg-orange-500/[0.04]">{t}</span>
                 ))}
-                <span className="text-[9px] font-mono text-slate-700">+40 more</span>
               </div>
             </div>
 
-            {/* 03 */}
-            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">03</span>
-                <span className="text-xs font-mono text-orange-400 tracking-wide">EXTRACT</span>
-                <span className="text-[10px] font-mono text-slate-700 ml-auto">Groq · Llama 3.3 70B</span>
+            {/* ── 04 VALIDATE ── */}
+            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="text-[9px] font-mono text-slate-700">04</span>
+                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-purple-400">VALIDATE</span>
+                <span className="text-[9px] font-mono text-slate-700 ml-1">DeepSeek · deepseek-chat</span>
               </div>
-              <p className="text-sm font-medium text-slate-300 mb-2">Structured event extraction</p>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
-                Llama 3.3 70B reads each article (English and Burmese) and extracts a structured conflict event: event type, date, location, actors, attacker, defender, and casualty estimates. Non-conflict articles return empty.
-              </p>
-              <div className="flex flex-wrap gap-1 border-t border-white/[0.05] pt-3">
-                {['CLASH','AIRSTRIKE','SHELLING','SIEGE','RECAPTURED','DISPLACEMENT','HUMANITARIAN','POLITICAL'].map(t => (
-                  <span key={t} className="text-[9px] font-mono text-slate-600 bg-white/[0.04] px-1.5 py-0.5 rounded">{t}</span>
-                ))}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+                <div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-4 uppercase">Corrections applied</p>
+                  <div className="space-y-3 mb-6 font-mono text-[10px]">
+                    {[
+                      { label: 'state assignment', before: '"Sagaing"', after: '"Sagaing Region"' },
+                      { label: 'location vs source', before: 'mixed up', after: 'event location only' },
+                    ].map(d => (
+                      <div key={d.label} className="flex items-center gap-3">
+                        <span className="text-slate-700 w-32 shrink-0">{d.label}</span>
+                        <span className="text-red-400/40 line-through">{d.before}</span>
+                        <span className="text-slate-700">→</span>
+                        <span className="text-green-400">{d.after}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-3 uppercase">Hard alliance rules</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: 'PDF + CDF', desc: 'always same side' },
+                      { label: '3BHA coalition', desc: 'TNLA + MNDAA + AA never split' },
+                    ].map(r => (
+                      <div key={r.label} className="flex items-center gap-2 text-[9px] font-mono px-2.5 py-1.5 rounded border border-purple-500/20 bg-purple-500/[0.04]">
+                        <span className="text-purple-400">{r.label}</span>
+                        <span className="text-slate-700">{r.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded border border-purple-500/20 bg-black/50 overflow-hidden">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-purple-500/10 bg-purple-950/20">
+                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
+                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">validation-result.json</span>
+                  </div>
+                  <div className="p-3 font-mono text-[10px] space-y-1">
+                    <div className="text-slate-700">{'// location fix'}</div>
+                    <div className="text-red-400/40 line-through">&quot;Sagaing&quot;</div>
+                    <div><span className="text-purple-400">→ </span><span className="text-green-400">&quot;Sagaing Region&quot; ✓</span></div>
+                    <div className="mt-2 text-slate-700">{'// alliance check'}</div>
+                    <div><span className="text-green-400">PDF + CDF</span><span className="text-slate-600">  same side ✓</span></div>
+                    <div><span className="text-green-400">3BHA</span><span className="text-slate-600">       never split ✓</span></div>
+                    <div className="mt-2 pt-2 border-t border-purple-500/10">
+                      <span className="text-purple-400">&quot;confidence&quot;</span><span className="text-slate-500">: </span><span className="text-green-400">0.82</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 04 */}
-            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">04</span>
-                <span className="text-xs font-mono text-purple-400 tracking-wide">VALIDATE</span>
-                <span className="text-[10px] font-mono text-slate-700 ml-auto">DeepSeek · deepseek-chat</span>
+            {/* ── 05 GEOCODE ── */}
+            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="text-[9px] font-mono text-slate-700">05</span>
+                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-green-400">GEOCODE</span>
+                <span className="text-[9px] font-mono text-slate-700 ml-1">200+ township DB · GeoJSON polygons</span>
               </div>
-              <p className="text-sm font-medium text-slate-300 mb-2">Location correction + alliance rules</p>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
-                DeepSeek corrects common extraction errors — wrong state assignment, source location vs. event location. Enforces alliance rules: PDF/CDF always fight together, 3BHA (TNLA+MNDAA+AA) are never split across sides.
-              </p>
-              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
-                Output: attackerActor · defenderActor · corrected region · confidence 0–1
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+                <div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-4 uppercase">Precision cascade</p>
+                  <div className="space-y-2.5 font-mono text-[10px]">
+                    {[
+                      { sym: '●', label: 'exact town', example: 'Sagaing township', coords: '21.8833°N  95.9833°E', color: '#22c55e' },
+                      { sym: '◉', label: 'township centroid', example: 'Sagaing District', coords: '21.9°N  96.1°E', color: '#22c55e88' },
+                      { sym: '◎', label: 'district centroid', example: 'Sagaing Region', coords: '22.1°N  95.8°E', color: '#22c55e55' },
+                      { sym: '○', label: 'state / region', example: 'Sagaing', coords: '22.5°N  95.7°E', color: '#22c55e30' },
+                      { sym: '✕', label: 'Myanmar only — discard', example: 'no specific state', coords: '— dropped', color: '#ef4444' },
+                    ].map(p => (
+                      <div key={p.label} className="flex items-center gap-3">
+                        <span className="w-4 shrink-0 text-center text-base leading-none" style={{ color: p.color }}>{p.sym}</span>
+                        <span className="text-slate-600 w-32 shrink-0">{p.label}</span>
+                        <span className="text-slate-700 flex-1">{p.example}</span>
+                        <span className="text-slate-700 hidden sm:block tabular-nums">{p.coords}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded border border-green-500/20 bg-black/50 overflow-hidden">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-green-500/10 bg-green-950/20">
+                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
+                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">geocode.ts</span>
+                  </div>
+                  <div className="p-3 font-mono text-[10px] space-y-1">
+                    <div className="text-slate-700">resolve(&quot;Sagaing Region&quot;)</div>
+                    <div><span className="text-green-400">→ </span><span className="text-slate-500">match: Sagaing township</span></div>
+                    <div><span className="text-green-400">→ </span><span className="text-slate-400">lat: <span className="text-green-300">21.8833</span></span></div>
+                    <div><span className="text-green-400">→ </span><span className="text-slate-400">lng: <span className="text-green-300">95.9833</span></span></div>
+                    <div><span className="text-green-400">→ </span><span className="text-slate-400">precision: <span className="text-green-300">township ✓</span></span></div>
+                    <div className="mt-2 pt-2 border-t border-green-500/10">
+                      <span className="text-green-400">✓ </span><span className="text-slate-500">quality gate passed</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 05 */}
-            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">05</span>
-                <span className="text-xs font-mono text-green-400 tracking-wide">GEOCODE</span>
-                <span className="text-[10px] font-mono text-slate-700 ml-auto">200+ township DB</span>
+            {/* ── 06 STORE ── */}
+            <div className="lg:pl-8 py-10">
+              <div className="flex items-center gap-3 mb-7">
+                <span className="text-[9px] font-mono text-slate-700">06</span>
+                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-red-400">STORE</span>
+                <span className="text-[9px] font-mono text-slate-700 ml-1">Neon PostgreSQL · SHA-256 dedup</span>
               </div>
-              <p className="text-sm font-medium text-slate-300 mb-2">Coordinate resolution</p>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
-                Location names are matched against a 200+ Myanmar township coordinate database. Falls back to state polygon centroid lookup using GeoJSON boundaries. Events with no resolvable state are discarded — no vague country-level pins.
-              </p>
-              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
-                Precision levels: exact town → township centroid → district → state/region
-              </div>
-            </div>
-
-            {/* 06 */}
-            <div className="border border-white/[0.08] rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] font-mono text-slate-600 bg-white/[0.06] px-2 py-0.5 rounded">06</span>
-                <span className="text-xs font-mono text-red-400 tracking-wide">STORE</span>
-                <span className="text-[10px] font-mono text-slate-700 ml-auto">Neon PostgreSQL</span>
-              </div>
-              <p className="text-sm font-medium text-slate-300 mb-2">Deduplication + confidence scoring</p>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
-                Each event is SHA-256 hashed on actors + region + type + date. Duplicate events from different sources increment confidence rather than creating duplicate pins. Confidence = source reliability × corroboration count × DeepSeek score.
-              </p>
-              <div className="text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-3">
-                Schema: RawArticle → ConflictEvent → AnalysedEvent · 3-stage pipeline
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+                <div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-4 uppercase">3-stage schema</p>
+                  <div className="flex items-center gap-0 font-mono text-[9px] mb-6 flex-wrap gap-y-2">
+                    {[
+                      { table: 'RawArticle', fields: 'url · title · body · fetched_at' },
+                      null,
+                      { table: 'ConflictEvent', fields: 'type · date · region · actors · hash' },
+                      null,
+                      { table: 'AnalysedEvent', fields: 'coords · confidence · source_count' },
+                    ].map((item, i) => item === null ? (
+                      <span key={i} className="text-red-500/25 px-2 font-mono">→</span>
+                    ) : (
+                      <div key={i} className="rounded border border-red-500/20 bg-red-500/[0.04] px-3 py-2">
+                        <div className="font-bold text-red-400 mb-1">{item.table}</div>
+                        <div className="text-slate-700 text-[8px]">{item.fields}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[9px] font-mono text-slate-700 tracking-widest mb-2 uppercase">Dedup fingerprint</p>
+                  <div className="font-mono text-[9px] text-slate-600 mb-1">
+                    SHA-256(<span className="text-slate-500">&quot;PDF+Tatmadaw | Sagaing | CLASH | 2026-06-01&quot;</span>)
+                  </div>
+                  <div className="font-mono text-[9px] text-red-400/40">→ a7f3e9c2...d841f</div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed mt-3">Same clash from multiple outlets → confidence increases, not duplicate pins.</p>
+                </div>
+                <div className="rounded border border-red-500/20 bg-black/50 overflow-hidden">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-red-500/10 bg-red-950/20">
+                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
+                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">upsert.sql</span>
+                  </div>
+                  <div className="p-3 font-mono text-[10px] space-y-1">
+                    <div className="text-slate-700">hash ← sha256(</div>
+                    <div className="pl-2 text-slate-600">&quot;PDF+Tatmadaw|Sagaing|</div>
+                    <div className="pl-2 text-slate-600"> CLASH|2026-06-01&quot;</div>
+                    <div className="text-slate-700">)</div>
+                    <div><span className="text-red-400">→ </span><span className="text-green-400">a7f3e9...  new event</span></div>
+                    <div className="mt-2 pt-2 border-t border-red-500/10">
+                      <div><span className="text-red-400">INSERT</span><span className="text-slate-500"> ConflictEvent ✓</span></div>
+                      <div><span className="text-red-400">INSERT</span><span className="text-slate-500"> AnalysedEvent</span></div>
+                      <div><span className="text-slate-700">  confidence = </span><span className="text-green-400">0.79</span></div>
+                      <div className="mt-1"><span className="text-green-400">→ </span><span className="text-slate-400">Mapbox pin live ✓</span></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
           </div>
 
-          {/* Flow bar */}
-          <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] font-mono text-slate-700">
-            {['RSS / Telegram','Keyword filter','Llama 3.3 70B','DeepSeek validation','Township geocode','Dedup + score','Mapbox GL map'].map((s, i, arr) => (
-              <span key={s} className="flex items-center gap-2">
-                <span className="text-slate-500">{s}</span>
-                {i < arr.length - 1 && <span className="text-slate-800">→</span>}
-              </span>
-            ))}
+          {/* Bottom flow */}
+          <div className="mt-12 pt-6 border-t border-white/[0.05]">
+            <div className="flex flex-wrap items-end gap-x-0 gap-y-2">
+              {([
+                { label: '28 sources', sub: 'RSS/Telegram', color: '#3b82f6' },
+                null,
+                { label: 'keyword gate', sub: 'regex filter', color: '#eab308' },
+                null,
+                { label: 'Llama 3.3 70B', sub: 'extract', color: '#f97316' },
+                null,
+                { label: 'DeepSeek', sub: 'validate', color: '#a855f7' },
+                null,
+                { label: 'township DB', sub: 'geocode', color: '#22c55e' },
+                null,
+                { label: 'SHA-256', sub: 'dedup', color: '#ef4444' },
+                null,
+                { label: 'Mapbox GL', sub: 'map', color: '#94a3b8' },
+              ] as ({ label: string; sub: string; color: string } | null)[]).map((item, i) => item === null ? (
+                <span key={i} className="text-[8px] font-mono text-slate-800 px-1.5 pb-1">──→</span>
+              ) : (
+                <div key={i} className="flex flex-col items-center">
+                  <span className="text-[10px] font-mono font-semibold" style={{ color: item.color }}>{item.label}</span>
+                  <span className="text-[8px] font-mono text-slate-700">{item.sub}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>
