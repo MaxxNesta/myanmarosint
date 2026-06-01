@@ -19,9 +19,6 @@ export default function ThreatconBanner({ level, label }: Props) {
       <span className={`font-mono text-xs font-bold tracking-widest ${c.text}`}>
         THREATCON {level} — {label}
       </span>
-      <span className="text-slate-500 text-xs font-mono ml-auto hidden sm:inline">
-        Myanmar Geopolitical Risk Platform · OSINT · UNCLASSIFIED
-      </span>
     </div>
   )
 }
