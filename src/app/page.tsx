@@ -296,14 +296,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-white/[0.07] py-5">
-        <div className="max-w-screen-xl mx-auto px-6">
-          <p className="text-[9px] font-mono text-slate-700">
-            All data derived from open-source public reporting. Not affiliated with any government, military, or political organisation.
-          </p>
-        </div>
-      </footer>
 
     </div>
   )

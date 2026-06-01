@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/shared/Navbar'
+import Link from 'next/link'
 import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({
@@ -51,6 +52,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-surface-0 text-slate-200 antialiased">
         <Navbar />
         <main className="pt-14">{children}</main>
+        <footer className="border-t border-white/[0.06] py-4 px-6">
+          <div className="max-w-screen-xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[9px] font-mono text-slate-700">
+              © {new Date().getFullYear()} Myanmar Civil War · Independent OSINT · Not affiliated with any government or armed group
+            </p>
+            <div className="flex items-center gap-4">
+              <Link href="/privacy-policy" className="text-[9px] font-mono text-slate-600 hover:text-slate-400 transition-colors">Privacy Policy</Link>
+              <span className="text-slate-800 text-[9px]">|</span>
+              <Link href="/terms-of-use"   className="text-[9px] font-mono text-slate-600 hover:text-slate-400 transition-colors">Terms of Use</Link>
+              <span className="text-slate-800 text-[9px]">|</span>
+              <Link href="/disclaimer"     className="text-[9px] font-mono text-slate-600 hover:text-slate-400 transition-colors">Disclaimer</Link>
+            </div>
+          </div>
+        </footer>
         <Analytics />
       </body>
     </html>
