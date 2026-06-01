@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   // Rate limit: 10 requests per IP per hour
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  const rl = await checkRateLimit(ip, 'analyze-area', 10)
+  const rl = await checkRateLimit(ip, 'analyze-area', 5)
   if (!rl.allowed) {
     return NextResponse.json(
       { error: `Rate limit exceeded. Try again after ${rl.resetAt.toUTCString()}.` },
