@@ -86,6 +86,14 @@ model AnalysedEvent {
 
 // ─── Supporting tables ────────────────────────────────────────────────────────
 
+model RateLimit {
+  key       String   @id       // "ip:endpoint:windowHour"
+  hits      Int      @default(1)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
 model SourceStats {
   id               String   @id @default(cuid())
   sourceName       String   @unique

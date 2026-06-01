@@ -4,6 +4,7 @@ export const maxDuration = 30
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import type { ScenarioAnalysis } from '@/lib/analyze-types'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const deepseek = new OpenAI({
   apiKey:  process.env.DEEPSEEK_API_KEY,
@@ -35,6 +36,22 @@ function repairJson(raw: string): string {
 export async function POST(req: NextRequest) {
   if (!process.env.DEEPSEEK_API_KEY) {
     return NextResponse.json({ error: 'DEEPSEEK_API_KEY not set — add it to Vercel environment variables' }, { status: 500 })
+  }
+
+  // Rate limit: 10 requests per IP per hour
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const rl = await checkRateLimit(ip, 'analyze-area', 10)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `Rate limit exceeded. Try again after ${rl.resetAt.toUTCString()}.` },
+      {
+        status: 429,
+        headers: {
+          'Retry-After':       String(Math.ceil((rl.resetAt.getTime() - Date.now()) / 1000)),
+          'X-RateLimit-Reset': rl.resetAt.toUTCString(),
+        },
+      },
+    )
   }
 
   try {

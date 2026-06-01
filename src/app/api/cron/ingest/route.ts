@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
+import { purgeExpiredRateLimits } from '@/lib/rate-limit'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL
   ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
@@ -49,6 +50,9 @@ export async function GET(req: NextRequest) {
       break
     }
   }
+
+  // Purge stale rate-limit records
+  try { await purgeExpiredRateLimits() } catch { /* non-critical */ }
 
   return NextResponse.json({ ok: true, ...results })
 }
