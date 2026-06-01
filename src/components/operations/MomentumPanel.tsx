@@ -46,16 +46,18 @@ function actorInEvent(ev: ConflictEventDTO, id: ActorId): boolean {
   ].some(p => terms.some(t => p.toLowerCase().includes(t)))
 }
 
+const TREND_ICON  = { up: '↑', down: '↓', stable: '→' }
+const TREND_COLOR = { up: '#4ade80', down: '#f87171', stable: '#94a3b8' }
+const TREND_BG    = { up: 'rgba(74,222,128,0.08)', down: 'rgba(248,113,113,0.08)', stable: 'rgba(148,163,184,0.05)' }
+
 export default function MomentumPanel({ currentDate, incidents, controlEvents }: Props) {
   const [open,    setOpen]    = useState(true)
   const [aiRows,  setAiRows]  = useState<Record<string, { trend: 'up'|'down'|'stable'; label: string; note: string }>>({})
   const [aiState, setAiState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const fetchedForRef = useRef<string>('')
 
-  // ── Compute local stats ────────────────────────────────────────────
   const localStats = useMemo(() => {
     const now = currentDate.getTime()
-
     return TRACKED.map(id => {
       const recent7  = incidents.filter(e => { const age = (now - new Date(e.date as string).getTime()) / DAY; return age >= 0 && age < 7  && actorInEvent(e, id) }).length
       const prev7    = incidents.filter(e => { const age = (now - new Date(e.date as string).getTime()) / DAY; return age >= 7 && age < 14 && actorInEvent(e, id) }).length
@@ -86,30 +88,16 @@ export default function MomentumPanel({ currentDate, incidents, controlEvents }:
     }).filter((s): s is LocalStat => s !== null)
   }, [currentDate, incidents, controlEvents])
 
-  // ── Call Groq when incidents load or date changes significantly ────
   useEffect(() => {
     if (localStats.length === 0 || incidents.length === 0) return
-
-    // Debounce: only re-call if week bucket changed
     const weekBucket = Math.floor(currentDate.getTime() / (7 * DAY)).toString()
     if (fetchedForRef.current === weekBucket) return
     fetchedForRef.current = weekBucket
-
     setAiState('loading')
-
-    const payload = localStats.map(s => ({
-      id:        s.id,
-      shortName: s.shortName,
-      recent7:   s.recent7,
-      prev7:     s.prev7,
-      captures:  s.captures,
-      losses:    s.losses,
-    }))
-
     fetch('/api/actor-momentum', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ stats: payload }),
+      body:    JSON.stringify({ stats: localStats.map(s => ({ id: s.id, shortName: s.shortName, recent7: s.recent7, prev7: s.prev7, captures: s.captures, losses: s.losses })) }),
     })
       .then(r => r.json())
       .then(data => {
@@ -118,83 +106,76 @@ export default function MomentumPanel({ currentDate, incidents, controlEvents }:
           for (const m of data.momentum) map[m.id] = { trend: m.trend, label: m.label, note: m.note }
           setAiRows(map)
           setAiState('done')
-        } else {
-          setAiState('error')
-        }
+        } else { setAiState('error') }
       })
       .catch(() => setAiState('error'))
   }, [localStats, currentDate, incidents.length])
 
-  // ── Merge local + AI ───────────────────────────────────────────────
   const rows: Row[] = useMemo(() => {
     return localStats.map(s => {
       const ai = aiRows[s.id]
-      return {
-        id:      s.id,
-        trend:   ai?.trend  ?? s.trend,
-        label:   ai?.label  ?? s.label,
-        note:    ai?.note   ?? '',
-        delta:   s.delta,
-        recent:  s.recent,
-        aiReady: !!ai,
-      }
-    }).sort((a, b) => {
-      const order = { up: 0, stable: 1, down: 2 }
-      return order[a.trend] - order[b.trend]
-    })
+      return { id: s.id, trend: ai?.trend ?? s.trend, label: ai?.label ?? s.label, note: ai?.note ?? '', delta: s.delta, recent: s.recent, aiReady: !!ai }
+    }).sort((a, b) => ({ up: 0, stable: 1, down: 2 }[a.trend] - { up: 0, stable: 1, down: 2 }[b.trend]))
   }, [localStats, aiRows])
 
-  const trendIcon  = (t: string) => t === 'up' ? '↑' : t === 'down' ? '↓' : '→'
-  const trendColor = (t: string) => t === 'up' ? '#4ade80' : t === 'down' ? '#f87171' : '#94a3b8'
-
   return (
-    <div className="absolute top-3 left-3 z-20 w-52 sm:w-60">
+    <div className="absolute top-3 left-3 z-20 w-64 sm:w-72">
+
+      {/* ── Header ── */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 bg-[#0b0f14]/90 backdrop-blur border border-white/[0.10] rounded text-[9px] font-mono text-slate-400 hover:text-slate-200 transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2 bg-[#0d1117] border border-white/[0.12] rounded-t text-left hover:border-white/20 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="tracking-widest uppercase">Actor Momentum · 7d</span>
-          {aiState === 'loading' && (
-            <span className="w-2 h-2 rounded-full bg-blue-500/60 animate-pulse" />
-          )}
-          {aiState === 'done' && (
-            <span className="text-[7px] text-blue-400/60 tracking-widest">AI</span>
-          )}
+          <span className="text-xs font-semibold text-slate-200 tracking-wide">Actor Momentum</span>
+          <span className="text-[10px] font-mono text-slate-600">· 7d</span>
+          {aiState === 'loading' && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />}
+          {aiState === 'done'    && <span className="text-[9px] font-mono text-blue-400/70 tracking-wider">AI</span>}
         </div>
-        <span className="text-slate-600">{open ? '▲' : '▼'}</span>
+        <span className="text-slate-500 text-xs">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
-        <div className="mt-1 bg-[#0b0f14]/95 backdrop-blur border border-white/[0.10] rounded shadow-xl overflow-hidden">
+        <div className="bg-[#0d1117] border border-t-0 border-white/[0.12] rounded-b shadow-2xl overflow-hidden">
+
           {rows.length === 0 ? (
-            <p className="text-[9px] font-mono text-slate-600 text-center py-3">No recent data</p>
+            <p className="text-xs text-slate-500 text-center py-4">No recent data</p>
           ) : (
-            <div className="divide-y divide-white/[0.05]">
+            <div className="divide-y divide-white/[0.07]">
               {rows.map(r => (
-                <div key={r.id} className="px-2.5 py-1.5">
-                  <div className="flex items-center gap-2">
+                <div key={r.id} className="px-3 py-2.5" style={{ background: TREND_BG[r.trend] }}>
+
+                  {/* Actor name + trend */}
+                  <div className="flex items-center gap-2 mb-1">
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ACTORS[r.id].color }} />
-                    <span className="text-[9px] font-mono text-slate-300 w-9 shrink-0">{ACTORS[r.id].shortName}</span>
-                    <span className="text-[11px] font-mono font-bold shrink-0 leading-none" style={{ color: trendColor(r.trend) }}>
-                      {trendIcon(r.trend)}
+                    <span className="text-sm font-bold text-slate-100 w-12 shrink-0">{ACTORS[r.id].shortName}</span>
+                    <span className="text-base font-bold leading-none shrink-0" style={{ color: TREND_COLOR[r.trend] }}>
+                      {TREND_ICON[r.trend]}
                     </span>
-                    <span className="text-[8.5px] font-mono text-slate-300 flex-1 min-w-0 truncate">{r.label}</span>
-                    {r.delta && (
-                      <span className="hidden sm:block text-[7px] font-mono text-slate-600 shrink-0">{r.delta}</span>
-                    )}
+                    <span className="text-sm font-semibold" style={{ color: TREND_COLOR[r.trend] }}>{r.label}</span>
                   </div>
+
+                  {/* Delta stats */}
+                  {r.delta && (
+                    <div className="pl-4 mb-1">
+                      <span className="text-xs font-mono text-slate-400">{r.delta}</span>
+                    </div>
+                  )}
+
+                  {/* AI note */}
                   {r.note && (
-                    <p className="text-[7.5px] font-mono text-slate-500 mt-0.5 pl-4 leading-tight line-clamp-2">{r.note}</p>
+                    <p className="pl-4 text-xs text-slate-400 leading-snug">{r.note}</p>
                   )}
                 </div>
               ))}
             </div>
           )}
-          <div className="px-2.5 py-1 border-t border-white/[0.05] flex items-center justify-between">
-            <span className="text-[7px] font-mono text-slate-700">Based on incident data · 14-day window</span>
-            {aiState === 'done' && <span className="text-[7px] font-mono text-blue-500/50">Groq AI</span>}
-            {aiState === 'error' && <span className="text-[7px] font-mono text-red-500/50">algorithmic</span>}
+
+          {/* Footer */}
+          <div className="px-3 py-2 border-t border-white/[0.07] flex items-center justify-between">
+            <span className="text-[10px] text-slate-600">Based on incident data · 14-day window</span>
+            {aiState === 'done'  && <span className="text-[10px] font-mono text-blue-500/60">Groq AI</span>}
+            {aiState === 'error' && <span className="text-[10px] font-mono text-slate-600">algorithmic</span>}
           </div>
         </div>
       )}
