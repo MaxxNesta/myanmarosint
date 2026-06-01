@@ -154,7 +154,7 @@ async function backfill() {
 
       if (events.length === 0) {
         skipped++
-        process.stdout.write(`\r  [${processed}/${total}] skip — ${article.title.slice(0, 50).padEnd(50)}`)
+        process.stdout.write(`\r  [${processed}/${total}] skip`.padEnd(80))
         await createSkipMarker(article.id, article.title, pubDate)
         await sleep(500)
         continue
@@ -249,7 +249,15 @@ async function backfill() {
             summary:       enr.summary.slice(0, 800),
           },
         })
-        saved++
+        // If the upsert matched an existing event from a different article,
+        // the current article still has no ConflictEvent → would loop forever.
+        // Create a skip marker to mark it as processed.
+        if (conflict.rawArticleId !== article.id) {
+          await createSkipMarker(article.id, article.title, pubDate)
+          skipped++
+        } else {
+          saved++
+        }
         console.log(`  [${processed}/${total}] ✓ ${ev.eventType.padEnd(22)} ${region.padEnd(22)} ${article.title.slice(0, 55)}`)
       } catch (err) {
         console.log(`  [${processed}/${total}] ✗ db: ${String(err).slice(0, 80)}`)
