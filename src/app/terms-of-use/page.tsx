@@ -43,7 +43,7 @@ export default function TermsOfUsePage() {
 
           <section>
             <h2 className="text-xs font-mono text-slate-300 tracking-widest uppercase mb-3">4. Intellectual Property</h2>
-            <p>Event data displayed on this platform is derived from publicly available open-source reporting and is subject to the original publishers' rights. Platform design, code, and analysis tooling are the property of the site operators. Conflict data may be cited for non-commercial purposes with attribution to <em>myanmarcivilwar.com</em>.</p>
+            <p>Event data displayed on this platform is derived from publicly available open-source reporting and is subject to the original publishers&apos; rights. Platform design, code, and analysis tooling are the property of the site operators. Conflict data may be cited for non-commercial purposes with attribution to <em>myanmarcivilwar.com</em>.</p>
           </section>
 
           <section>

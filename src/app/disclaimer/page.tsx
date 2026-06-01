@@ -46,7 +46,7 @@ export default function DisclaimerPage() {
 
           <section>
             <h2 className="text-xs font-mono text-slate-300 tracking-widest uppercase mb-3">6. Source Attribution</h2>
-            <p>Where source URLs are shown, they link to third-party publications. We do not control the content of external sites and make no representations about their accuracy. Attribution to a source does not imply endorsement of that source's editorial position or bias assessment.</p>
+            <p>Where source URLs are shown, they link to third-party publications. We do not control the content of external sites and make no representations about their accuracy. Attribution to a source does not imply endorsement of that source&apos;s editorial position or bias assessment.</p>
           </section>
 
           <section>
