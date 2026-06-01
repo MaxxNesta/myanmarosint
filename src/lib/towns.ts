@@ -104,6 +104,9 @@ export const TOWNS: Town[] = [
   { name_en: 'Dawei',        name_mm: 'ထားဝယ်',            lat: 14.08, lng: 98.20, region: 'Tanintharyi Region' },
   { name_en: 'Myeik',        name_mm: 'မြိတ်',             lat: 12.44, lng: 98.60, region: 'Tanintharyi Region', aliases: ['mergui'] },
   { name_en: 'Kawthaung',    name_mm: 'ကော့သောင်း',         lat: 10.05, lng: 98.56, region: 'Tanintharyi Region' },
+  { name_en: 'Maw Taung',    name_mm: 'မော်တောင်',          lat: 10.25, lng: 98.62, region: 'Tanintharyi Region', aliases: ['mawtaung', 'maw daung'] },
+  { name_en: 'Bokpyin',      name_mm: 'ဘုတ်ပြင်း',          lat: 11.29, lng: 98.77, region: 'Tanintharyi Region' },
+  { name_en: 'Palaw',        name_mm: 'ပလော',              lat: 12.98, lng: 98.64, region: 'Tanintharyi Region' },
 
   // Naypyidaw
   { name_en: 'Naypyidaw',    name_mm: 'နေပြည်တော်',         lat: 19.75, lng: 96.12, region: 'Naypyidaw Union Territory', aliases: ['nay pyi taw', 'naypytaw'] },
