@@ -8,6 +8,8 @@ import { fetchAllFeeds } from '@/lib/rss'
 const KEYWORDS = [
   'myanmar','burma','tatmadaw','junta','pdf','nug','sagaing','arakan',
   'kachin','shan','chin','karenni','kayah','rakhine','karen','tedim','tiddim','mandalay',
+  'tanintharyi','mergui','dawei','myeik','kawthaung','mawtaung','maw taung',
+  'bago','irrawaddy','ayeyarwady','magway','naypyidaw','mon state',
 ]
 
 export async function GET(req: NextRequest) {
