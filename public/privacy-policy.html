@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/mcw-logo.jpg" type="image/jpeg">
+  <title>Privacy Policy — Myanmar Civil War</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Fira+Code:wght@400;500&family=Exo+2:wght@300;400;500&display=swap">
+  <style>
+    :root {
+      --bg: #0B0F12; --bg2: #11161B; --bg3: #1A2228;
+      --border: #2D3942; --border2: #3C4751;
+      --txt: #E8EDF2; --txt2: #9CAABB; --txt3: #637383;
+      --accent: #22C55E; --blue: #3B82F6;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--txt2); min-height: 100vh; }
+
+    /* NAV */
+    nav { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 1.5rem; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-brand { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: 0.15em; color: var(--txt); text-decoration: none; }
+    .nav-brand span { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-family: 'Fira Code', monospace; font-size: 0.65rem; letter-spacing: 0.12em; color: var(--txt3); text-decoration: none; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--txt); }
+    .nav-links a.active { color: var(--accent); }
+
+    /* LAYOUT */
+    .container { max-width: 760px; margin: 0 auto; padding: 3.5rem 1.5rem 5rem; }
+
+    /* HEADER */
+    .page-label { font-family: 'Fira Code', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--txt3); text-transform: uppercase; margin-bottom: 0.5rem; }
+    h1 { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 2rem; letter-spacing: 0.05em; color: var(--txt); margin-bottom: 0.25rem; }
+    .page-date { font-family: 'Fira Code', monospace; font-size: 0.65rem; color: var(--txt3); margin-bottom: 3rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+
+    /* SECTIONS */
+    section { margin-bottom: 2.5rem; }
+    h2 { font-family: 'Fira Code', monospace; font-size: 0.65rem; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; }
+    p { font-size: 0.875rem; line-height: 1.8; color: var(--txt2); margin-bottom: 0.75rem; }
+    p:last-child { margin-bottom: 0; }
+    strong { color: var(--txt); font-weight: 500; }
+    ul { list-style: none; margin: 0.5rem 0 0.75rem; padding: 0; }
+    ul li { font-size: 0.875rem; color: var(--txt2); line-height: 1.7; padding: 0.2rem 0 0.2rem 1.25rem; position: relative; }
+    ul li::before { content: '›'; position: absolute; left: 0; color: var(--accent); }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); padding: 1.25rem 1.5rem; margin-top: 4rem; }
+    .footer-inner { max-width: 760px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+    .footer-copy { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--txt3); }
+    .footer-links { display: flex; gap: 1rem; align-items: center; }
+    .footer-links a { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--txt3); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--txt); }
+    .footer-links a.active { color: var(--accent); }
+    .sep { color: var(--border2); font-size: 0.6rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">MYANMAR <span>CIVIL WAR</span></a>
+  <div class="nav-links">
+    <a href="/">War Map</a>
+    <a href="/tatmadaw/">Tatmadaw</a>
+    <a href="/eaos/">EAOs</a>
+    <a href="/privacy-policy.html" class="active">Privacy Policy</a>
+    <a href="/terms-of-use.html">Terms of Use</a>
+    <a href="/disclaimer.html">Disclaimer</a>
+  </div>
+</nav>
+
+<div class="container">
+  <p class="page-label">Legal</p>
+  <h1>Privacy Policy</h1>
+  <p class="page-date">Last updated: June 2026</p>
+
+  <section>
+    <h2>1. Overview</h2>
+    <p><strong>myanmarcivilwar.com</strong> is a publicly accessible open-source intelligence platform. We are committed to protecting your privacy. This policy describes what information, if any, is collected when you use this site.</p>
+  </section>
+
+  <section>
+    <h2>2. Information We Do Not Collect</h2>
+    <p>We do <strong>not</strong> collect, store, or process:</p>
+    <ul>
+      <li>Personal identification information (name, email, phone number)</li>
+      <li>Account credentials or user registrations</li>
+      <li>Payment or financial information</li>
+      <li>Location data from your device</li>
+      <li>Communications or messages</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Anonymous Analytics</h2>
+    <p>We use <strong>Vercel Analytics</strong>, a privacy-focused service, to understand aggregate site usage (page views, general geographic region, device type). This data is anonymised and does not identify individual users. No cookies are used for tracking purposes.</p>
+  </section>
+
+  <section>
+    <h2>4. Third-Party Services</h2>
+    <p>This platform uses the following third-party services:</p>
+    <ul>
+      <li><strong>Mapbox</strong> — map rendering (subject to Mapbox privacy policy)</li>
+      <li><strong>Vercel</strong> — hosting and edge delivery</li>
+      <li><strong>Neon</strong> — database hosting</li>
+    </ul>
+    <p>We do not sell, trade, or share any data with third parties for marketing purposes.</p>
+  </section>
+
+  <section>
+    <h2>5. Data Sources</h2>
+    <p>All conflict data displayed on this platform is derived from publicly available open-source reporting — news feeds, Telegram channels, and geospatial datasets. No private or classified information is used.</p>
+  </section>
+
+  <section>
+    <h2>6. Contact</h2>
+    <p>Questions regarding this policy may be directed to the site administrators via the contact information available on the platform.</p>
+  </section>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 Myanmar Civil War · Independent OSINT · Not affiliated with any government or armed group</span>
+    <div class="footer-links">
+      <a href="/privacy-policy.html" class="active">Privacy Policy</a>
+      <span class="sep">|</span>
+      <a href="/terms-of-use.html">Terms of Use</a>
+      <span class="sep">|</span>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
