@@ -23,25 +23,21 @@ export default function Navbar() {
     <nav className="fixed top-0 inset-x-0 z-50 h-14 bg-surface-1 border-b border-white/[0.07] flex items-center px-4 gap-2">
 
       {/* Militias portals (desktop) */}
-      <div className="hidden md:flex flex-col shrink-0 mr-3 border-r border-white/[0.07] pr-4 gap-0.5">
-        <span className="text-[8px] font-mono text-slate-600 tracking-widest uppercase">Militias</span>
-        <div className="flex items-center gap-2">
-          <a
-            href={`${TATMADAW_URL}/index.html`}
-            className="text-[10px] font-mono text-slate-400 hover:text-slate-200 transition-colors tracking-wide"
-            title="Tatmadaw Portal"
-          >
-            Tatmadaw
-          </a>
-          <span className="text-slate-700 text-[10px]">|</span>
-          <a
-            href={`${EAOS_URL}/index.html`}
-            className="text-[10px] font-mono text-orange-600 hover:text-orange-400 transition-colors tracking-wide"
-            title="EAO Portal"
-          >
-            EAOs
-          </a>
-        </div>
+      <div className="hidden md:flex items-center gap-2 shrink-0 mr-3 border-r border-white/[0.07] pr-4">
+        <a
+          href={`${TATMADAW_URL}/index.html`}
+          className="px-2.5 py-1 text-xs font-semibold tracking-wide text-red-400 border border-red-500/40 hover:bg-red-500/10 hover:border-red-500/70 hover:text-red-300 transition-colors"
+          title="Tatmadaw Portal"
+        >
+          Tatmadaw
+        </a>
+        <a
+          href={`${EAOS_URL}/index.html`}
+          className="px-2.5 py-1 text-xs font-semibold tracking-wide text-orange-400 border border-orange-500/40 hover:bg-orange-500/10 hover:border-orange-500/70 hover:text-orange-300 transition-colors"
+          title="EAO Portal"
+        >
+          EAOs
+        </a>
       </div>
 
       {/* Brand */}
@@ -89,24 +85,21 @@ export default function Navbar() {
       {/* Mobile dropdown */}
       {open && (
         <div className="absolute top-14 inset-x-0 bg-surface-1 border-b border-white/[0.07] md:hidden z-50">
-          <div className="px-5 py-2 border-b border-white/[0.04]">
-            <div className="text-[9px] font-mono text-slate-600 tracking-widest uppercase mb-1.5">Militias</div>
-            <div className="flex items-center gap-4">
-              <a
-                href={`${TATMADAW_URL}/index.html`}
-                className="text-sm text-slate-400 hover:text-slate-200"
-                onClick={() => setOpen(false)}
-              >
-                Tatmadaw
-              </a>
-              <a
-                href={`${EAOS_URL}/index.html`}
-                className="text-sm text-orange-600 hover:text-orange-400"
-                onClick={() => setOpen(false)}
-              >
-                EAOs
-              </a>
-            </div>
+          <div className="px-5 py-3 border-b border-white/[0.04] flex items-center gap-3">
+            <a
+              href={`${TATMADAW_URL}/index.html`}
+              className="px-3 py-1.5 text-sm font-semibold text-red-400 border border-red-500/40 hover:bg-red-500/10 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              Tatmadaw
+            </a>
+            <a
+              href={`${EAOS_URL}/index.html`}
+              className="px-3 py-1.5 text-sm font-semibold text-orange-400 border border-orange-500/40 hover:bg-orange-500/10 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              EAOs
+            </a>
           </div>
           {NAV_LINKS.map(({ href, label }) => (
             <Link
