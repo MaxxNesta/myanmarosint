@@ -70,7 +70,7 @@ export default function Navbar() {
         rel="noopener noreferrer"
         className="hidden md:flex items-center gap-1.5 ml-auto px-3 py-1.5 text-[11px] font-medium text-yellow-400 border border-yellow-500/30 hover:border-yellow-500/60 hover:text-yellow-300 transition-colors"
       >
-        ☕ Buy me a coffee
+        Buy me a coffee
       </a>
 
       {/* Mobile toggle */}
@@ -118,7 +118,7 @@ export default function Navbar() {
             className="block px-5 py-3 text-sm text-yellow-400 hover:bg-white/[0.04]"
             onClick={() => setOpen(false)}
           >
-            ☕ Buy me a coffee
+            Buy me a coffee
           </a>
         </div>
       )}

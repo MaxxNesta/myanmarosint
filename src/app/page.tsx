@@ -1,16 +1,40 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { Barlow_Condensed } from 'next/font/google'
+import type { ReactNode } from 'react'
 
 export const metadata = {
   title: 'Myanmar War Map — OSINT Platform',
 }
 
+const stencil = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['600', '700', '800'],
+  display: 'swap',
+})
+
+/* ── Tactical palette (all text colours ≥ 7:1 on the page background) ── */
+const C = {
+  bg:      '#0b0d09',
+  panel:   '#11140e',
+  panel2:  '#161a12',
+  line:    '#343b2a',
+  line2:   '#4a5339',
+  text:    '#eef0e2',
+  text2:   '#c9cdb6',
+  muted:   '#a8ad94',
+  amber:   '#f2b33d',
+  olive:   '#b5c27a',
+  red:     '#ff6a5c',
+  green:   '#8fe08a',
+}
+
 const DASHBOARDS = [
   {
     href:  '/map',
+    code:  'MOD-01',
     label: 'CONFLICT MAP',
     title: 'Live Conflict Events',
-    color: '#3b82f6',
     src:   '/screenshots/map.jpeg',
     w: 2868, h: 1456,
     desc:  'Every conflict event extracted from news — airstrikes, clashes, sieges, displacement — plotted as a geocoded marker on a live map of Myanmar.',
@@ -33,9 +57,9 @@ const DASHBOARDS = [
   },
   {
     href:  '/intel',
+    code:  'MOD-02',
     label: 'INTEL DASHBOARD',
     title: 'Regional Intelligence',
-    color: '#8b5cf6',
     src:   '/screenshots/intel.jpeg',
     w: 3806, h: 1936,
     desc:  'Aggregated risk scores, escalation detection, and volatility analysis across all states and regions — updated each time the pipeline runs.',
@@ -46,17 +70,17 @@ const DASHBOARDS = [
       'Volatility score weighted by event frequency, actor diversity, fatalities, and recency',
     ],
     legend: [
-      { color: '#ef4444', label: '80–100  Critical' },
-      { color: '#f97316', label: '60–79   High' },
-      { color: '#f59e0b', label: '40–59   Elevated' },
-      { color: '#22c55e', label: '0–39    Guarded' },
+      { color: '#ef4444', label: '80–100 Critical' },
+      { color: '#f97316', label: '60–79 High' },
+      { color: '#f59e0b', label: '40–59 Elevated' },
+      { color: '#22c55e', label: '0–39 Guarded' },
     ],
   },
   {
     href:  '/bases',
+    code:  'MOD-03',
     label: 'MILITARY BASES',
     title: 'Known Installations',
-    color: '#ef4444',
     src:   '/screenshots/bases.jpeg',
     w: 2400, h: 1222,
     desc:  'Open-source mapped Tatmadaw military bases, airbases, naval posts, and command headquarters. Sourced from ACLED, NeatoGeo, and satellite imagery.',
@@ -74,9 +98,9 @@ const DASHBOARDS = [
   },
   {
     href:  '/operations',
+    code:  'MOD-04',
     label: 'OPS TIMELINE',
     title: 'Major Operations',
-    color: '#f97316',
     src:   '/screenshots/operations.jpeg',
     w: 3156, h: 1596,
     desc:  'Chronological record of major offensives since the 2021 coup — resistance operations, junta counter-offensives, territorial control shifts.',
@@ -95,141 +119,269 @@ const DASHBOARDS = [
 ]
 
 const GLOSSARY = [
-  { term: 'PDF',         def: "People's Defence Force — armed wing of the NUG, formed after the 2021 coup" },
-  { term: 'Tatmadaw',   def: "Myanmar's military, ruling as the State Administration Council (SAC) since Feb 2021" },
+  { term: 'PDF',        def: "People's Defence Force — armed wing of the NUG, formed after the 2021 coup" },
+  { term: 'TATMADAW',   def: "Myanmar's military, ruling as the State Administration Council (SAC) since Feb 2021" },
   { term: 'EAO',        def: 'Ethnic Armed Organisation — KIA, AA, TNLA, MNDAA, KNU/KNLA, CNF, RCSS and others' },
   { term: 'NUG',        def: 'National Unity Government — parallel government formed by ousted civilian MPs' },
   { term: '3BHA',       def: 'Three Brotherhood Alliance — TNLA + MNDAA + AA. Launched Operation 1027 in Oct 2023' },
-  { term: 'Confidence', def: 'Event reliability score (0–1): source quality × corroboration count × geocoding precision' },
-  { term: 'Bias Flag',  def: 'neutral | pro_resistance | pro_junta | unverified_claim — AI-assessed per article' },
-  { term: 'Volatility', def: 'Composite regional score: event frequency + actor diversity + fatalities + recency decay' },
+  { term: 'CONFIDENCE', def: 'Event reliability score (0–1): source quality × corroboration count × geocoding precision' },
+  { term: 'BIAS FLAG',  def: 'neutral | pro_resistance | pro_junta | unverified_claim — AI-assessed per article' },
+  { term: 'VOLATILITY', def: 'Composite regional score: event frequency + actor diversity + fatalities + recency decay' },
 ]
 
-function DashboardRow({
-  d,
-  index,
-}: {
-  d: (typeof DASHBOARDS)[0]
-  index: number
-}) {
-  const reversed = index % 2 === 1
+const SITREP = [
+  { k: 'SOURCES',    v: '28',   sub: 'RSS + Telegram' },
+  { k: 'CYCLE',      v: '06H',  sub: 'automated ingest' },
+  { k: 'GAZETTEER',  v: '200+', sub: 'townships indexed' },
+  { k: 'MODULES',    v: '04',   sub: 'operational' },
+]
 
-  const textBlock = (
-    <div className="flex flex-col justify-center py-14 px-10 lg:px-14">
-      {/* label */}
-      <div
-        className="text-[9px] font-mono tracking-[0.22em] uppercase mb-4"
-        style={{ color: d.color }}
-      >
-        {d.label}
-      </div>
+/* ── Primitives ─────────────────────────────────────────────── */
 
-      {/* title */}
-      <h2 className="text-2xl font-bold text-white mb-3 leading-snug" style={{ fontFamily: 'var(--font-inter), Arial, sans-serif' }}>
-        {d.title}
-      </h2>
-
-      {/* description */}
-      <p className="text-sm text-slate-400 leading-relaxed mb-7">{d.desc}</p>
-
-      {/* usage list — white, bigger, sans-serif */}
-      <ul className="space-y-2 mb-7">
-        {d.features.map((f, i) => (
-          <li key={i} className="flex gap-2.5 leading-snug" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.8rem', color: '#cbd5e1' }}>
-            <span className="shrink-0 mt-0.5" style={{ color: d.color }}>›</span>
-            {f}
-          </li>
-        ))}
-      </ul>
-
-      {/* legend */}
-      <div className="flex flex-wrap gap-x-5 gap-y-2 mb-8">
-        {d.legend.map(l => (
-          <div key={l.label} className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 shrink-0" style={{ background: l.color }} />
-            <span className="text-[10px] font-mono text-slate-500">{l.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* open link */}
-      <Link
-        href={d.href}
-        className="self-start text-sm font-medium text-slate-300 hover:text-white transition-colors border border-white/[0.12] hover:border-white/25 px-5 py-2.5"
-        style={{ fontFamily: 'Arial, sans-serif' }}
-      >
-        Open {d.title} →
-      </Link>
-    </div>
-  )
-
-  // Screenshot: 3/5 columns, natural aspect ratio, no cropping
-  const imageBlock = (
-    <div className="lg:col-span-3 flex items-center bg-[#070b12]">
-      <Image
-        src={d.src}
-        alt={d.label}
-        width={d.w}
-        height={d.h}
-        className="w-full h-auto block"
-        quality={90}
-      />
-    </div>
-  )
-
-  // Text: 2/5 columns
-  const textCol = (
-    <div className="lg:col-span-2">
-      {textBlock}
-    </div>
-  )
-
+function Brackets({ color = C.line2 }: { color?: string }) {
+  const s = { borderColor: color }
   return (
-    <div className="border-b border-white/[0.06]">
-      <div className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-5">
-        {reversed ? (
-          <>
-            {textCol}
-            {imageBlock}
-          </>
-        ) : (
-          <>
-            {imageBlock}
-            {textCol}
-          </>
-        )}
+    <>
+      <span aria-hidden className="pointer-events-none absolute -top-px -left-px w-3 h-3 border-t-2 border-l-2" style={s} />
+      <span aria-hidden className="pointer-events-none absolute -top-px -right-px w-3 h-3 border-t-2 border-r-2" style={s} />
+      <span aria-hidden className="pointer-events-none absolute -bottom-px -left-px w-3 h-3 border-b-2 border-l-2" style={s} />
+      <span aria-hidden className="pointer-events-none absolute -bottom-px -right-px w-3 h-3 border-b-2 border-r-2" style={s} />
+    </>
+  )
+}
+
+function Tag({ children, tone = 'olive' }: { children: ReactNode; tone?: 'olive' | 'amber' }) {
+  const col = tone === 'amber' ? C.amber : C.olive
+  const burmese = typeof children === 'string' && /[\u1000-\u109F]/.test(children)
+  return (
+    <span
+      className={`text-[11px] font-semibold px-2 py-1 border ${burmese ? 'text-[13px]' : 'font-mono tracking-wider uppercase'}`}
+      style={{ color: col, borderColor: col + '66', background: col + '12' }}
+    >
+      {children}
+    </span>
+  )
+}
+
+function Eyebrow({ children }: { children: ReactNode }) {
+  return (
+    <p className="font-mono text-[12px] font-bold tracking-[0.18em] uppercase mb-3" style={{ color: C.amber }}>
+      {children}
+    </p>
+  )
+}
+
+function SubLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="font-mono text-[11px] font-bold tracking-[0.16em] uppercase mb-3" style={{ color: C.olive }}>
+      {children}
+    </p>
+  )
+}
+
+function Terminal({ file, status = 'NOMINAL', children }: { file: string; status?: string; children: ReactNode }) {
+  return (
+    <div className="relative border" style={{ borderColor: C.line2, background: '#080a06' }}>
+      <Brackets color={C.amber} />
+      <div
+        className="flex items-center justify-between px-3 py-2 border-b font-mono text-[11px] tracking-wider uppercase"
+        style={{ borderColor: C.line, background: C.panel2 }}
+      >
+        <span style={{ color: C.text2 }}>FILE: {file}</span>
+        <span className="font-bold" style={{ color: C.green }}>{status}</span>
+      </div>
+      <div className="p-3.5 font-mono text-[12px] leading-relaxed space-y-1" style={{ color: C.text2 }}>
+        {children}
       </div>
     </div>
   )
 }
 
+function StageHeader({ n, name, meta }: { n: string; name: string; meta: string }) {
+  return (
+    <div className="flex flex-wrap items-stretch mb-8 border" style={{ borderColor: C.line2 }}>
+      <span
+        className="font-mono text-[13px] font-black px-3 py-2 flex items-center"
+        style={{ background: C.amber, color: C.bg }}
+      >
+        PHASE {n}
+      </span>
+      <span
+        className={`${stencil.className} text-[22px] font-bold tracking-[0.12em] uppercase px-4 py-1 flex items-center`}
+        style={{ color: C.text }}
+      >
+        {name}
+      </span>
+      <span
+        className="font-mono text-[12px] px-4 py-2 flex items-center w-full sm:w-auto border-t sm:border-t-0 sm:border-l sm:ml-auto"
+        style={{ color: C.text2, borderColor: C.line }}
+      >
+        {meta}
+      </span>
+    </div>
+  )
+}
+
+/* ── Dashboard row ─────────────────────────────────────────── */
+
+function DashboardRow({ d, index }: { d: (typeof DASHBOARDS)[0]; index: number }) {
+  const reversed = index % 2 === 1
+
+  const imageBlock = (
+    <div className="lg:col-span-3 p-4 lg:p-6 flex items-center">
+      <div className="relative w-full border" style={{ borderColor: C.line2 }}>
+        <Brackets color={C.amber} />
+        <div
+          className="flex items-center justify-between px-3 py-1.5 border-b font-mono text-[11px] tracking-wider uppercase"
+          style={{ borderColor: C.line, background: C.panel2, color: C.text2 }}
+        >
+          <span>{d.code} // {d.label}</span>
+          <span style={{ color: C.green }}>FEED ACTIVE</span>
+        </div>
+        <Image
+          src={d.src}
+          alt={`${d.title} screenshot`}
+          width={d.w}
+          height={d.h}
+          className="w-full h-auto block"
+          quality={90}
+        />
+      </div>
+    </div>
+  )
+
+  const textBlock = (
+    <div className="lg:col-span-2 flex flex-col justify-center py-10 px-6 lg:px-10">
+      <div className="flex items-center gap-3 mb-4">
+        <span
+          className="font-mono text-[12px] font-black px-2 py-1"
+          style={{ background: C.amber, color: C.bg }}
+        >
+          {d.code}
+        </span>
+        <span className="font-mono text-[12px] font-bold tracking-[0.18em]" style={{ color: C.amber }}>
+          {d.label}
+        </span>
+      </div>
+
+      <h2
+        className={`${stencil.className} text-4xl font-bold uppercase tracking-wide mb-3 leading-none`}
+        style={{ color: C.text }}
+      >
+        {d.title}
+      </h2>
+
+      <p className="text-[15px] leading-relaxed mb-6" style={{ color: C.text2 }}>{d.desc}</p>
+
+      <SubLabel>Operating notes</SubLabel>
+      <ol className="mb-6 border-l-2" style={{ borderColor: C.line2 }}>
+        {d.features.map((f, i) => (
+          <li key={i} className="flex gap-3 pl-3 py-1.5 text-[14px] leading-snug" style={{ color: C.text }}>
+            <span className="font-mono text-[12px] font-bold shrink-0 pt-px" style={{ color: C.amber }}>
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {f}
+          </li>
+        ))}
+      </ol>
+
+      <SubLabel>Map key</SubLabel>
+      <div className="flex flex-wrap gap-x-5 gap-y-2 mb-8">
+        {d.legend.map(l => (
+          <div key={l.label} className="flex items-center gap-2">
+            <div className="w-3 h-3 shrink-0 border border-black/40" style={{ background: l.color }} />
+            <span className="font-mono text-[12px]" style={{ color: C.text2 }}>{l.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <Link
+        href={d.href}
+        className="self-start font-mono text-[13px] font-bold tracking-[0.14em] uppercase px-5 py-3 border-2 transition-colors hover:bg-[#f2b33d] hover:text-[#0b0d09]"
+        style={{ borderColor: C.amber, color: C.amber }}
+      >
+        Deploy {d.label}
+      </Link>
+    </div>
+  )
+
+  return (
+    <div className="border-b" style={{ borderColor: C.line }}>
+      <div className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-5">
+        {reversed ? <>{textBlock}{imageBlock}</> : <>{imageBlock}{textBlock}</>}
+      </div>
+    </div>
+  )
+}
+
+/* ── Page ───────────────────────────────────────────────────── */
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#070b12] text-slate-200">
+    <div
+      className="min-h-screen"
+      style={{
+        background: C.bg,
+        color: C.text,
+        backgroundImage:
+          'linear-gradient(rgba(181,194,122,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(181,194,122,0.045) 1px, transparent 1px)',
+        backgroundSize: '48px 48px',
+      }}
+    >
+      {/* ── Classification strip ── */}
+      <div
+        className="text-center font-mono text-[11px] font-bold tracking-[0.3em] py-1.5"
+        style={{ background: C.olive, color: C.bg }}
+      >
+        UNCLASSIFIED // OPEN SOURCE INTELLIGENCE // FOR PUBLIC RELEASE
+      </div>
 
       {/* ── Hero ── */}
-      <section className="border-b border-white/[0.07] px-6 py-14">
+      <section className="border-b px-4 sm:px-6 py-14" style={{ borderColor: C.line }}>
         <div className="max-w-screen-xl mx-auto">
-          <div className="flex items-start gap-3 mb-4">
-            <span className="mt-2 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-100 mb-3">
-                Myanmar War Map
-              </h1>
-              <p className="text-sm text-slate-500 leading-relaxed max-w-xl">
-                Independent open-source intelligence platform tracking the Myanmar Civil War.
-                Conflict events are extracted from news sources, geocoded, and analysed using AI — updated daily.
-              </p>
-            </div>
+          <Eyebrow>Theatre: Myanmar // Situation report</Eyebrow>
+          <h1
+            className={`${stencil.className} text-6xl sm:text-7xl font-extrabold uppercase tracking-[0.04em] leading-[0.9] mb-5`}
+            style={{ color: C.text }}
+          >
+            Myanmar War Map
+          </h1>
+          <p className="text-[16px] leading-relaxed max-w-2xl mb-10" style={{ color: C.text2 }}>
+            Independent open-source intelligence platform tracking the Myanmar Civil War.
+            Conflict events are extracted from news sources, geocoded, and analysed using AI — updated daily.
+          </p>
+
+          {/* SITREP grid */}
+          <div className="relative grid grid-cols-2 lg:grid-cols-4 border mb-10" style={{ borderColor: C.line2, background: C.panel }}>
+            <Brackets color={C.amber} />
+            {SITREP.map((s, i) => (
+              <div
+                key={s.k}
+                className={`px-5 py-4 ${i > 0 ? 'lg:border-l' : ''} ${i % 2 === 1 ? 'border-l' : ''} ${i > 1 ? 'border-t lg:border-t-0' : ''}`}
+                style={{ borderColor: C.line }}
+              >
+                <div className="font-mono text-[11px] font-bold tracking-[0.18em]" style={{ color: C.olive }}>{s.k}</div>
+                <div className={`${stencil.className} text-5xl font-bold leading-none mt-1`} style={{ color: C.amber }}>{s.v}</div>
+                <div className="font-mono text-[12px] mt-1" style={{ color: C.text2 }}>{s.sub}</div>
+              </div>
+            ))}
           </div>
-          <div className="flex flex-wrap gap-2 pl-4">
+
+          {/* Module launcher */}
+          <SubLabel>Select module</SubLabel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {DASHBOARDS.map(d => (
               <Link
                 key={d.href}
                 href={d.href}
-                className="text-[10px] font-mono text-slate-500 hover:text-slate-300 transition-colors px-3 py-1.5 border border-white/[0.07] hover:border-white/[0.14]"
+                className="group relative border px-4 py-3 transition-colors hover:border-[#f2b33d] hover:bg-[#f2b33d14]"
+                style={{ borderColor: C.line2, background: C.panel }}
               >
-                {d.label}
+                <div className="font-mono text-[11px] font-bold tracking-[0.16em]" style={{ color: C.amber }}>{d.code}</div>
+                <div className={`${stencil.className} text-[22px] font-bold tracking-wide uppercase`} style={{ color: C.text }}>
+                  {d.label}
+                </div>
+                <div className="text-[13px]" style={{ color: C.text2 }}>{d.title}</div>
               </Link>
             ))}
           </div>
@@ -244,372 +396,321 @@ export default function HomePage() {
       </section>
 
       {/* ── Pipeline ── */}
-      <section className="border-t border-white/[0.07] py-20 overflow-hidden">
-        <div className="max-w-screen-xl mx-auto px-6">
+      <section className="py-20 overflow-hidden">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
 
-          {/* Header */}
-          <div className="mb-16">
-            <p className="text-[9px] font-mono text-slate-700 tracking-[0.3em] uppercase mb-4">Intelligence Pipeline</p>
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              <h2 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">
+          <div className="mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <Eyebrow>Intelligence pipeline // Order of processing</Eyebrow>
+              <h2
+                className={`${stencil.className} text-5xl font-bold uppercase leading-[0.95] tracking-wide`}
+                style={{ color: C.text }}
+              >
                 How 28 sources become<br />
-                <span className="text-slate-600 font-light">one verified event on the map</span>
+                <span style={{ color: C.olive }}>one verified event on the map</span>
               </h2>
-              <div className="flex items-center gap-2 pb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-mono text-slate-600">automated · every 6h</span>
-              </div>
             </div>
+            <Tag tone="amber">Automated // every 6h</Tag>
           </div>
 
-          <div className="relative">
-            {/* Spine */}
-            <div className="absolute left-0 top-2 bottom-2 w-px hidden lg:block"
-              style={{ background: 'linear-gradient(to bottom, #3b82f6 0%, #eab308 20%, #f97316 40%, #a855f7 60%, #22c55e 80%, #ef4444 100%)', opacity: 0.18 }} />
+          <div className="space-y-6">
 
             {/* ── 01 INGEST ── */}
-            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="text-[9px] font-mono text-slate-700">01</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-blue-400">INGEST</span>
-                <span className="text-[9px] font-mono text-slate-700 ml-1">RSS · Telegram MTProto · 6h cadence</span>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-[160px_1fr_280px] gap-8 items-start">
+            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+              <StageHeader n="01" name="Ingest" meta="RSS // Telegram MTProto // 6h cadence" />
+              <div className="grid grid-cols-1 lg:grid-cols-[170px_1fr_300px] gap-8 items-start">
                 <div>
-                  <div className="text-[72px] font-black leading-none font-mono text-blue-500/25 select-none"
-                    style={{ textShadow: '0 0 60px #3b82f620', WebkitTextStroke: '1px #3b82f635' }}>28</div>
-                  <p className="text-xs text-slate-500 mt-0.5">sources monitored</p>
-                  <div className="flex items-baseline gap-1.5 mt-3">
-                    <span className="text-[18px] font-bold font-mono text-blue-400/70">312</span>
-                    <span className="text-xs text-slate-500">articles/run</span>
+                  <div className={`${stencil.className} text-[84px] font-extrabold leading-none`} style={{ color: C.amber }}>28</div>
+                  <p className="font-mono text-[12px] uppercase tracking-wider" style={{ color: C.text2 }}>sources monitored</p>
+                  <div className="flex items-baseline gap-2 mt-3">
+                    <span className={`${stencil.className} text-3xl font-bold`} style={{ color: C.text }}>312</span>
+                    <span className="font-mono text-[12px] uppercase" style={{ color: C.text2 }}>articles / run</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-3 uppercase">Active feeds</p>
+                  <SubLabel>Active feeds</SubLabel>
                   <div className="flex flex-wrap gap-1.5">
                     {['Irrawaddy','DVB','Myanmar Now','RFA Burma','BNI Multimedia','Narinjara','Kachin News','BBC Burmese','Al Jazeera','Reuters','Karen News','SHAN','Mizzima','7Day News','The Diplomat','VOA Burmese','+11 feeds'].map(s => (
-                      <span key={s} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-blue-500/15 text-blue-400/60 bg-blue-500/[0.04]">{s}</span>
+                      <Tag key={s}>{s}</Tag>
                     ))}
                   </div>
-                  <p className="text-sm text-slate-500 mt-4 leading-relaxed">Each article pre-screened for Myanmar relevance before entering the pipeline. Non-Myanmar content dropped before any AI call.</p>
+                  <p className="text-[15px] mt-4 leading-relaxed" style={{ color: C.text2 }}>
+                    Each article pre-screened for Myanmar relevance before entering the pipeline. Non-Myanmar content dropped before any AI call.
+                  </p>
                 </div>
-                <div className="rounded border border-blue-500/20 bg-black/50 overflow-hidden">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-blue-500/10 bg-blue-950/20">
-                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
-                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">ingest.log</span>
+                <Terminal file="ingest.log">
+                  <div><span style={{ color: C.green }}>GET</span> irrawaddy.com/feed · 200 OK</div>
+                  <div><span style={{ color: C.green }}>GET</span> @theirrawaddy · 47 new</div>
+                  <div><span style={{ color: C.green }}>GET</span> dvb.no/feed · 200 OK</div>
+                  <div style={{ color: C.muted }}>... +25 more sources</div>
+                  <div className="mt-2 pt-2 border-t" style={{ borderColor: C.line }}>
+                    <span style={{ color: C.amber }}>RESULT:</span> <span style={{ color: C.text }}>312 queued for filter</span>
                   </div>
-                  <div className="p-3 font-mono text-[10px] space-y-1">
-                    <div><span className="text-green-400">GET</span><span className="text-slate-600"> irrawaddy.com/feed · 200 OK</span></div>
-                    <div><span className="text-green-400">GET</span><span className="text-slate-600"> @theirrawaddy · 47 new</span></div>
-                    <div><span className="text-green-400">GET</span><span className="text-slate-600"> dvb.no/feed · 200 OK</span></div>
-                    <div className="text-slate-700">    ··· +25 more sources</div>
-                    <div className="mt-2 pt-2 border-t border-blue-500/10">
-                      <span className="text-blue-400">→ </span><span className="text-slate-400">312 queued for filter</span>
-                    </div>
-                  </div>
-                </div>
+                </Terminal>
               </div>
             </div>
 
             {/* ── 02 FILTER ── */}
-            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="text-[9px] font-mono text-slate-700">02</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-yellow-400">FILTER</span>
-                <span className="text-[9px] font-mono text-slate-700 ml-1">regex · EN + Burmese · pre-LLM gate</span>
-              </div>
+            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+              <StageHeader n="02" name="Filter" meta="regex // EN + Burmese // pre-LLM gate" />
 
-              {/* Funnel visual */}
               <div className="mb-8">
                 <div className="flex items-center gap-4 mb-2">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[32px] font-black font-mono text-slate-400 leading-none">312</span>
-                    <span className="text-xs text-slate-500">in</span>
+                    <span className={`${stencil.className} text-[40px] font-bold leading-none`} style={{ color: C.text }}>312</span>
+                    <span className="font-mono text-[12px] uppercase" style={{ color: C.text2 }}>in</span>
                   </div>
-                  <div className="flex-1 relative h-6">
-                    <div className="absolute inset-0 rounded-sm overflow-hidden flex">
-                      <div className="bg-yellow-500/25 border-r-2 border-yellow-500/40" style={{ width: '10%' }} />
-                      <div className="bg-red-900/20 flex-1" />
+                  <div className="flex-1 relative h-8 border" style={{ borderColor: C.line2 }}>
+                    <div className="absolute inset-0 flex">
+                      <div style={{ width: '10%', background: C.amber }} />
+                      <div
+                        className="flex-1"
+                        style={{ background: 'repeating-linear-gradient(135deg, #2a1512 0 8px, #1a0e0c 8px 16px)' }}
+                      />
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-[9px] font-mono text-yellow-500/60 tracking-widest">90% REJECTED</span>
+                      <span className="font-mono text-[12px] font-bold tracking-[0.2em] px-2" style={{ color: C.text, background: '#0b0d09cc' }}>
+                        90% REJECTED
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[32px] font-black font-mono text-yellow-400 leading-none">31</span>
-                    <span className="text-xs text-slate-500">out</span>
+                    <span className={`${stencil.className} text-[40px] font-bold leading-none`} style={{ color: C.amber }}>31</span>
+                    <span className="font-mono text-[12px] uppercase" style={{ color: C.text2 }}>out</span>
                   </div>
                 </div>
-                <p className="text-xs text-slate-600">281 articles discarded · zero LLM calls wasted</p>
+                <p className="font-mono text-[12px]" style={{ color: C.text2 }}>281 articles discarded // zero LLM calls wasted</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-3 uppercase">Keyword triggers</p>
+                  <SubLabel>Keyword triggers</SubLabel>
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {['clash','battle','airstrike','shelling','seized','killed','strike','offensive','displaced','တိုက်ပွဲ','လေကြောင်း','သိမ်းပိုက်','ကျဆုံး','ဒုံး','စစ်ဆင်ရေး','+35 more'].map(t => (
-                      <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-yellow-500/15 text-yellow-400/60 bg-yellow-500/[0.04]">{t}</span>
+                      <Tag key={t} tone="amber">{t}</Tag>
                     ))}
                   </div>
-                  <p className="text-sm text-slate-500 leading-relaxed">Articles must match at least one conflict signal before Groq is called. Opinion pieces, economic news, and elections are rejected here.</p>
+                  <p className="text-[15px] leading-relaxed" style={{ color: C.text2 }}>
+                    Articles must match at least one conflict signal before Groq is called. Opinion pieces, economic news, and elections are rejected here.
+                  </p>
                 </div>
-                <div className="rounded border border-yellow-500/20 bg-black/50 overflow-hidden">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-yellow-500/10 bg-yellow-950/20">
-                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
-                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">keyword-gate.ts</span>
+                <Terminal file="keyword-gate.ts">
+                  <div style={{ color: C.muted }}>{'// article #2847'}</div>
+                  <div>test &quot;clash&quot; <span className="font-bold" style={{ color: C.green }}>MATCH</span></div>
+                  <div>test &quot;economic&quot; <span style={{ color: C.muted }}>SKIP</span></div>
+                  <div>test &quot;election&quot; <span style={{ color: C.muted }}>SKIP</span></div>
+                  <div className="mt-2 pt-2 border-t" style={{ borderColor: C.line }}>
+                    <span style={{ color: C.amber }}>RESULT:</span> <span style={{ color: C.text }}>PASSED // send to Groq</span>
                   </div>
-                  <div className="p-3 font-mono text-[10px] space-y-1">
-                    <div className="text-slate-700">{'// article #2847'}</div>
-                    <div><span className="text-yellow-400">test</span><span className="text-slate-500"> &quot;clash&quot;</span><span className="text-green-400">  ✓ MATCH</span></div>
-                    <div className="text-slate-700">test &quot;economic&quot;  skip</div>
-                    <div className="text-slate-700">test &quot;election&quot;  skip</div>
-                    <div className="mt-2 pt-2 border-t border-yellow-500/10">
-                      <span className="text-yellow-400">→ </span><span className="text-slate-400">PASSED · send to Groq</span>
-                    </div>
-                  </div>
-                </div>
+                </Terminal>
               </div>
             </div>
 
             {/* ── 03 EXTRACT ── */}
-            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="text-[9px] font-mono text-slate-700">03</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-orange-400">EXTRACT</span>
-                <span className="text-[9px] font-mono text-slate-700 ml-1">Groq · Llama 3.3 70B · EN + Burmese</span>
-              </div>
+            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+              <StageHeader n="03" name="Extract" meta="Groq // Llama 3.3 70B // EN + Burmese" />
 
-              {/* Raw → JSON transformation */}
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_28px_1fr] gap-4 items-start mb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-6">
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-2 uppercase">Raw article excerpt</p>
-                  <div className="rounded border border-white/[0.05] bg-white/[0.02] p-3 font-mono text-[10px] text-slate-500 leading-relaxed">
-                    &ldquo;At least{' '}<span className="bg-orange-500/20 text-orange-300 px-0.5 rounded-sm">4 soldiers killed</span>{' '}in a{' '}
-                    <span className="bg-orange-500/20 text-orange-300 px-0.5 rounded-sm">clash</span>{' '}near{' '}
-                    <span className="bg-blue-500/20 text-blue-300 px-0.5 rounded-sm">Sagaing</span>{' '}on{' '}
-                    <span className="bg-green-500/20 text-green-300 px-0.5 rounded-sm">June 1</span>{' '}between{' '}
-                    <span className="bg-purple-500/20 text-purple-300 px-0.5 rounded-sm">PDF</span>{' '}and{' '}
-                    <span className="bg-purple-500/20 text-purple-300 px-0.5 rounded-sm">Tatmadaw</span>{' '}
+                  <SubLabel>Raw article excerpt</SubLabel>
+                  <div className="border p-4 text-[14px] leading-relaxed" style={{ borderColor: C.line2, background: '#080a06', color: C.text2 }}>
+                    &ldquo;At least{' '}<mark className="px-1 font-semibold" style={{ background: '#5a3a10', color: '#ffd9a0' }}>4 soldiers killed</mark>{' '}in a{' '}
+                    <mark className="px-1 font-semibold" style={{ background: '#5a3a10', color: '#ffd9a0' }}>clash</mark>{' '}near{' '}
+                    <mark className="px-1 font-semibold" style={{ background: '#1d3a55', color: '#bfe0ff' }}>Sagaing</mark>{' '}on{' '}
+                    <mark className="px-1 font-semibold" style={{ background: '#22421f', color: '#c8f5c2' }}>June 1</mark>{' '}between{' '}
+                    <mark className="px-1 font-semibold" style={{ background: '#3d2a55', color: '#e2d0ff' }}>PDF</mark>{' '}and{' '}
+                    <mark className="px-1 font-semibold" style={{ background: '#3d2a55', color: '#e2d0ff' }}>Tatmadaw</mark>{' '}
                     forces according to local sources...&rdquo;
                   </div>
-                  <div className="flex gap-3 mt-2 text-[10px] text-slate-600">
-                    <span><span className="inline-block w-2 h-2 rounded-sm bg-orange-500/20 mr-1" />event signal</span>
-                    <span><span className="inline-block w-2 h-2 rounded-sm bg-blue-500/20 mr-1" />location</span>
-                    <span><span className="inline-block w-2 h-2 rounded-sm bg-green-500/20 mr-1" />date</span>
-                    <span><span className="inline-block w-2 h-2 rounded-sm bg-purple-500/20 mr-1" />actors</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 font-mono text-[12px]" style={{ color: C.text2 }}>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ background: '#5a3a10' }} />event signal</span>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ background: '#1d3a55' }} />location</span>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ background: '#22421f' }} />date</span>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3" style={{ background: '#3d2a55' }} />actors</span>
                   </div>
-                </div>
-                <div className="items-center justify-center pt-10 hidden lg:flex">
-                  <span className="text-orange-500/30 text-lg font-mono">→</span>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-2 uppercase">Structured output</p>
-                  <div className="rounded border border-orange-500/20 bg-black/50 overflow-hidden">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-orange-500/10 bg-orange-950/20">
-                      <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
-                      <span className="font-mono text-[9px] text-slate-700 ml-1.5">extraction-output.json</span>
-                    </div>
-                    <div className="p-3 font-mono text-[10px] space-y-0.5">
-                      <div className="text-slate-700">{'{'}</div>
-                      <div className="pl-3"><span className="text-orange-400">&quot;eventType&quot;</span><span className="text-slate-600">: </span><span className="text-green-400">&quot;CLASH&quot;</span></div>
-                      <div className="pl-3"><span className="text-orange-400">&quot;date&quot;</span><span className="text-slate-600">:      </span><span className="text-slate-300">&quot;2026-06-01&quot;</span></div>
-                      <div className="pl-3"><span className="text-orange-400">&quot;location&quot;</span><span className="text-slate-600">:  </span><span className="text-yellow-400">&quot;Sagaing&quot;</span><span className="text-yellow-600/60"> ⚠ unverified</span></div>
-                      <div className="pl-3"><span className="text-orange-400">&quot;actors&quot;</span><span className="text-slate-600">:   </span><span className="text-slate-300">[&quot;PDF&quot;,&quot;Tatmadaw&quot;]</span></div>
-                      <div className="pl-3"><span className="text-orange-400">&quot;fatalities&quot;</span><span className="text-slate-600">: </span><span className="text-slate-300">4</span></div>
-                      <div className="text-slate-700">{'}'}</div>
-                    </div>
-                  </div>
+                  <SubLabel>Structured output</SubLabel>
+                  <Terminal file="extraction-output.json" status="PARSED">
+                    <div>{'{'}</div>
+                    <div className="pl-4"><span style={{ color: C.amber }}>&quot;eventType&quot;</span>: <span style={{ color: C.green }}>&quot;CLASH&quot;</span></div>
+                    <div className="pl-4"><span style={{ color: C.amber }}>&quot;date&quot;</span>: <span style={{ color: C.text }}>&quot;2026-06-01&quot;</span></div>
+                    <div className="pl-4"><span style={{ color: C.amber }}>&quot;location&quot;</span>: <span style={{ color: C.text }}>&quot;Sagaing&quot;</span> <span className="font-bold" style={{ color: C.red }}>UNVERIFIED</span></div>
+                    <div className="pl-4"><span style={{ color: C.amber }}>&quot;actors&quot;</span>: <span style={{ color: C.text }}>[&quot;PDF&quot;, &quot;Tatmadaw&quot;]</span></div>
+                    <div className="pl-4"><span style={{ color: C.amber }}>&quot;fatalities&quot;</span>: <span style={{ color: C.text }}>4</span></div>
+                    <div>{'}'}</div>
+                  </Terminal>
                 </div>
               </div>
+              <SubLabel>Event classes</SubLabel>
               <div className="flex flex-wrap gap-1.5">
                 {['CLASH','AIRSTRIKE','SHELLING','SIEGE_SEIZED','RECAPTURED','DISPLACEMENT','HUMANITARIAN','POLITICAL'].map(t => (
-                  <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-sm border border-orange-500/15 text-orange-400/60 bg-orange-500/[0.04]">{t}</span>
+                  <Tag key={t}>{t}</Tag>
                 ))}
               </div>
             </div>
 
             {/* ── 04 VALIDATE ── */}
-            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="text-[9px] font-mono text-slate-700">04</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-purple-400">VALIDATE</span>
-                <span className="text-[9px] font-mono text-slate-700 ml-1">DeepSeek · deepseek-chat</span>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+              <StageHeader n="04" name="Validate" meta="DeepSeek // deepseek-chat" />
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-4 uppercase">Corrections applied</p>
-                  <div className="space-y-3 mb-6 text-sm">
+                  <SubLabel>Corrections applied</SubLabel>
+                  <div className="mb-6 border" style={{ borderColor: C.line }}>
                     {[
-                      { label: 'state assignment', before: '"Sagaing"', after: '"Sagaing Region"' },
-                      { label: 'location vs source', before: 'mixed up', after: 'event location only' },
-                    ].map(d => (
-                      <div key={d.label} className="flex items-center gap-3">
-                        <span className="text-slate-500 w-36 shrink-0">{d.label}</span>
-                        <span className="text-red-400/40 line-through">{d.before}</span>
-                        <span className="text-slate-700">→</span>
-                        <span className="text-green-400">{d.after}</span>
+                      { label: 'State assignment',   before: '"Sagaing"',  after: '"Sagaing Region"' },
+                      { label: 'Location vs source', before: 'mixed up',   after: 'event location only' },
+                    ].map((d, i) => (
+                      <div
+                        key={d.label}
+                        className={`grid grid-cols-[150px_1fr_1fr] gap-3 px-3 py-2 text-[14px] ${i ? 'border-t' : ''}`}
+                        style={{ borderColor: C.line }}
+                      >
+                        <span className="font-mono text-[12px] uppercase pt-0.5" style={{ color: C.olive }}>{d.label}</span>
+                        <span className="line-through" style={{ color: C.red }}>{d.before}</span>
+                        <span className="font-semibold" style={{ color: C.green }}>{d.after}</span>
                       </div>
                     ))}
                   </div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-3 uppercase">Hard alliance rules</p>
+                  <SubLabel>Hard alliance rules</SubLabel>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { label: 'PDF + CDF', desc: 'always same side' },
+                      { label: 'PDF + CDF',      desc: 'always same side' },
                       { label: '3BHA coalition', desc: 'TNLA + MNDAA + AA never split' },
                     ].map(r => (
-                      <div key={r.label} className="flex items-center gap-2 px-2.5 py-1.5 rounded border border-purple-500/20 bg-purple-500/[0.04]">
-                        <span className="text-[10px] font-mono font-bold text-purple-400">{r.label}</span>
-                        <span className="text-xs text-slate-500">{r.desc}</span>
+                      <div key={r.label} className="flex items-center gap-2 px-3 py-2 border" style={{ borderColor: C.line2, background: C.panel2 }}>
+                        <span className="font-mono text-[12px] font-bold" style={{ color: C.amber }}>{r.label}</span>
+                        <span className="text-[13px]" style={{ color: C.text2 }}>{r.desc}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="rounded border border-purple-500/20 bg-black/50 overflow-hidden">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-purple-500/10 bg-purple-950/20">
-                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
-                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">validation-result.json</span>
+                <Terminal file="validation-result.json" status="VERIFIED">
+                  <div style={{ color: C.muted }}>{'// location fix'}</div>
+                  <div className="line-through" style={{ color: C.red }}>&quot;Sagaing&quot;</div>
+                  <div><span style={{ color: C.amber }}>FIX:</span> <span style={{ color: C.green }}>&quot;Sagaing Region&quot;</span></div>
+                  <div className="mt-2" style={{ color: C.muted }}>{'// alliance check'}</div>
+                  <div>PDF + CDF same side <span className="font-bold" style={{ color: C.green }}>PASS</span></div>
+                  <div>3BHA never split <span className="font-bold" style={{ color: C.green }}>PASS</span></div>
+                  <div className="mt-2 pt-2 border-t" style={{ borderColor: C.line }}>
+                    <span style={{ color: C.amber }}>&quot;confidence&quot;</span>: <span className="font-bold" style={{ color: C.green }}>0.82</span>
                   </div>
-                  <div className="p-3 font-mono text-[10px] space-y-1">
-                    <div className="text-slate-700">{'// location fix'}</div>
-                    <div className="text-red-400/40 line-through">&quot;Sagaing&quot;</div>
-                    <div><span className="text-purple-400">→ </span><span className="text-green-400">&quot;Sagaing Region&quot; ✓</span></div>
-                    <div className="mt-2 text-slate-700">{'// alliance check'}</div>
-                    <div><span className="text-green-400">PDF + CDF</span><span className="text-slate-600">  same side ✓</span></div>
-                    <div><span className="text-green-400">3BHA</span><span className="text-slate-600">       never split ✓</span></div>
-                    <div className="mt-2 pt-2 border-t border-purple-500/10">
-                      <span className="text-purple-400">&quot;confidence&quot;</span><span className="text-slate-500">: </span><span className="text-green-400">0.82</span>
-                    </div>
-                  </div>
-                </div>
+                </Terminal>
               </div>
             </div>
 
             {/* ── 05 GEOCODE ── */}
-            <div className="lg:pl-8 py-10 border-b border-white/[0.05]">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="text-[9px] font-mono text-slate-700">05</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-green-400">GEOCODE</span>
-                <span className="text-[9px] font-mono text-slate-700 ml-1">200+ township DB · GeoJSON polygons</span>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+              <StageHeader n="05" name="Geocode" meta="200+ township DB // GeoJSON polygons" />
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-4 uppercase">Precision cascade</p>
-                  <div className="space-y-2.5 text-sm">
+                  <SubLabel>Precision cascade</SubLabel>
+                  <div className="border" style={{ borderColor: C.line }}>
                     {[
-                      { sym: '●', label: 'exact town', example: 'Sagaing township', coords: '21.8833°N  95.9833°E', color: '#22c55e' },
-                      { sym: '◉', label: 'township centroid', example: 'Sagaing District', coords: '21.9°N  96.1°E', color: '#22c55e88' },
-                      { sym: '◎', label: 'district centroid', example: 'Sagaing Region', coords: '22.1°N  95.8°E', color: '#22c55e55' },
-                      { sym: '○', label: 'state / region', example: 'Sagaing', coords: '22.5°N  95.7°E', color: '#22c55e30' },
-                      { sym: '✕', label: 'Myanmar only — discard', example: 'no specific state', coords: '— dropped', color: '#ef4444' },
-                    ].map(p => (
-                      <div key={p.label} className="flex items-center gap-3">
-                        <span className="w-4 shrink-0 text-center text-base leading-none font-mono" style={{ color: p.color }}>{p.sym}</span>
-                        <span className="text-slate-500 w-36 shrink-0">{p.label}</span>
-                        <span className="text-slate-600 flex-1">{p.example}</span>
-                        <span className="text-slate-600 hidden sm:block tabular-nums font-mono text-xs">{p.coords}</span>
+                      { tier: 'T1', label: 'Exact town',        example: 'Sagaing township', coords: '21.8833°N 95.9833°E', ok: true },
+                      { tier: 'T2', label: 'Township centroid', example: 'Sagaing District', coords: '21.9°N 96.1°E',       ok: true },
+                      { tier: 'T3', label: 'District centroid', example: 'Sagaing Region',   coords: '22.1°N 95.8°E',       ok: true },
+                      { tier: 'T4', label: 'State / region',    example: 'Sagaing',          coords: '22.5°N 95.7°E',       ok: true },
+                      { tier: 'XX', label: 'Myanmar only',      example: 'no specific state', coords: 'DISCARDED',          ok: false },
+                    ].map((p, i) => (
+                      <div
+                        key={p.label}
+                        className={`grid grid-cols-[44px_150px_1fr] sm:grid-cols-[44px_160px_1fr_170px] items-center gap-3 px-3 py-2 text-[14px] ${i ? 'border-t' : ''}`}
+                        style={{ borderColor: C.line }}
+                      >
+                        <span
+                          className="font-mono text-[12px] font-black text-center py-0.5"
+                          style={{ background: p.ok ? C.olive : C.red, color: C.bg }}
+                        >
+                          {p.tier}
+                        </span>
+                        <span className="font-semibold" style={{ color: C.text }}>{p.label}</span>
+                        <span style={{ color: C.text2 }}>{p.example}</span>
+                        <span className="hidden sm:block font-mono text-[12px] tabular-nums text-right" style={{ color: p.ok ? C.text2 : C.red }}>
+                          {p.coords}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="rounded border border-green-500/20 bg-black/50 overflow-hidden">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-green-500/10 bg-green-950/20">
-                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
-                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">geocode.ts</span>
+                <Terminal file="geocode.ts" status="LOCKED">
+                  <div style={{ color: C.muted }}>resolve(&quot;Sagaing Region&quot;)</div>
+                  <div>match: <span style={{ color: C.text }}>Sagaing township</span></div>
+                  <div>lat: <span style={{ color: C.green }}>21.8833</span></div>
+                  <div>lng: <span style={{ color: C.green }}>95.9833</span></div>
+                  <div>precision: <span style={{ color: C.green }}>township</span></div>
+                  <div className="mt-2 pt-2 border-t" style={{ borderColor: C.line }}>
+                    <span style={{ color: C.amber }}>RESULT:</span> <span style={{ color: C.text }}>quality gate passed</span>
                   </div>
-                  <div className="p-3 font-mono text-[10px] space-y-1">
-                    <div className="text-slate-700">resolve(&quot;Sagaing Region&quot;)</div>
-                    <div><span className="text-green-400">→ </span><span className="text-slate-500">match: Sagaing township</span></div>
-                    <div><span className="text-green-400">→ </span><span className="text-slate-400">lat: <span className="text-green-300">21.8833</span></span></div>
-                    <div><span className="text-green-400">→ </span><span className="text-slate-400">lng: <span className="text-green-300">95.9833</span></span></div>
-                    <div><span className="text-green-400">→ </span><span className="text-slate-400">precision: <span className="text-green-300">township ✓</span></span></div>
-                    <div className="mt-2 pt-2 border-t border-green-500/10">
-                      <span className="text-green-400">✓ </span><span className="text-slate-500">quality gate passed</span>
-                    </div>
-                  </div>
-                </div>
+                </Terminal>
               </div>
             </div>
 
             {/* ── 06 STORE ── */}
-            <div className="lg:pl-8 py-10">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="text-[9px] font-mono text-slate-700">06</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-red-400">STORE</span>
-                <span className="text-[9px] font-mono text-slate-700 ml-1">Neon PostgreSQL · SHA-256 dedup</span>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+              <StageHeader n="06" name="Store" meta="Neon PostgreSQL // SHA-256 dedup" />
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-4 uppercase">3-stage schema</p>
-                  <div className="flex items-center gap-0 text-[9px] mb-6 flex-wrap gap-y-2">
+                  <SubLabel>3-stage schema</SubLabel>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
                     {[
-                      { table: 'RawArticle', fields: 'url · title · body · fetched_at' },
-                      null,
-                      { table: 'ConflictEvent', fields: 'type · date · region · actors · hash' },
-                      null,
-                      { table: 'AnalysedEvent', fields: 'coords · confidence · source_count' },
-                    ].map((item, i) => item === null ? (
-                      <span key={i} className="text-red-500/25 px-2 font-mono">→</span>
-                    ) : (
-                      <div key={i} className="rounded border border-red-500/20 bg-red-500/[0.04] px-3 py-2">
-                        <div className="font-bold font-mono text-red-400 mb-1 text-[10px]">{item.table}</div>
-                        <div className="text-slate-500 text-[10px]">{item.fields}</div>
+                      { step: 'STAGE A', table: 'RawArticle',    fields: 'url · title · body · fetched_at' },
+                      { step: 'STAGE B', table: 'ConflictEvent', fields: 'type · date · region · actors · hash' },
+                      { step: 'STAGE C', table: 'AnalysedEvent', fields: 'coords · confidence · source_count' },
+                    ].map(item => (
+                      <div key={item.table} className="border px-3 py-2.5" style={{ borderColor: C.line2, background: C.panel2 }}>
+                        <div className="font-mono text-[11px] font-bold tracking-wider" style={{ color: C.olive }}>{item.step}</div>
+                        <div className="font-mono text-[14px] font-bold" style={{ color: C.amber }}>{item.table}</div>
+                        <div className="font-mono text-[12px] mt-0.5" style={{ color: C.text2 }}>{item.fields}</div>
                       </div>
                     ))}
                   </div>
-                  <p className="text-[10px] font-semibold text-slate-500 tracking-wider mb-2 uppercase">Dedup fingerprint</p>
-                  <div className="font-mono text-[9px] text-slate-600 mb-1">
-                    SHA-256(<span className="text-slate-500">&quot;PDF+Tatmadaw | Sagaing | CLASH | 2026-06-01&quot;</span>)
+                  <SubLabel>Dedup fingerprint</SubLabel>
+                  <div className="font-mono text-[13px] mb-1 break-all" style={{ color: C.text2 }}>
+                    SHA-256(<span style={{ color: C.text }}>&quot;PDF+Tatmadaw | Sagaing | CLASH | 2026-06-01&quot;</span>)
                   </div>
-                  <div className="font-mono text-[9px] text-red-400/40">→ a7f3e9c2...d841f</div>
-                  <p className="text-sm text-slate-500 leading-relaxed mt-3">Same clash from multiple outlets → confidence increases, not duplicate pins.</p>
+                  <div className="font-mono text-[13px] font-bold" style={{ color: C.amber }}>= a7f3e9c2...d841f</div>
+                  <p className="text-[15px] leading-relaxed mt-3" style={{ color: C.text2 }}>
+                    Same clash from multiple outlets increases confidence instead of creating duplicate pins.
+                  </p>
                 </div>
-                <div className="rounded border border-red-500/20 bg-black/50 overflow-hidden">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-red-500/10 bg-red-950/20">
-                    <div className="w-2 h-2 rounded-full bg-red-500/30" /><div className="w-2 h-2 rounded-full bg-yellow-500/30" /><div className="w-2 h-2 rounded-full bg-green-500/30" />
-                    <span className="font-mono text-[9px] text-slate-700 ml-1.5">upsert.sql</span>
+                <Terminal file="upsert.sql" status="COMMITTED">
+                  <div>hash = sha256(</div>
+                  <div className="pl-3" style={{ color: C.text }}>&quot;PDF+Tatmadaw|Sagaing|CLASH|2026-06-01&quot;</div>
+                  <div>)</div>
+                  <div><span style={{ color: C.amber }}>a7f3e9...</span> <span style={{ color: C.green }}>NEW EVENT</span></div>
+                  <div className="mt-2 pt-2 border-t" style={{ borderColor: C.line }}>
+                    <div><span className="font-bold" style={{ color: C.amber }}>INSERT</span> ConflictEvent <span style={{ color: C.green }}>OK</span></div>
+                    <div><span className="font-bold" style={{ color: C.amber }}>INSERT</span> AnalysedEvent <span style={{ color: C.green }}>OK</span></div>
+                    <div className="pl-3">confidence = <span style={{ color: C.green }}>0.79</span></div>
+                    <div className="mt-1"><span style={{ color: C.amber }}>RESULT:</span> <span style={{ color: C.text }}>Mapbox pin live</span></div>
                   </div>
-                  <div className="p-3 font-mono text-[10px] space-y-1">
-                    <div className="text-slate-700">hash ← sha256(</div>
-                    <div className="pl-2 text-slate-600">&quot;PDF+Tatmadaw|Sagaing|</div>
-                    <div className="pl-2 text-slate-600"> CLASH|2026-06-01&quot;</div>
-                    <div className="text-slate-700">)</div>
-                    <div><span className="text-red-400">→ </span><span className="text-green-400">a7f3e9...  new event</span></div>
-                    <div className="mt-2 pt-2 border-t border-red-500/10">
-                      <div><span className="text-red-400">INSERT</span><span className="text-slate-500"> ConflictEvent ✓</span></div>
-                      <div><span className="text-red-400">INSERT</span><span className="text-slate-500"> AnalysedEvent</span></div>
-                      <div><span className="text-slate-700">  confidence = </span><span className="text-green-400">0.79</span></div>
-                      <div className="mt-1"><span className="text-green-400">→ </span><span className="text-slate-400">Mapbox pin live ✓</span></div>
-                    </div>
-                  </div>
-                </div>
+                </Terminal>
               </div>
             </div>
-
           </div>
 
-          {/* Bottom flow */}
-          <div className="mt-12 pt-6 border-t border-white/[0.05]">
-            <div className="flex flex-wrap items-end gap-x-0 gap-y-2">
-              {([
-                { label: '28 sources', sub: 'RSS/Telegram', color: '#3b82f6' },
-                null,
-                { label: 'keyword gate', sub: 'regex filter', color: '#eab308' },
-                null,
-                { label: 'Llama 3.3 70B', sub: 'extract', color: '#f97316' },
-                null,
-                { label: 'DeepSeek', sub: 'validate', color: '#a855f7' },
-                null,
-                { label: 'township DB', sub: 'geocode', color: '#22c55e' },
-                null,
-                { label: 'SHA-256', sub: 'dedup', color: '#ef4444' },
-                null,
-                { label: 'Mapbox GL', sub: 'map', color: '#94a3b8' },
-              ] as ({ label: string; sub: string; color: string } | null)[]).map((item, i) => item === null ? (
-                <span key={i} className="text-[8px] font-mono text-slate-800 px-1.5 pb-1">──→</span>
-              ) : (
-                <div key={i} className="flex flex-col items-center">
-                  <span className="text-[10px] font-mono font-semibold" style={{ color: item.color }}>{item.label}</span>
-                  <span className="text-[9px] text-slate-600">{item.sub}</span>
+          {/* Chain of custody */}
+          <div className="mt-10">
+            <SubLabel>Chain of processing</SubLabel>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 border" style={{ borderColor: C.line2 }}>
+              {[
+                { label: '28 sources',    sub: 'RSS / Telegram' },
+                { label: 'Keyword gate',  sub: 'regex filter' },
+                { label: 'Llama 3.3 70B', sub: 'extract' },
+                { label: 'DeepSeek',      sub: 'validate' },
+                { label: 'Township DB',   sub: 'geocode' },
+                { label: 'SHA-256',       sub: 'dedup' },
+                { label: 'Mapbox GL',     sub: 'map' },
+              ].map((item, i) => (
+                <div
+                  key={item.label}
+                  className="px-3 py-3 border-r border-b lg:border-b-0"
+                  style={{ borderColor: C.line, background: C.panel }}
+                >
+                  <div className="font-mono text-[11px] font-bold" style={{ color: C.olive }}>STEP {String(i + 1).padStart(2, '0')}</div>
+                  <div className="font-mono text-[13px] font-bold" style={{ color: C.amber }}>{item.label}</div>
+                  <div className="text-[12px]" style={{ color: C.text2 }}>{item.sub}</div>
                 </div>
               ))}
             </div>
@@ -619,25 +720,28 @@ export default function HomePage() {
       </section>
 
       {/* ── Glossary ── */}
-      <section className="border-t border-white/[0.07] py-12">
-        <div className="max-w-screen-xl mx-auto px-6">
-          <p className="text-[9px] font-mono text-slate-600 tracking-[0.2em] uppercase mb-6">
-            Key Terms
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-16">
+      <section className="border-t py-14" style={{ borderColor: C.line }}>
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
+          <Eyebrow>Annex A // Key terms</Eyebrow>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 border-t" style={{ borderColor: C.line }}>
             {GLOSSARY.map(g => (
-              <div key={g.term} className="flex gap-4 py-2.5 border-b border-white/[0.04]">
-                <span className="font-mono text-[10px] font-semibold text-slate-400 w-20 shrink-0 pt-px">
+              <div key={g.term} className="flex gap-4 py-3 border-b" style={{ borderColor: C.line }}>
+                <span className="font-mono text-[12px] font-bold w-24 shrink-0 pt-0.5 tracking-wider" style={{ color: C.amber }}>
                   {g.term}
                 </span>
-                <span className="text-[11px] text-slate-600 leading-relaxed">{g.def}</span>
+                <span className="text-[14px] leading-relaxed" style={{ color: C.text2 }}>{g.def}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-
+      <div
+        className="text-center font-mono text-[11px] font-bold tracking-[0.3em] py-1.5"
+        style={{ background: C.olive, color: C.bg }}
+      >
+        UNCLASSIFIED // OPEN SOURCE INTELLIGENCE // FOR PUBLIC RELEASE
+      </div>
     </div>
   )
 }

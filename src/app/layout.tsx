@@ -54,15 +54,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="pt-14">{children}</main>
         <footer className="border-t border-white/[0.06] py-4 px-6">
           <div className="max-w-screen-xl mx-auto flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[9px] font-mono text-slate-700">
+            <p className="text-[11px] font-mono text-slate-300">
               © {new Date().getFullYear()} Myanmar Civil War · Independent OSINT · Not affiliated with any government or armed group
             </p>
             <div className="flex items-center gap-4">
-              <Link href="/privacy-policy" className="text-[9px] font-mono text-slate-600 hover:text-slate-400 transition-colors">Privacy Policy</Link>
-              <span className="text-slate-800 text-[9px]">|</span>
-              <Link href="/terms-of-use"   className="text-[9px] font-mono text-slate-600 hover:text-slate-400 transition-colors">Terms of Use</Link>
-              <span className="text-slate-800 text-[9px]">|</span>
-              <Link href="/disclaimer"     className="text-[9px] font-mono text-slate-600 hover:text-slate-400 transition-colors">Disclaimer</Link>
+              <Link href="/privacy-policy" className="text-[11px] font-mono text-slate-300 hover:text-white transition-colors">Privacy Policy</Link>
+              <span className="text-slate-500 text-[11px]">|</span>
+              <Link href="/terms-of-use"   className="text-[11px] font-mono text-slate-300 hover:text-white transition-colors">Terms of Use</Link>
+              <span className="text-slate-500 text-[11px]">|</span>
+              <Link href="/disclaimer"     className="text-[11px] font-mono text-slate-300 hover:text-white transition-colors">Disclaimer</Link>
             </div>
           </div>
         </footer>
