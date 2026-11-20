@@ -235,7 +235,7 @@ function DashboardRow({ d, index }: { d: (typeof DASHBOARDS)[0]; index: number }
           className="flex items-center justify-between px-3 py-1.5 border-b font-mono text-[11px] tracking-wider uppercase"
           style={{ borderColor: C.line, background: C.panel2, color: C.text2 }}
         >
-          <span>{d.code} // {d.label}</span>
+          <span>{`${d.code} // ${d.label}`}</span>
           <span style={{ color: C.green }}>FEED ACTIVE</span>
         </div>
         <Image
@@ -339,7 +339,7 @@ export default function HomePage() {
       {/* ── Hero ── */}
       <section className="border-b px-4 sm:px-6 py-14" style={{ borderColor: C.line }}>
         <div className="max-w-screen-xl mx-auto">
-          <Eyebrow>Theatre: Myanmar // Situation report</Eyebrow>
+          <Eyebrow>Theatre: Myanmar{' // '}Situation report</Eyebrow>
           <h1
             className={`${stencil.className} text-6xl sm:text-7xl font-extrabold uppercase tracking-[0.04em] leading-[0.9] mb-5`}
             style={{ color: C.text }}
@@ -401,7 +401,7 @@ export default function HomePage() {
 
           <div className="mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <Eyebrow>Intelligence pipeline // Order of processing</Eyebrow>
+              <Eyebrow>Intelligence pipeline{' // '}Order of processing</Eyebrow>
               <h2
                 className={`${stencil.className} text-5xl font-bold uppercase leading-[0.95] tracking-wide`}
                 style={{ color: C.text }}
@@ -410,7 +410,7 @@ export default function HomePage() {
                 <span style={{ color: C.olive }}>one verified event on the map</span>
               </h2>
             </div>
-            <Tag tone="amber">Automated // every 6h</Tag>
+            <Tag tone="amber">Automated{' // '}every 6h</Tag>
           </div>
 
           <div className="space-y-6">
@@ -479,7 +479,7 @@ export default function HomePage() {
                     <span className="font-mono text-[12px] uppercase" style={{ color: C.text2 }}>out</span>
                   </div>
                 </div>
-                <p className="font-mono text-[12px]" style={{ color: C.text2 }}>281 articles discarded // zero LLM calls wasted</p>
+                <p className="font-mono text-[12px]" style={{ color: C.text2 }}>281 articles discarded{' // '}zero LLM calls wasted</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
@@ -500,7 +500,7 @@ export default function HomePage() {
                   <div>test &quot;economic&quot; <span style={{ color: C.muted }}>SKIP</span></div>
                   <div>test &quot;election&quot; <span style={{ color: C.muted }}>SKIP</span></div>
                   <div className="mt-2 pt-2 border-t" style={{ borderColor: C.line }}>
-                    <span style={{ color: C.amber }}>RESULT:</span> <span style={{ color: C.text }}>PASSED // send to Groq</span>
+                    <span style={{ color: C.amber }}>RESULT:</span> <span style={{ color: C.text }}>PASSED{' // '}send to Groq</span>
                   </div>
                 </Terminal>
               </div>
@@ -722,7 +722,7 @@ export default function HomePage() {
       {/* ── Glossary ── */}
       <section className="border-t py-14" style={{ borderColor: C.line }}>
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
-          <Eyebrow>Annex A // Key terms</Eyebrow>
+          <Eyebrow>Annex A{' // '}Key terms</Eyebrow>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 border-t" style={{ borderColor: C.line }}>
             {GLOSSARY.map(g => (
               <div key={g.term} className="flex gap-4 py-3 border-b" style={{ borderColor: C.line }}>
