@@ -2,6 +2,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Barlow_Condensed } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { C } from '@/components/home/palette'
+import TheatreMap from '@/components/home/TheatreMap'
+import SourceFlow from '@/components/home/SourceFlow'
+import HomeAnimations from '@/components/home/HomeAnimations'
 
 export const metadata = {
   title: 'Myanmar War Map — OSINT Platform',
@@ -13,21 +17,6 @@ const stencil = Barlow_Condensed({
   display: 'swap',
 })
 
-/* ── Tactical palette (all text colours ≥ 7:1 on the page background) ── */
-const C = {
-  bg:      '#0b0d09',
-  panel:   '#11140e',
-  panel2:  '#161a12',
-  line:    '#343b2a',
-  line2:   '#4a5339',
-  text:    '#eef0e2',
-  text2:   '#c9cdb6',
-  muted:   '#a8ad94',
-  amber:   '#f2b33d',
-  olive:   '#b5c27a',
-  red:     '#ff6a5c',
-  green:   '#8fe08a',
-}
 
 const DASHBOARDS = [
   {
@@ -130,10 +119,10 @@ const GLOSSARY = [
 ]
 
 const SITREP = [
-  { k: 'SOURCES',    v: '28',   sub: 'RSS + Telegram' },
-  { k: 'CYCLE',      v: '06H',  sub: 'automated ingest' },
-  { k: 'GAZETTEER',  v: '200+', sub: 'townships indexed' },
-  { k: 'MODULES',    v: '04',   sub: 'operational' },
+  { k: 'SOURCES',    n: 28,  pad: 0, suffix: '',  sub: 'RSS + Telegram' },
+  { k: 'CYCLE',      n: 6,   pad: 2, suffix: 'H', sub: 'automated ingest' },
+  { k: 'GAZETTEER',  n: 200, pad: 0, suffix: '+', sub: 'townships indexed' },
+  { k: 'MODULES',    n: 4,   pad: 2, suffix: '',  sub: 'operational' },
 ]
 
 /* ── Primitives ─────────────────────────────────────────────── */
@@ -307,7 +296,7 @@ function DashboardRow({ d, index }: { d: (typeof DASHBOARDS)[0]; index: number }
 
   return (
     <div className="border-b" style={{ borderColor: C.line }}>
-      <div className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-5">
+      <div data-reveal className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-5">
         {reversed ? <>{textBlock}{imageBlock}</> : <>{imageBlock}{textBlock}</>}
       </div>
     </div>
@@ -319,7 +308,7 @@ function DashboardRow({ d, index }: { d: (typeof DASHBOARDS)[0]; index: number }
 export default function HomePage() {
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         background: C.bg,
         color: C.text,
@@ -328,6 +317,8 @@ export default function HomePage() {
         backgroundSize: '48px 48px',
       }}
     >
+      <HomeAnimations />
+
       {/* ── Classification strip ── */}
       <div
         className="text-center font-mono text-[11px] font-bold tracking-[0.3em] py-1.5"
@@ -339,20 +330,21 @@ export default function HomePage() {
       {/* ── Hero ── */}
       <section className="border-b px-4 sm:px-6 py-14" style={{ borderColor: C.line }}>
         <div className="max-w-screen-xl mx-auto">
-          <Eyebrow>Theatre: Myanmar{' // '}Situation report</Eyebrow>
+          <div data-hero><Eyebrow>Theatre: Myanmar{' // '}Situation report</Eyebrow></div>
           <h1
+            data-hero
             className={`${stencil.className} text-6xl sm:text-7xl font-extrabold uppercase tracking-[0.04em] leading-[0.9] mb-5`}
             style={{ color: C.text }}
           >
             Myanmar War Map
           </h1>
-          <p className="text-[16px] leading-relaxed max-w-2xl mb-10" style={{ color: C.text2 }}>
+          <p data-hero className="text-[16px] leading-relaxed max-w-2xl mb-10" style={{ color: C.text2 }}>
             Independent open-source intelligence platform tracking the Myanmar Civil War.
             Conflict events are extracted from news sources, geocoded, and analysed using AI — updated daily.
           </p>
 
           {/* SITREP grid */}
-          <div className="relative grid grid-cols-2 lg:grid-cols-4 border mb-10" style={{ borderColor: C.line2, background: C.panel }}>
+          <div data-hero className="relative grid grid-cols-2 lg:grid-cols-4 border mb-10" style={{ borderColor: C.line2, background: C.panel }}>
             <Brackets color={C.amber} />
             {SITREP.map((s, i) => (
               <div
@@ -361,7 +353,10 @@ export default function HomePage() {
                 style={{ borderColor: C.line }}
               >
                 <div className="font-mono text-[11px] font-bold tracking-[0.18em]" style={{ color: C.olive }}>{s.k}</div>
-                <div className={`${stencil.className} text-5xl font-bold leading-none mt-1`} style={{ color: C.amber }}>{s.v}</div>
+                <div className={`${stencil.className} text-5xl font-bold leading-none mt-1`} style={{ color: C.amber }}
+                  data-count={s.n} data-pad={s.pad} data-suffix={s.suffix}>
+                  {String(s.n).padStart(s.pad, '0') + s.suffix}
+                </div>
                 <div className="font-mono text-[12px] mt-1" style={{ color: C.text2 }}>{s.sub}</div>
               </div>
             ))}
@@ -369,7 +364,7 @@ export default function HomePage() {
 
           {/* Module launcher */}
           <SubLabel>Select module</SubLabel>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div data-hero className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {DASHBOARDS.map(d => (
               <Link
                 key={d.href}
@@ -384,6 +379,31 @@ export default function HomePage() {
                 <div className="text-[13px]" style={{ color: C.text2 }}>{d.title}</div>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Theatre map ── */}
+      <section className="border-b py-16" style={{ borderColor: C.line }}>
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
+          <div data-reveal className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <Eyebrow>Order of battle{' // '}Tatmadaw command network</Eyebrow>
+              <h2 className={`${stencil.className} text-5xl font-bold uppercase leading-[0.95] tracking-wide`} style={{ color: C.text }}>
+                Theatre map<br />
+                <span style={{ color: C.olive }}>commands, divisions and battalions</span>
+              </h2>
+            </div>
+            <Link
+              href="/bases"
+              className="self-start sm:self-auto font-mono text-[13px] font-bold tracking-[0.14em] uppercase px-5 py-3 border-2 transition-colors hover:bg-[#f2b33d] hover:text-[#0b0d09]"
+              style={{ borderColor: C.amber, color: C.amber }}
+            >
+              Open full bases map
+            </Link>
+          </div>
+          <div data-reveal>
+            <TheatreMap />
           </div>
         </div>
       </section>
@@ -416,7 +436,7 @@ export default function HomePage() {
           <div className="space-y-6">
 
             {/* ── 01 INGEST ── */}
-            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+            <div data-reveal className="relative border p-4 sm:p-6" style={{ borderColor: C.line, background: C.panel }}>
               <StageHeader n="01" name="Ingest" meta="RSS // Telegram MTProto // 6h cadence" />
               <div className="grid grid-cols-1 lg:grid-cols-[170px_1fr_300px] gap-8 items-start">
                 <div>
@@ -448,10 +468,14 @@ export default function HomePage() {
                   </div>
                 </Terminal>
               </div>
+              <div className="hidden lg:block mt-8 pt-6 border-t" style={{ borderColor: C.line }}>
+                <SubLabel>Source connections{' // '}live feed routing</SubLabel>
+                <SourceFlow />
+              </div>
             </div>
 
             {/* ── 02 FILTER ── */}
-            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+            <div data-reveal className="relative border p-4 sm:p-6" style={{ borderColor: C.line, background: C.panel }}>
               <StageHeader n="02" name="Filter" meta="regex // EN + Burmese // pre-LLM gate" />
 
               <div className="mb-8">
@@ -462,7 +486,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex-1 relative h-8 border" style={{ borderColor: C.line2 }}>
                     <div className="absolute inset-0 flex">
-                      <div style={{ width: '10%', background: C.amber }} />
+                      <div data-funnel style={{ width: '10%', background: C.amber }} />
                       <div
                         className="flex-1"
                         style={{ background: 'repeating-linear-gradient(135deg, #2a1512 0 8px, #1a0e0c 8px 16px)' }}
@@ -507,7 +531,7 @@ export default function HomePage() {
             </div>
 
             {/* ── 03 EXTRACT ── */}
-            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+            <div data-reveal className="relative border p-4 sm:p-6" style={{ borderColor: C.line, background: C.panel }}>
               <StageHeader n="03" name="Extract" meta="Groq // Llama 3.3 70B // EN + Burmese" />
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-6">
@@ -551,7 +575,7 @@ export default function HomePage() {
             </div>
 
             {/* ── 04 VALIDATE ── */}
-            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+            <div data-reveal className="relative border p-4 sm:p-6" style={{ borderColor: C.line, background: C.panel }}>
               <StageHeader n="04" name="Validate" meta="DeepSeek // deepseek-chat" />
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
                 <div>
@@ -600,7 +624,7 @@ export default function HomePage() {
             </div>
 
             {/* ── 05 GEOCODE ── */}
-            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+            <div data-reveal className="relative border p-4 sm:p-6" style={{ borderColor: C.line, background: C.panel }}>
               <StageHeader n="05" name="Geocode" meta="200+ township DB // GeoJSON polygons" />
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
                 <div>
@@ -647,7 +671,7 @@ export default function HomePage() {
             </div>
 
             {/* ── 06 STORE ── */}
-            <div className="relative border p-6" style={{ borderColor: C.line, background: C.panel }}>
+            <div data-reveal className="relative border p-4 sm:p-6" style={{ borderColor: C.line, background: C.panel }}>
               <StageHeader n="06" name="Store" meta="Neon PostgreSQL // SHA-256 dedup" />
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
                 <div>
@@ -692,7 +716,7 @@ export default function HomePage() {
 
           {/* Chain of custody */}
           <div className="mt-10">
-            <SubLabel>Chain of processing</SubLabel>
+            <div data-reveal><SubLabel>Chain of processing</SubLabel></div>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 border" style={{ borderColor: C.line2 }}>
               {[
                 { label: '28 sources',    sub: 'RSS / Telegram' },

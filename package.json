@@ -24,10 +24,9 @@
     "delete:source": "tsx --env-file=.env.local src/scripts/delete-source.ts",
     "ingest:neatogeo": "tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts",
     "cleanup:backfill": "tsx --env-file=.env.local src/scripts/cleanup-backfill-2026.ts",
-    "ingest:neatogeo":  "tsx --env-file=.env.local src/scripts/ingest-neatogeo.ts",
-    "db:stats":         "tsx --env-file=.env.local src/scripts/db-stats.ts",
+    "db:stats": "tsx --env-file=.env.local src/scripts/db-stats.ts",
     "channel:progress": "tsx --env-file=.env.local src/scripts/channel-progress.ts",
-    "ingest:url":       "tsx --env-file=.env.local src/scripts/ingest-url.ts"
+    "ingest:url": "tsx --env-file=.env.local src/scripts/ingest-url.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -45,6 +44,7 @@
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "gsap": "^3.12.5",
     "jspdf": "^4.2.1",
     "mapbox-gl": "^3.4.0",
     "next": "14.2.0",
